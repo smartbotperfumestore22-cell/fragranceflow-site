@@ -2770,6 +2770,285 @@ function PCard({ p, ans, isSmall=false, lang="ar" }) {
 }
 
 // ═══════════════════════════════════════════════════════════════
+//  RESULTS PAGE (site page mode only) — presentation layer
+//  Reuses: res.main / res.similar from getResults(), _pct, calcMatchScore(),
+//  generateWhyChosen(), autoImpressions(), similarityScore(), PERSONA data.
+//  It does not score, filter or rank anything itself.
+// ═══════════════════════════════════════════════════════════════
+const RV_LABELS = {
+  ar: {
+    gender:  { men:"رجالي", women:"نسائي", unisex:"للجنسين" },
+    family:  { floral:"زهري", woody:"خشبي", fresh:"منعش", citrus:"حمضي", aquatic:"بحري", oriental:"شرقي", heavy:"عميق", sweet:"حلو", clean:"نظيف", musky:"مسكي", fruity:"فاكهي", leather:"جلدي" },
+    occasion:{ daily:"يومي", evening:"سهرات", dates:"مواعيد", travel:"سفر", allday:"كل وقت" },
+    season:  { summer:"صيف", spring:"ربيع", autumn:"خريف", fall:"خريف", winter:"شتاء", allseasons:"كل الفصول" },
+    vibe:    { luxury:"فخامة", elegant:"أناقة", confident:"ثقة", attractive:"جاذبية", fresh_imp:"انتعاش", longlast:"أثر طويل", firstlook:"انطباع أول" },
+    title:"✨ العطور المناسبة ليك",
+    sub:"بناءً على اختياراتك، هادو أفضل العطور اللي لقيناها ليك.",
+    featured:"أفضل اختيار ليك", alt:"بديل قوي",
+    match:"Match", why:"علاش اخترناه ليك؟",
+    rows:{ gender:"لمن", family:"العائلة", vibe:"الطابع", occasion:"المناسبة", season:"الفصل" },
+    view:"شوف العطر", where:"فين تلقاه؟", buy:"شوف المنتج", price:"درهم",
+    approx:"تقريباً", more:"يمكن يعجبوك حتى هادو", retry:"دير الاختبار من جديد", all:"اكتشف جميع العطور",
+    sponsored:"Sponsorisé",
+    reasons:{ gender:"عطر", family:"من العائلة العطرية اللي كتفضل", occasion:"مناسب للمناسبة اللي اخترتي", season:"كيناسب الفصل", notes:"فيه نوتات قريبة من ذوقك", impression:"كيعطي الانطباع اللي بغيتي", longevity:"الثبات اللي بغيتي" },
+  },
+  fr: {
+    gender:  { men:"Homme", women:"Femme", unisex:"Mixte" },
+    family:  { floral:"Floral", woody:"Boisé", fresh:"Frais", citrus:"Hespéridé", aquatic:"Aquatique", oriental:"Oriental", heavy:"Intense", sweet:"Gourmand", clean:"Propre", musky:"Musqué", fruity:"Fruité", leather:"Cuir" },
+    occasion:{ daily:"Quotidien", evening:"Soirée", dates:"Rendez-vous", travel:"Voyage", allday:"Toute occasion" },
+    season:  { summer:"Été", spring:"Printemps", autumn:"Automne", fall:"Automne", winter:"Hiver", allseasons:"Toutes saisons" },
+    vibe:    { luxury:"Luxe", elegant:"Élégance", confident:"Assurance", attractive:"Séduction", fresh_imp:"Fraîcheur", longlast:"Sillage", firstlook:"Première impression" },
+    title:"✨ Les parfums faits pour vous",
+    sub:"D'après vos réponses, voici les meilleurs parfums que nous avons trouvés pour vous.",
+    featured:"Votre meilleur choix", alt:"Excellente alternative",
+    match:"Match", why:"Pourquoi ce choix ?",
+    rows:{ gender:"Pour", family:"Famille", vibe:"Caractère", occasion:"Occasion", season:"Saison" },
+    view:"Voir le parfum", where:"Où le trouver ?", buy:"Voir le produit", price:"DH",
+    approx:"environ", more:"Vous pourriez aussi aimer", retry:"Refaire le quiz", all:"Découvrir tous les parfums",
+    sponsored:"Sponsorisé",
+    reasons:{ gender:"Parfum", family:"Dans la famille que vous préférez", occasion:"Adapté à votre occasion", season:"Adapté à la saison", notes:"Des notes proches de vos goûts", impression:"Donne l'impression recherchée", longevity:"La tenue souhaitée" },
+  },
+};
+const rvL = (lang) => RV_LABELS[lang === "fr" ? "fr" : "ar"];
+const rvJoin = (map, arr) => (arr || []).map(v => map[v] || v).filter(Boolean);
+const rvUniq = (arr) => arr.filter((v, i) => arr.indexOf(v) === i);
+const rvSeasons = (L, p) => (p.season || []).includes("allseasons") ? [L.season.allseasons] : rvUniq(rvJoin(L.season, p.season));
+
+// Reasons = only the calcMatchScore() criteria that matched. Criteria order is fixed in calcMatchScore:
+// gender, character, occasion, season, [longevity if asked], notes, [impression if asked].
+function rvReasons(p, ans, lang) {
+  const L = rvL(lang);
+  const { criteria } = calcMatchScore(p, ans);
+  const kinds = ["gender", "family", "occasion", "season"];
+  if (ans.longevity) kinds.push("longevity");
+  kinds.push("notes");
+  if (ans.impression) kinds.push("impression");
+  return criteria.map((cr, i) => ({ ...cr, kind: kinds[i] }))
+    .filter(cr => cr.match && cr.kind)
+    .map(cr => {
+      const label = lang === "fr" ? cr.label_fr : cr.label_ar;
+      if (cr.kind === "notes") return L.reasons.notes + " (" + label + ")";
+      if (cr.kind === "gender") return L.reasons.gender + " " + label;
+      return L.reasons[cr.kind] + " · " + label;
+    });
+}
+
+// Stores only if the database has them (p.stores[] or p.url/p.store). Nothing is invented.
+function rvStores(p) {
+  if (Array.isArray(p.stores) && p.stores.length) return p.stores.filter(s => s && s.url);
+  if (p.url) return [{ name: p.store || "", price: p.price, url: p.url, image: p.image }];
+  return [];
+}
+
+// "You may also like": the engine's own res.similar first, then the next fragrances from the
+// same similarityScore() ranking and the same filters getResults() uses — no new algorithm.
+function rvMoreLikeThis(res, ans, n) {
+  const top = res.main[0];
+  if (!top) return res.similar || [];
+  const used = new Set([...res.main.map(p => p.id), ...(res.similar || []).map(p => p.id)]);
+  const g = ans.gender || "unisex";
+  const genderOk = p => {
+    const pg = p.gender || [];
+    if (g === "men") return pg.includes("men") || pg.includes("unisex");
+    if (g === "women") return pg.includes("women") || pg.includes("unisex");
+    return true;
+  };
+  const extra = getProducts()
+    .filter(p => p.active !== false && !used.has(p.id) && genderOk(p))
+    .map(p => ({ ...p, _simScore: similarityScore(top, p) }))
+    .sort((a, b) => b._simScore - a._simScore);
+  return [...(res.similar || []), ...extra].slice(0, n);
+}
+
+function RVFacts({ p, L }) {
+  const rows = [
+    [L.rows.gender, rvJoin(L.gender, p.gender)],
+    [L.rows.family, rvJoin(L.family, (p.character || []).slice(0, 3))],
+    [L.rows.vibe, rvJoin(L.vibe, autoImpressions(p.character, p.occasion).slice(0, 2))],
+    [L.rows.occasion, rvUniq(rvJoin(L.occasion, p.occasion))],
+    [L.rows.season, rvSeasons(L, p)],
+  ].filter(r => r[1].length);
+  return (
+    <dl className="ffr-facts">
+      {rows.map(([k, v]) => (
+        <div key={k}><dt>{k}</dt><dd>{v.join(" · ")}</dd></div>
+      ))}
+    </dl>
+  );
+}
+
+function RVStores({ p, L, lang }) {
+  const stores = rvStores(p);
+  if (!stores.length) return null;
+  return (
+    <div className="ffr-stores">
+      <h4>{L.where}</h4>
+      <ul>
+        {stores.map((s, i) => (
+          <li key={i}>
+            {s.image && <img src={s.image} alt="" width="44" height="44" loading="lazy"/>}
+            <span className="ffr-store-name">{s.name || (lang === "fr" ? "Magasin partenaire" : "محل شريك")}</span>
+            {s.price ? <span className="ffr-store-price">{s.price} {L.price}</span> : null}
+            <a href={s.url} target="_blank" rel="noopener noreferrer" className="ffr-btn ffr-btn-ghost"
+              onClick={() => window.track && window.track("buy_click", { perfume: p.name, price: s.price || p.price, store: s.name || "" })}>
+              {L.buy}
+            </a>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+function RVCard({ p, ans, lang, rank }) {
+  const L = rvL(lang);
+  const featured = rank === 1;
+  const reasons = rvReasons(p, ans, lang);
+  const why = generateWhyChosen(p, ans, p.slotType || "best", lang);
+  return (
+    <article className={"ffr-card" + (featured ? " ffr-featured" : "")} aria-label={"#" + rank + " " + p.name}>
+      <div className="ffr-media">
+        <img src={p.image} alt={p.name + " – " + p.brand} loading={featured ? "eager" : "lazy"}
+          onError={e => { e.currentTarget.style.visibility = "hidden"; }}/>
+        <span className="ffr-rank">#{rank}</span>
+      </div>
+      <div className="ffr-body">
+        <p className="ffr-kicker">
+          {featured ? L.featured : L.alt}
+          {p.sponsored ? <span className="ffr-sponsored">{L.sponsored}</span> : null}
+        </p>
+        <div className="ffr-head">
+          <div className="ffr-names">
+            <p className="ffr-brand">{p.brand}</p>
+            <h3 className="ffr-name">{p.name}</h3>
+          </div>
+          {p._pct !== undefined && (
+            <p className="ffr-match"><b>{p._pct}%</b><span>{L.match}</span></p>
+          )}
+        </div>
+        <RVFacts p={p} L={L}/>
+        {reasons.length > 0 && (
+          <div className="ffr-why">
+            <h4>{L.why}</h4>
+            <ul>{reasons.map((r, i) => <li key={i}>{r}</li>)}</ul>
+            {featured && why ? <p className="ffr-why-text">{why}</p> : null}
+          </div>
+        )}
+        <RVStores p={p} L={L} lang={lang}/>
+        <div className="ffr-actions">
+          <a className={"ffr-btn" + (featured ? "" : " ffr-btn-ghost")} href={"#f-" + encodeURIComponent(p.id)}>{L.view}</a>
+          {p.price ? <span className="ffr-price">{p.price} {L.price} <small>{L.approx}</small></span> : null}
+        </div>
+      </div>
+    </article>
+  );
+}
+
+function ResultsPage({ res, pers, ans, lang, t, questions, reset, favPicked, pickFavorite, personaFeedback, setPersonaFeedback }) {
+  const L = rvL(lang);
+  // summary of the user's answers, using the quiz's own option labels
+  const pickLabel = (id) => {
+    const q = (questions || []).find(q => q.id === id);
+    const o = q && (q.opts || []).find(o => String(o.v) === String(ans[id]));
+    return o ? o.l : null;
+  };
+  const summary = [pickLabel("gender"), pickLabel("occasion"), pickLabel("season"), pickLabel("character"),
+    ans.impression ? (L.vibe[ans.impression] || null) : null].filter(Boolean);
+  const topPct = res.main[0]?._pct ?? 100;
+  const more = rvMoreLikeThis(res, ans, 6);
+  const persName = pers && (lang === "fr" ? pers.fr :
+    ans.gender === "men" && pers.ar_male ? pers.ar_male : ans.gender === "women" && pers.ar_female ? pers.ar_female : pers.ar);
+  const persDesc = pers && (lang === "fr" ? (pers.desc_fr || pers.desc) :
+    ans.gender === "men" && pers.desc_male ? pers.desc_male : ans.gender === "women" && pers.desc_female ? pers.desc_female : pers.desc);
+
+  return (
+    <section className="ffr" aria-labelledby="ffr-title">
+      <header className="ffr-header">
+        <h2 id="ffr-title">{L.title}</h2>
+        <p>{L.sub}</p>
+        {summary.length > 0 && <p className="ffr-summary">{summary.join(" · ")}</p>}
+      </header>
+
+      {res.main.length === 1 && topPct < 80 && (
+        <p className="ffr-note">{lang === "fr" ? "Un seul parfum correspond à vos critères." : "ما لقيناش غير عطر واحد قريب من اختياراتك."}</p>
+      )}
+      {topPct >= 80 && topPct < 90 && (
+        <p className="ffr-note">{lang === "fr" ? "Résultats limités — ajustez certains critères pour plus d'options." : "النتائج محدودة — جرب تعدل بعض الشروط باش تظهر اقتراحات أكثر."}</p>
+      )}
+
+      {res.main[0] && <RVCard p={res.main[0]} ans={ans} lang={lang} rank={1}/>}
+      {res.main.length > 1 && (
+        <div className="ffr-alts">
+          {res.main.slice(1).map((p, i) => <RVCard key={p.id} p={p} ans={ans} lang={lang} rank={i + 2}/>)}
+        </div>
+      )}
+
+      {ans.isGift === "gift" ? (
+        <aside className="ffr-persona"><p className="ffr-kicker">🎁</p><h3>{t.giftPersona}</h3><p>{t.giftPersonaSub}</p></aside>
+      ) : pers && (
+        <aside className="ffr-persona">
+          <p className="ffr-kicker">{t.personaLabel} {pers.icon}</p>
+          <h3>{persName}</h3>
+          <p>{persDesc}</p>
+          <div className="ffr-feedback">
+            {personaFeedback === null ? (
+              <>
+                <span>{lang === "fr" ? "Cette personnalité vous ressemble ?" : "هل تشبهك هذه الشخصية؟"}</span>
+                <button type="button" onClick={() => { setPersonaFeedback("yes"); window.track && window.track("persona_feedback", { character: ans.character, impression: ans.impression, perfume: "yes" }); }}>👍</button>
+                <button type="button" onClick={() => { setPersonaFeedback("no"); window.track && window.track("persona_feedback", { character: ans.character, impression: ans.impression, perfume: "no" }); }}>👎</button>
+              </>
+            ) : <span>{lang === "fr" ? "Merci pour votre retour 🙏" : "شكراً على رأيك 🙏"}</span>}
+          </div>
+        </aside>
+      )}
+
+      {more.length > 0 && (
+        <section className="ffr-more" aria-labelledby="ffr-more-title">
+          <h3 id="ffr-more-title">{L.more}</h3>
+          <ul>
+            {more.map(p => (
+              <li key={p.id}>
+                <a href={"#f-" + encodeURIComponent(p.id)}>
+                  <img src={p.image} alt="" loading="lazy" width="172" height="119"/>
+                  <span className="ffr-brand">{p.brand}</span>
+                  <span className="ffr-more-name">{p.name}</span>
+                  <span className="ffr-more-fam">{rvJoin(L.family, (p.character || []).slice(0, 2)).join(" · ")}</span>
+                </a>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
+      {res.main.length > 0 && (
+        <aside className="ffr-fav">
+          {!favPicked ? (
+            <>
+              <p>{t.favoriteQ}</p>
+              <div>
+                {res.main.map((p, i) => (
+                  <button type="button" key={p.id} onClick={() => pickFavorite(p)}><span>#{i + 1}</span> {p.name}</button>
+                ))}
+              </div>
+            </>
+          ) : <p>{t.favoriteThanks} {t.favoriteSubthanks}</p>}
+        </aside>
+      )}
+
+      <div className="ffr-end">
+        <button type="button" className="ffr-btn" onClick={reset}>{L.retry}</button>
+        <a className="ffr-btn ffr-btn-ghost" href="#fragrances">{L.all}</a>
+      </div>
+      <p className="ffr-disclaimer">
+        {lang === "fr"
+          ? "Ces recommandations sont basées sur vos réponses. L'expérience finale reste personnelle."
+          : "التوصيات مبنية على اختياراتك وتفضيلاتك العطرية، وقد تختلف التجربة النهائية حسب الذوق الشخصي."}
+      </p>
+    </section>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════
 //  WIDGET CONTENT
 // ═══════════════════════════════════════════════════════════════
 function WidgetContent({ onClose, lang: langProp, initialStep="intro" }) {
@@ -3395,7 +3674,12 @@ window.track && window.track("favorite_pick", {
       )}
 
       {/* RESULTS */}
-      {step==="results" && (
+      {step==="results" && CONFIG.PAGE_MODE && (
+        <ResultsPage res={res} pers={pers} ans={ans} lang={lang} t={t} questions={questions} reset={reset}
+          favPicked={favPicked} pickFavorite={pickFavorite}
+          personaFeedback={personaFeedback} setPersonaFeedback={setPersonaFeedback}/>
+      )}
+      {step==="results" && !CONFIG.PAGE_MODE && (
         <div style={{ animation:"up .4s ease" }}>
 
           {/* UX Warning — حسب الـ pct */}

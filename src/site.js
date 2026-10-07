@@ -70,19 +70,23 @@ export function startSite({ loadQuiz }) {
   function route() {
     var hsh = location.hash;
     if (hsh === '#quiz') { openQuiz(); return; }
-    if (hsh === '#fragrances') { if (window.FF_CLOSE) window.FF_CLOSE(); show('catalog'); window.scrollTo(0, 0); document.title = 'اكتشف العطور | FragranceFlow'; return; }
-    if (hsh === '#about') { if (window.FF_CLOSE) window.FF_CLOSE(); show('about'); window.scrollTo(0, 0); document.title = 'About | FragranceFlow'; return; }
+    if (hsh === '#fragrances') { show('catalog'); window.scrollTo(0, 0); document.title = 'اكتشف العطور | FragranceFlow'; return; }
+    if (hsh === '#about') { show('about'); window.scrollTo(0, 0); document.title = 'About | FragranceFlow'; return; }
     if (hsh.indexOf('#f-') === 0) { var p = byId(decodeURIComponent(hsh.slice(3))); if (p) { renderPerfume(p); return; } }
     if (window.FF_CLOSE) window.FF_CLOSE();
+    quizOpen = false;
     show('landing'); document.title = BASE_TITLE;
   }
   window.addEventListener('hashchange', route);
   window.FF_ON_CLOSE = function () { goHome(); };
 
   /* ---------- the existing quiz, loaded on first use ---------- */
+  var quizOpen = false;
   function openQuiz() {
     show('quiz'); window.scrollTo(0, 0);
     document.title = 'الاختبار | FragranceFlow';
+    if (quizOpen) return;
+    quizOpen = true;
     if (window.FF_OPEN) { window.FF_OPEN(); return; }
     var root = document.getElementById('ff-widget-root');
     if (!root.firstChild) root.appendChild(h('p', { class: 'quiz-loading', text: 'كنوجدو الاختبار...' }));
@@ -250,7 +254,6 @@ export function startSite({ loadQuiz }) {
   /* ---------- fragrance page ---------- */
   function layer(label, list) { return h('div', { class: 'layer' }, h('b', { text: label }), h('span', { class: 'latin', text: list.join(' · ') })); }
   function renderPerfume(p) {
-    if (window.FF_CLOSE) window.FF_CLOSE();
     show('detail'); window.scrollTo(0, 0);
     document.title = p.name + ' – ' + p.brand + ' | FragranceFlow';
     stage.textContent = '';
