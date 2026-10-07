@@ -2545,13 +2545,40 @@ function PCard({ p, ans, isSmall=false, lang="ar" }) {
   return (
     <div onMouseEnter={()=>setHov(true)} onMouseLeave={()=>setHov(false)}
       style={{
-        background: p.slotType==="best" ? "rgba(91,42,134,0.045)" : "rgba(33,31,35,0.025)",
-        border:`1px solid ${hov||(p.slotType==="best")?"rgba(91,42,134,0.25)":"rgba(33,31,35,0.08)"}`,
-        borderRadius:15, overflow:"hidden",
+        background: "#FFFFFF",
+        border: p.slotType==="best" ? "2px solid #5B2A86" : `1px solid ${hov?"rgba(91,42,134,0.35)":"rgba(33,31,35,0.12)"}`,
+        boxShadow: p.slotType==="best" ? "0 12px 32px rgba(59,24,91,0.12)" : "none",
+        borderRadius:10, overflow:"hidden",
         animation:`up .45s ease both`,
         transition:"border-color .2s, transform .2s",
         transform:hov?"translateY(-2px)":"none",
       }}>
+
+      {/* Rank ribbon (presentation only): #1 best match, #2, #3 with the match % already computed by the engine */}
+      {p.slotType && (
+        <div className="ff-rank" style={{
+          display:"flex", alignItems:"center", justifyContent:"space-between", gap:8,
+          padding: p.slotType==="best" ? "9px 13px" : "7px 13px",
+          background: p.slotType==="best" ? "#5B2A86" : "#F4EFF8",
+          color: p.slotType==="best" ? "#FFFFFF" : "#3B185B",
+        }}>
+          <span style={{ display:"flex", alignItems:"baseline", gap:8, fontWeight:800 }}>
+            <span style={{ fontFamily:"'Bodoni Moda',Georgia,serif", fontSize: p.slotType==="best" ? 17 : 14, direction:"ltr" }}>
+              #{p.slotType==="best" ? 1 : p.slotType==="mid" ? 2 : 3}
+            </span>
+            <span style={{ fontSize: p.slotType==="best" ? 12 : 11 }}>
+              {p.slotType==="best" ? (lang==="fr" ? "Meilleur choix" : "أفضل تطابق")
+                : p.slotType==="mid" ? (lang==="fr" ? "Deuxième choix" : "الاختيار الثاني")
+                : (lang==="fr" ? "Troisième choix" : "الاختيار الثالث")}
+            </span>
+          </span>
+          {p._pct !== undefined && (
+            <span style={{ fontSize: p.slotType==="best" ? 15 : 13, fontWeight:800, direction:"ltr" }}>
+              {p._pct}% <span style={{ fontSize:10, fontWeight:600, opacity:.85 }}>{lang==="fr" ? "match" : "تطابق"}</span>
+            </span>
+          )}
+        </div>
+      )}
 
       {/* Image + Info */}
       <div style={{ display:"flex" }}>
