@@ -50,10 +50,10 @@
       <span>FragranceFlow</span>
     </button>
     <nav class="menu" id="menu" aria-label="القائمة الرئيسية">
-      <button type="button" data-go="how">اكتشف</button>
-      <button type="button" data-go="fragrances">العطور</button>
-      <button type="button" data-quiz="1">الاختبار</button>
-      <button type="button" data-go="about">من نحن</button>
+      <a href="#fragrances">اكتشف العطور</a>
+      <a href="#quiz">Quiz</a>
+      <button type="button" data-go="explore">التصنيفات</button>
+      <a href="#about">About</a>
     </nav>
     <div class="search">
       <label class="sr" for="q">قلب على عطر</label>
@@ -61,7 +61,7 @@
       <input id="q" type="search" placeholder="قلب على عطر أو ماركة..." autocomplete="off">
       <div class="drop" id="drop" hidden></div>
     </div>
-    <button type="button" class="btn head-cta" data-quiz="1">لقى العطر ديالي</button>
+    <a class="btn head-cta" href="#quiz">اكتشف عطرك</a>
     <button type="button" class="burger" id="burger" aria-expanded="false" aria-controls="menu" aria-label="فتح القائمة">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
     </button>
@@ -69,15 +69,15 @@
 </header>
 
 <main id="landing">
+  <!-- 1. Hero: what FragranceFlow is + the quiz as the main action -->
   <section class="hero" aria-labelledby="hero-title">
     <div class="wrap hero-grid">
       <div class="hero-copy">
-        <p class="eyebrow">اكتشاف العطور بذكاء · للنساء والرجال</p>
+        <p class="eyebrow">منصة لاكتشاف العطور · للنساء والرجال</p>
         <h1 id="hero-title">لقى العطر <em>لي كيشبه ليك.</em></h1>
-        <p class="lead">جاوب على شي أسئلة بسيطة واكتشف 3 عطور كتناسب الستايل، المزاج والتفضيلات ديالك.</p>
+        <p class="lead">جاوب على 6 أسئلة بسيطة، واكتشف أفضل 3 عطور مناسبة لذوقك، مناسبتك وميزانيتك.</p>
         <div class="cta-row">
-          <button type="button" class="btn lg" data-quiz="1">اكتشف العطر ديالك <svg class="arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
-          <button type="button" class="textlink" data-go="fragrances">تصفح العطور</button>
+          <a class="btn lg" href="#quiz">✨ اكتشف عطرك <svg class="arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
         </div>
         <ul class="perks">
           <li><b>6</b> أسئلة</li>
@@ -94,39 +94,43 @@
     </div>
   </section>
 
+  <!-- 2. Popular fragrances: real fragrances from the database -->
+  <section class="block" id="popular" aria-labelledby="pop-title">
+    <div class="wrap">
+      <div class="sec-head">
+        <div><p class="eyebrow">عطور مشهورة</p><h2 id="pop-title">العطور لي كيقلبو عليها بزاف</h2></div>
+        <a class="textlink" href="#fragrances">شوف كل العطور</a>
+      </div>
+      <div class="grid grid-pop" id="pop-grid"></div>
+    </div>
+  </section>
+
+  <!-- 3. How it works -->
   <section class="block" id="how" aria-labelledby="how-title">
     <div class="wrap">
       <div class="sec-head">
-        <div><p class="eyebrow">كيفاش كيخدم</p><h2 id="how-title">ثلاث خطوات للعطر المناسب</h2></div>
+        <div><p class="eyebrow">كيفاش كيخدم؟</p><h2 id="how-title">ثلاث خطوات، أقل من دقيقة</h2></div>
       </div>
       <ol class="steps">
-        <li><span class="num">01</span><h3>قول لينا شنو كيعجبك</h3><p>أسئلة سريعة على لمن العطر، المناسبة، الفصل، نوع الريحة، الانطباع والميزانية.</p></li>
-        <li><span class="num">02</span><h3>المحرك كيقارن</h3><p>كيقارن الأجوبة ديالك مع العائلة العطرية، المناسبة والنوتات ديال كل عطر.</p></li>
-        <li><span class="num">03</span><h3>كتشوف أحسن 3 عطور</h3><p>كل اقتراح مع نسبة التطابق، علاش تختار، والمحل فين تلقاه.</p></li>
+        <li><span class="num">01</span><h3>جاوب</h3><p>6 أسئلة على لمن العطر، المناسبة، الفصل، نوع الريحة، الانطباع والميزانية.</p></li>
+        <li><span class="num">02</span><h3>حللنا اختياراتك</h3><p>المحرك كيقارن الأجوبة ديالك مع العائلة العطرية، المناسبة والنوتات ديال كل عطر.</p></li>
+        <li><span class="num">03</span><h3>اكتشف Top 3</h3><p>3 عطور مع نسبة التطابق، علاش تختارهم، وفين تلقاهم.</p></li>
       </ol>
     </div>
   </section>
 
-  <section class="block" id="fragrances" aria-labelledby="frag-title">
+  <!-- 4. Explore: shortcuts into the fragrance catalogue -->
+  <section class="block" id="explore" aria-labelledby="explore-title">
     <div class="wrap">
       <div class="sec-head">
-        <div><p class="eyebrow">العطور</p><h2 id="frag-title">اكتشف العطور</h2><p class="sub">تصفح العطور لي كاينين فالقاعدة، أو صفي حسب لمن، العائلة، المناسبة والفصل.</p></div>
-        <button type="button" class="textlink" data-quiz="1">ولا خلي الاختبار يختار ليك</button>
+        <div><p class="eyebrow">التصنيفات</p><h2 id="explore-title">اكتشف حسب الذوق ديالك</h2></div>
       </div>
-      <div class="filters" id="filters">
-        <div class="chiprow" role="group" aria-label="لمن" id="f-gender"></div>
-        <div class="facet">
-          <div class="tabs" role="tablist" aria-label="صفي حسب" id="f-tabs"></div>
-          <div class="chiprow" role="group" id="f-values"></div>
-        </div>
-        <p class="count" id="f-count" aria-live="polite"></p>
-      </div>
-      <div class="grid" id="grid"></div>
-      <div class="more"><button type="button" class="btn ghost" id="more" hidden>شوف عطور أخرى</button></div>
+      <div class="explore" id="explore-groups"></div>
     </div>
   </section>
 
-  <section class="block" aria-label="الاختبار">
+  <!-- 5. Final call to action -->
+  <section class="block" aria-labelledby="final-title">
     <div class="wrap">
       <div class="banner">
         <picture>
@@ -134,41 +138,49 @@
           <img src="/images/banner-couple.jpg" alt="امرأة وراجل كل واحد ماسك قرعة عطر" width="504" height="202" loading="lazy" decoding="async">
         </picture>
         <div class="txt">
-          <h2>ما عرفتيش شنو تختار؟</h2>
-          <p>خلي FragranceFlow يلقى ليك أحسن 3 اختيارات فأقل من دقيقة.</p>
-          <div><button type="button" class="btn lg" data-quiz="1">اكتشف العطر ديالك</button></div>
+          <h2 id="final-title">ما عارفش شنو تختار؟</h2>
+          <p>خليه علينا.</p>
+          <div><a class="btn lg" href="#quiz">اكتشف عطرك <svg class="arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a></div>
         </div>
       </div>
     </div>
   </section>
+</main>
 
-  <section class="block" id="cats" aria-labelledby="cats-title">
-    <div class="wrap">
-      <div class="sec-head"><div><p class="eyebrow">التصنيفات</p><h2 id="cats-title">اكتشف حسب التصنيف</h2></div></div>
-      <div class="cats">
-        <button type="button" class="cat" data-cat="gender:women"><img src="/images/cat-her.webp" alt="" width="144" height="88" loading="lazy"><span><b>ليها هي</b><small>عطور نسائية</small></span></button>
-        <button type="button" class="cat" data-cat="gender:men"><img src="/images/cat-him.webp" alt="" width="144" height="88" loading="lazy"><span><b>ليه هو</b><small>عطور رجالية</small></span></button>
-        <button type="button" class="cat" data-cat="gender:unisex"><img src="/images/cat-unisex.webp" alt="" width="144" height="88" loading="lazy"><span><b>للجوج</b><small>عطور Unisex</small></span></button>
-        <button type="button" class="cat" data-cat="tab:occasion"><img src="/images/cat-occasion.webp" alt="" width="144" height="88" loading="lazy"><span><b>حسب المناسبة</b><small>نهار، سهرة، موعد</small></span></button>
-        <button type="button" class="cat" data-cat="tab:season"><img src="/images/cat-season.webp" alt="" width="144" height="88" loading="lazy"><span><b>حسب الفصل</b><small>صيف، شتا، كل العام</small></span></button>
-        <button type="button" class="cat" data-cat="tab:family"><img src="/images/cat-family.webp" alt="" width="144" height="88" loading="lazy"><span><b>حسب نوع الريحة</b><small>زهري، خشبي، منعش...</small></span></button>
-      </div>
+<!-- Fragrance catalogue (its own page: #fragrances) -->
+<main id="catalog" class="page" hidden>
+  <div class="wrap">
+    <div class="sec-head">
+      <div><p class="eyebrow">العطور</p><h1 class="page-title">اكتشف العطور</h1><p class="sub">تصفح العطور لي كاينين فالقاعدة، أو صفي حسب لمن، العائلة، المناسبة والفصل.</p></div>
+      <a class="textlink" href="#quiz">ولا خلي الاختبار يختار ليك</a>
     </div>
-  </section>
+    <div class="filters" id="filters">
+      <div class="chiprow" role="group" aria-label="لمن" id="f-gender"></div>
+      <div class="facet">
+        <div class="tabs" role="tablist" aria-label="صفي حسب" id="f-tabs"></div>
+        <div class="chiprow" role="group" id="f-values"></div>
+      </div>
+      <p class="count" id="f-count" aria-live="polite"></p>
+    </div>
+    <div class="grid" id="grid"></div>
+    <div class="more"><button type="button" class="btn ghost" id="more" hidden>شوف عطور أخرى</button></div>
+  </div>
+</main>
 
-  <section class="block" id="about" aria-labelledby="about-title">
-    <div class="wrap about">
-      <div>
-        <p class="eyebrow">من نحن</p>
-        <h2 id="about-title">FragranceFlow</h2>
-      </div>
-      <div class="about-body">
-        <p>FragranceFlow منصة مغربية لاكتشاف العطور، للنساء والرجال. الهدف ديالها بسيط: نعاونوك تختار العطر المناسب بلا ما تضيع وسط مئات الأسماء.</p>
-        <p>الاقتراحات كتخرج من محرك كيقارن الأجوبة ديالك مع خصائص كل عطر: العائلة العطرية، المناسبة، الانطباع، الجنس والفصل. من بعد كنوجهوك للمحلات الشريكة فين تلقى العطر.</p>
-        <p class="note">الأثمنة تقريبية وكتختلف من محل لآخر.</p>
-      </div>
+<!-- About (its own page: #about) -->
+<main id="about" class="page" hidden>
+  <div class="wrap about">
+    <div>
+      <p class="eyebrow">About</p>
+      <h1 class="page-title">FragranceFlow</h1>
     </div>
-  </section>
+    <div class="about-body">
+      <p>FragranceFlow منصة مغربية لاكتشاف العطور، للنساء والرجال. الهدف ديالها بسيط: نعاونوك تختار العطر المناسب بلا ما تضيع وسط مئات الأسماء.</p>
+      <p>الاقتراحات كتخرج من محرك كيقارن الأجوبة ديالك مع خصائص كل عطر: العائلة العطرية، المناسبة، الانطباع، الجنس والفصل. من بعد كنوجهوك للمحلات الشريكة فين تلقى العطر.</p>
+      <p class="note">الأثمنة تقريبية وكتختلف من محل لآخر.</p>
+      <div><a class="btn" href="#quiz">اكتشف عطرك</a></div>
+    </div>
+  </div>
 </main>
 
 <main id="quizpage" class="quizpage" hidden aria-label="اختبار العطور">
@@ -188,7 +200,7 @@
       </button>
       <p class="tagline">لقى العطر لي كيشبه ليك.</p>
     </div>
-    <nav aria-label="روابط الموقع"><h2 class="fh">الموقع</h2><ul><li><button type="button" data-go="how">اكتشف</button></li><li><button type="button" data-go="fragrances">العطور</button></li><li><button type="button" data-quiz="1">الاختبار</button></li><li><button type="button" data-go="about">من نحن</button></li></ul></nav>
+    <nav aria-label="روابط الموقع"><h2 class="fh">الموقع</h2><ul><li><a href="#fragrances">اكتشف العطور</a></li><li><a href="#quiz">Quiz</a></li><li><button type="button" data-go="explore">التصنيفات</button></li><li><a href="#about">About</a></li></ul></nav>
     <div><h2 class="fh">للمحلات</h2><ul><li>ولي شريك</li><li>الإشهار فالموقع</li><li>بوابة الشركاء</li></ul></div>
     <dl class="stats">
       <div><dt>عطر</dt><dd id="st-n"></dd></div>

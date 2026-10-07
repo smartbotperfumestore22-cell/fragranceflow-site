@@ -60,7 +60,7 @@ a { color: inherit; }
 .burger svg { width: 22px; height: 22px; }
 .menu { display: none; flex-basis: 100%; flex-direction: column; padding-bottom: 10px; }
 .menu.open { display: flex; }
-.menu button { background: none; border: 0; border-top: 1px solid var(--line); padding: 14px 0; text-align: start; cursor: pointer; color: var(--ink); font-size: 1rem; }
+.menu button, .menu a { background: none; border: 0; border-top: 1px solid var(--line); padding: 14px 0; text-align: start; cursor: pointer; color: var(--ink); font-size: 1rem; text-decoration: none; }
 .search { display: none; position: relative; }
 .search input { width: 100%; height: 42px; padding-inline: 38px 12px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--bg); color: var(--ink); font-size: .9rem; }
 .search svg { position: absolute; inset-inline-start: 12px; top: 13px; width: 16px; height: 16px; color: var(--muted); }
@@ -76,8 +76,8 @@ a { color: inherit; }
   .head .wrap { flex-wrap: nowrap; gap: 28px; min-height: 72px; }
   .burger { display: none; }
   .menu, .menu.open { display: flex; flex-direction: row; flex-basis: auto; gap: 26px; padding: 0; }
-  .menu button { border: 0; padding: 6px 0; font-size: .95rem; }
-  .menu button:hover { color: var(--accent); }
+  .menu button, .menu a { border: 0; padding: 6px 0; font-size: .95rem; }
+  .menu button:hover, .menu a:hover { color: var(--accent); }
   .search { display: block; width: 230px; margin-inline-start: auto; }
   .head-cta { margin-inline-start: 0; min-height: 46px; padding-inline: 22px; }
 }
@@ -187,7 +187,8 @@ a { color: inherit; }
 .fh { font-family: var(--font-body); font-size: .92rem; font-weight: 600; margin-bottom: 8px; }
 .foot ul { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 6px; font-size: .88rem; color: var(--muted); }
 .foot ul button { background: none; border: 0; padding: 0; cursor: pointer; color: inherit; font-size: inherit; }
-.foot ul button:hover { color: var(--accent); }
+.foot ul button:hover, .foot ul a:hover { color: var(--accent); }
+.foot ul a { text-decoration: none; }
 .tagline { margin-top: 8px; font-size: .88rem; color: var(--muted); }
 .stats { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(3, 1fr); margin: 0; border-top: 1px solid var(--line); padding-top: 16px; }
 .stats div { display: flex; flex-direction: column-reverse; align-items: flex-start; }
@@ -235,3 +236,23 @@ a { color: inherit; }
 @media (min-width: 760px) { .rc { grid-template-columns: 1fr 1.2fr; } .rc .ph img { height: 100%; aspect-ratio: auto; min-height: 320px; } .rc .in { padding: 28px; } }
 
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition: none !important; animation: none !important; } }
+
+/* homepage: popular fragrances (6 cards → 2 columns on phones, 3 on desktop) */
+@media (min-width: 1040px) { .grid-pop { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+
+/* homepage: explore shortcuts */
+.explore { display: grid; gap: 28px; }
+@media (min-width: 900px) { .explore { grid-template-columns: 1fr 1.2fr 1.6fr; gap: 40px; } }
+.xgroup h3 { font-size: .8rem; font-weight: 600; letter-spacing: .06em; color: var(--muted); padding-bottom: 8px; border-bottom: 1px solid var(--ink); }
+.xlist { display: flex; flex-direction: column; }
+@media (min-width: 900px) { .xgroup:last-child .xlist { display: grid; grid-template-columns: 1fr 1fr; column-gap: 24px; } }
+.xitem { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; min-height: 52px; padding: 12px 0; background: none; border: 0; border-bottom: 1px solid var(--line); color: var(--ink); cursor: pointer; text-align: start; font-size: 1.05rem; transition: color .15s, padding .2s; }
+.xitem small { font-size: .8rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+.xitem:hover { color: var(--accent); padding-inline-start: 6px; }
+.xitem:hover small { color: var(--accent); }
+
+/* catalogue and about pages */
+.page { padding-block: 28px 56px; }
+.page-title { font-family: var(--font-display); font-weight: 700; font-size: clamp(2rem, 6vw, 2.8rem); line-height: 1.2; margin-top: 4px; }
+@media (min-width: 900px) { .page { padding-block: 44px 72px; } }
+@media (max-width: 899px) { .xlist { display: grid; grid-template-columns: 1fr 1fr; column-gap: 20px; } }

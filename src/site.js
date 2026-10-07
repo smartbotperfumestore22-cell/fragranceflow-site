@@ -19,6 +19,10 @@ export function startSite({ loadQuiz }) {
   var PAGE = 8;
 
   var landing = document.getElementById('landing'), detail = document.getElementById('detail'), quizpage = document.getElementById('quizpage');
+  var catalog = document.getElementById('catalog'), about = document.getElementById('about');
+  // Popular fragrances on the homepage: perfumes flagged topSeller in the database come first;
+  // until the database has that flag, this short list of well-known names is used (all exist in the data).
+  var POPULAR = ['Coco Mademoiselle', 'Sauvage', 'Baccarat Rouge 540', 'La Vie est Belle', 'Bleu de Chanel', 'Oud Wood'];
   var stage = document.getElementById('stage');
 
   function h(tag, attrs) {
@@ -49,9 +53,10 @@ export function startSite({ loadQuiz }) {
   document.getElementById('fine').textContent = 'نسخة تجريبية بـ ' + DB.length + ' عطر. الأثمنة والتصنيفات تقريبية، والصور توضيحية حتى توصل صور المحلات الشريكة.';
 
   /* ---------- views (hash routes so the back button and shared links work) ---------- */
-  // #quiz → quiz page, #f-<id> → fragrance page, anything else → landing
+  // #quiz → quiz page, #fragrances → catalogue, #about → about, #f-<id> → fragrance page, anything else → homepage
   function show(view) {
     landing.hidden = view !== 'landing'; quizpage.hidden = view !== 'quiz'; detail.hidden = view !== 'detail';
+    catalog.hidden = view !== 'catalog'; about.hidden = view !== 'about';
   }
   function go(hash) {
     if (location.hash === hash) route(); else location.hash = hash;
@@ -65,6 +70,8 @@ export function startSite({ loadQuiz }) {
   function route() {
     var hsh = location.hash;
     if (hsh === '#quiz') { openQuiz(); return; }
+    if (hsh === '#fragrances') { if (window.FF_CLOSE) window.FF_CLOSE(); show('catalog'); window.scrollTo(0, 0); document.title = 'اكتشف العطور | FragranceFlow'; return; }
+    if (hsh === '#about') { if (window.FF_CLOSE) window.FF_CLOSE(); show('about'); window.scrollTo(0, 0); document.title = 'About | FragranceFlow'; return; }
     if (hsh.indexOf('#f-') === 0) { var p = byId(decodeURIComponent(hsh.slice(3))); if (p) { renderPerfume(p); return; } }
     if (window.FF_CLOSE) window.FF_CLOSE();
     show('landing'); document.title = BASE_TITLE;
@@ -153,12 +160,47 @@ export function startSite({ loadQuiz }) {
   more.addEventListener('click', function () { state.shown += PAGE; drawGrid(); });
   drawFilters(); drawGrid();
 
+  /* ---------- homepage: popular fragrances ---------- */
+  (function () {
+    var pick = DB.filter(function (p) { return p.topSeller; });
+    POPULAR.forEach(function (n) { var p = DB.filter(function (x) { return x.name === n; })[0]; if (p && pick.indexOf(p) < 0) pick.push(p); });
+    if (pick.length < 4) BROWSE.forEach(function (p) { if (pick.length < 6 && pick.indexOf(p) < 0) pick.push(p); });
+    var pg = document.getElementById('pop-grid');
+    pick.slice(0, 6).forEach(function (p) { pg.appendChild(card(p)); });
+  })();
+
+  /* ---------- homepage: explore shortcuts (only categories that have fragrances) ---------- */
+  (function () {
+    var GROUPS = [
+      ['لمن', [['gender', 'women', 'للنساء'], ['gender', 'men', 'للرجال'], ['gender', 'unisex', 'Unisex']]],
+      ['الفصل والمناسبة', [['season', 'summer', 'الصيف'], ['season', 'winter', 'الشتاء'], ['occasion', 'evening', 'السهرات'], ['occasion', 'daily', 'يومي'], ['occasion', 'dates', 'المواعيد']]],
+      ['نوع الريحة', [['family', 'floral', 'زهري'], ['family', 'fresh', 'منعش'], ['family', 'woody', 'خشبي'], ['family', 'oriental', 'شرقي'], ['family', 'sweet', 'حلو'], ['family', 'aquatic', 'بحري'], ['family', 'fruity', 'فاكهي']]]
+    ];
+    function countFor(kind, v) {
+      return DB.filter(function (p) {
+        if (kind === 'gender') return p.gender.indexOf(v) > -1 || (v !== 'unisex' && p.gender.indexOf('unisex') > -1);
+        return FACETS[kind].test(p, v);
+      }).length;
+    }
+    var box = document.getElementById('explore-groups');
+    GROUPS.forEach(function (g) {
+      var list = h('div', { class: 'xlist' });
+      g[1].forEach(function (it) {
+        var n = countFor(it[0], it[1]); if (!n) return;
+        list.appendChild(h('button', { type: 'button', class: 'xitem', 'data-cat': it[0] + ':' + it[1] },
+          h('span', { text: it[2] }), h('small', { text: n + ' عطر' })));
+      });
+      box.appendChild(h('div', { class: 'xgroup' }, h('h3', { text: g[0] }), list));
+    });
+  })();
+
   function applyCategory(spec) {
     var c = spec.split(':');
+    // gender:<value>  → gender filter;  <facet>:<value> → that facet with that value selected
     if (c[0] === 'gender') { state.gender = c[1]; state.value = 'all'; }
-    else { state.tab = c[1]; state.value = 'all'; }
+    else { state.gender = 'all'; state.tab = c[0]; state.value = c[1]; }
     state.shown = PAGE; drawFilters(); drawGrid();
-    goHome('fragrances');
+    go('#fragrances');
   }
 
   /* ---------- clicks: quiz, sections, home, categories ---------- */
@@ -176,6 +218,7 @@ export function startSite({ loadQuiz }) {
   /* ---------- mobile menu ---------- */
   var burger = document.getElementById('burger'), menu = document.getElementById('menu');
   function closeMenu() { menu.classList.remove('open'); burger.setAttribute('aria-expanded', 'false'); }
+  menu.addEventListener('click', function (e) { if (e.target.closest('a')) closeMenu(); });
   burger.addEventListener('click', function () {
     var open = !menu.classList.contains('open');
     menu.classList.toggle('open', open); burger.setAttribute('aria-expanded', String(open));
@@ -208,7 +251,7 @@ export function startSite({ loadQuiz }) {
     var occ = p.occasion.map(function (o) { return OCC[o] || o; }).join('، ');
     stage.appendChild(h('section', { class: 'stage' },
       h('nav', { class: 'crumbs', 'aria-label': 'المسار' }, h('button', { type: 'button', class: 'textlink', onclick: function () { goHome(); } }, 'الرئيسية'), '/',
-        h('button', { type: 'button', class: 'textlink', onclick: function () { goHome('fragrances'); } }, 'العطور')),
+        h('a', { class: 'textlink', href: '#fragrances' }, 'العطور')),
       h('article', { class: 'rc' },
         h('div', { class: 'ph' }, h('img', { src: p.image, alt: 'صورة توضيحية لقرعة عطر', width: '172', height: '119' }), h('small', { text: 'صورة توضيحية' })),
         h('div', { class: 'in' },
@@ -222,7 +265,7 @@ export function startSite({ loadQuiz }) {
                 : h('p', { class: 'shop' }, h('b', { text: 'فين تلقاه: ' }), 'قريبا، رابط مباشر عند المحلات الشريكة.'))),
       h('div', { class: 'actions' },
         h('a', { class: 'btn', href: '#quiz' }, 'لقى العطر لي يناسبك'),
-        h('button', { type: 'button', class: 'textlink', onclick: function () { goHome('fragrances'); } }, 'رجع للعطور'))));
+        h('a', { class: 'textlink', href: '#fragrances' }, 'رجع للعطور'))));
   }
 
   // warm up the quiz code when the browser is idle, so the first click opens instantly
