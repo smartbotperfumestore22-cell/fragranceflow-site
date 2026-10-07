@@ -169,12 +169,21 @@ export function startSite({ loadQuiz }) {
     pick.slice(0, 6).forEach(function (p) { pg.appendChild(card(p)); });
   })();
 
-  /* ---------- homepage: explore shortcuts (only categories that have fragrances) ---------- */
+  /* ---------- homepage: explore-by cards (link into the filtered catalogue; hidden if a category has no fragrance) ---------- */
   (function () {
-    var GROUPS = [
-      ['لمن', [['gender', 'women', 'للنساء'], ['gender', 'men', 'للرجال'], ['gender', 'unisex', 'Unisex']]],
-      ['الفصل والمناسبة', [['season', 'summer', 'الصيف'], ['season', 'winter', 'الشتاء'], ['occasion', 'evening', 'السهرات'], ['occasion', 'daily', 'يومي'], ['occasion', 'dates', 'المواعيد']]],
-      ['نوع الريحة', [['family', 'floral', 'زهري'], ['family', 'fresh', 'منعش'], ['family', 'woody', 'خشبي'], ['family', 'oriental', 'شرقي'], ['family', 'sweet', 'حلو'], ['family', 'aquatic', 'بحري'], ['family', 'fruity', 'فاكهي']]]
+    var I = function (d) { return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + d + '</svg>'; };
+    var BOTTLE = '<rect x="7" y="9" width="10" height="12" rx="2"/><path d="M10 9V6h4v3M9 3h6"/>';
+    var CARDS = [
+      ['gender', 'women', 'للنساء', '', I(BOTTLE + '<path d="M12 13.5c-1.2 1.4-1.2 2.6 0 4 1.2-1.4 1.2-2.6 0-4z"/>')],
+      ['gender', 'men', 'للرجال', '', I('<rect x="6.5" y="8" width="11" height="13" rx="1"/><path d="M10 8V5h4v3M9.5 3h5"/>')],
+      ['gender', 'unisex', 'Unisex', 'للجوج', I('<rect x="3.5" y="10" width="7" height="11" rx="1.5"/><path d="M5.5 10V7.5h3V10"/><rect x="13.5" y="10" width="7" height="11" rx="1.5"/><path d="M15.5 10V7.5h3V10"/>')],
+      ['season', 'summer', 'الصيف', '', I('<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>')],
+      ['season', 'winter', 'الشتاء', '', I('<path d="M12 2v20M3.3 7l17.4 10M3.3 17L20.7 7M9 4l3 2 3-2M9 20l3-2 3 2"/>')],
+      ['occasion', 'evening', 'السهرات', '', I('<path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/>')],
+      ['occasion', 'daily', 'يومي', '', I('<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>')],
+      ['family', 'floral', 'زهري', 'Floral', I('<circle cx="12" cy="12" r="2.2"/><path d="M12 9.8c-2-3.2-.6-6 0-6.8.6.8 2 3.6 0 6.8zM12 14.2c2 3.2.6 6 0 6.8-.6-.8-2-3.6 0-6.8zM9.8 12c-3.2 2-6 .6-6.8 0 .8-.6 3.6-2 6.8 0zM14.2 12c3.2-2 6-.6 6.8 0-.8.6-3.6 2-6.8 0z"/>')],
+      ['family', 'fresh', 'منعش', 'Fresh', I('<path d="M12 3c3.5 4.3 5.5 7.6 5.5 10.5a5.5 5.5 0 0 1-11 0C6.5 10.6 8.5 7.3 12 3z"/><path d="M9.5 14.5a2.5 2.5 0 0 0 2.5 2.5"/>')],
+      ['family', 'woody', 'خشبي', 'Woody', I('<path d="M12 21v-6M12 15l-6-1 3-4H7l5-7 5 7h-2l3 4z"/>')]
     ];
     function countFor(kind, v) {
       return DB.filter(function (p) {
@@ -182,15 +191,14 @@ export function startSite({ loadQuiz }) {
         return FACETS[kind].test(p, v);
       }).length;
     }
-    var box = document.getElementById('explore-groups');
-    GROUPS.forEach(function (g) {
-      var list = h('div', { class: 'xlist' });
-      g[1].forEach(function (it) {
-        var n = countFor(it[0], it[1]); if (!n) return;
-        list.appendChild(h('button', { type: 'button', class: 'xitem', 'data-cat': it[0] + ':' + it[1] },
-          h('span', { text: it[2] }), h('small', { text: n + ' عطر' })));
-      });
-      box.appendChild(h('div', { class: 'xgroup' }, h('h3', { text: g[0] }), list));
+    var box = document.getElementById('explore-cards');
+    CARDS.forEach(function (c) {
+      var n = countFor(c[0], c[1]); if (!n) return;
+      var icon = h('span', { class: 'xicon' }); icon.innerHTML = c[4];
+      box.appendChild(h('button', { type: 'button', class: 'xcard', 'data-cat': c[0] + ':' + c[1], 'aria-label': c[2] + '، ' + n + ' عطر' },
+        icon,
+        h('span', { class: 'xname' }, c[2], c[3] ? h('small', { class: 'latin', text: c[3] }) : null),
+        h('span', { class: 'xcount', text: n + ' عطر' })));
     });
   })();
 

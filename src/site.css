@@ -256,3 +256,16 @@ a { color: inherit; }
 .page-title { font-family: var(--font-display); font-weight: 700; font-size: clamp(2rem, 6vw, 2.8rem); line-height: 1.2; margin-top: 4px; }
 @media (min-width: 900px) { .page { padding-block: 44px 72px; } }
 @media (max-width: 899px) { .xlist { display: grid; grid-template-columns: 1fr 1fr; column-gap: 20px; } }
+
+/* homepage: explore-by cards (flat, hairline, square-ish corners) */
+.xcards { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+@media (min-width: 640px) { .xcards { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@media (min-width: 1000px) { .xcards { grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 14px; } }
+.xcard { display: flex; flex-direction: column; align-items: flex-start; gap: 14px; min-height: 132px; padding: 18px 16px; background: var(--bg); border: 1px solid var(--line); border-radius: var(--radius); color: var(--ink); cursor: pointer; text-align: start; transition: border-color .2s, background .2s; }
+.xcard:hover { border-color: var(--accent); background: var(--soft); }
+.xicon { width: 40px; height: 40px; display: grid; place-items: center; color: var(--accent); }
+.xicon svg { width: 30px; height: 30px; }
+.xname { display: flex; flex-direction: column; font-family: var(--font-display); font-weight: 700; font-size: 1.35rem; line-height: 1.2; }
+.xname small { font-family: var(--font-latin); font-weight: 500; font-size: .85rem; color: var(--muted); }
+.xcount { margin-top: auto; font-size: .8rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+.xcard:hover .xcount { color: var(--accent); }

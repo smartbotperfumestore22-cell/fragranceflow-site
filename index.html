@@ -50,7 +50,8 @@
       <span>FragranceFlow</span>
     </button>
     <nav class="menu" id="menu" aria-label="القائمة الرئيسية">
-      <a href="#fragrances">اكتشف العطور</a>
+      <button type="button" data-go="popular">اكتشف</button>
+      <a href="#fragrances">العطور</a>
       <a href="#quiz">Quiz</a>
       <button type="button" data-go="explore">التصنيفات</button>
       <a href="#about">About</a>
@@ -113,7 +114,7 @@
       </div>
       <ol class="steps">
         <li><span class="num">01</span><h3>جاوب</h3><p>6 أسئلة على لمن العطر، المناسبة، الفصل، نوع الريحة، الانطباع والميزانية.</p></li>
-        <li><span class="num">02</span><h3>حللنا اختياراتك</h3><p>المحرك كيقارن الأجوبة ديالك مع العائلة العطرية، المناسبة والنوتات ديال كل عطر.</p></li>
+        <li><span class="num">02</span><h3>FragranceFlow يحلل اختياراتك</h3><p>المحرك كيقارن الأجوبة ديالك مع العائلة العطرية، المناسبة والنوتات ديال كل عطر.</p></li>
         <li><span class="num">03</span><h3>اكتشف Top 3</h3><p>3 عطور مع نسبة التطابق، علاش تختارهم، وفين تلقاهم.</p></li>
       </ol>
     </div>
@@ -123,9 +124,10 @@
   <section class="block" id="explore" aria-labelledby="explore-title">
     <div class="wrap">
       <div class="sec-head">
-        <div><p class="eyebrow">التصنيفات</p><h2 id="explore-title">اكتشف حسب الذوق ديالك</h2></div>
+        <div><p class="eyebrow">Explore by</p><h2 id="explore-title">اكتشف حسب الذوق ديالك</h2></div>
+        <a class="textlink" href="#fragrances">كل العطور</a>
       </div>
-      <div class="explore" id="explore-groups"></div>
+      <div class="xcards" id="explore-cards"></div>
     </div>
   </section>
 
@@ -200,7 +202,7 @@
       </button>
       <p class="tagline">لقى العطر لي كيشبه ليك.</p>
     </div>
-    <nav aria-label="روابط الموقع"><h2 class="fh">الموقع</h2><ul><li><a href="#fragrances">اكتشف العطور</a></li><li><a href="#quiz">Quiz</a></li><li><button type="button" data-go="explore">التصنيفات</button></li><li><a href="#about">About</a></li></ul></nav>
+    <nav aria-label="روابط الموقع"><h2 class="fh">الموقع</h2><ul><li><button type="button" data-go="popular">اكتشف</button></li><li><a href="#fragrances">العطور</a></li><li><a href="#quiz">Quiz</a></li><li><button type="button" data-go="explore">التصنيفات</button></li><li><a href="#about">About</a></li></ul></nav>
     <div><h2 class="fh">للمحلات</h2><ul><li>ولي شريك</li><li>الإشهار فالموقع</li><li>بوابة الشركاء</li></ul></div>
     <dl class="stats">
       <div><dt>عطر</dt><dd id="st-n"></dd></div>
