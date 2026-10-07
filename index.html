@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>FragranceFlow</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=IBM+Plex+Sans+Arabic:wght@400;500;600&family=Bodoni+Moda:opsz,wght@6..96,500;6..96,600&display=swap">
+</head>
+<body>
+<header class="head">
+  <div class="wrap" dir="rtl" lang="ar">
+    <button type="button" class="logo" id="logo" aria-label="FragranceFlow، الصفحة الرئيسية">
+      <svg viewBox="0 0 32 32" aria-hidden="true"><path d="M16 3c3.6 4.2 5 8.6 4.2 13.2-.6 3.5-2.2 6.4-4.2 8.8-2-2.4-3.6-5.3-4.2-8.8C11 11.6 12.4 7.2 16 3z" fill="#5B2A86"/><path d="M4 11c4.8.6 8.4 2.8 10.4 6.6 1.3 2.5 1.7 5.1 1.6 7.4-2.4-.2-5-1-7.2-2.7C5.6 19.9 4.1 16 4 11z" fill="#7C4BAE"/><path d="M28 11c-.1 5-1.6 8.9-4.8 11.3-2.2 1.7-4.8 2.5-7.2 2.7-.1-2.3.3-4.9 1.6-7.4C19.6 13.8 23.2 11.6 28 11z" fill="#3B185B"/></svg>
+      <span>FragranceFlow</span>
+    </button>
+    <nav class="menu" aria-label="القائمة">
+      <button type="button" data-go="how">كيفاش كيخدم</button>
+      <button type="button" data-go="popular">العطور</button>
+      <button type="button" data-quiz="1">الاختبار</button>
+      <button type="button" data-go="cats">التصنيفات</button>
+    </nav>
+    <div class="search">
+      <label class="sr" for="q">قلب على عطر</label>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+      <input id="q" type="search" placeholder="قلب على عطر أو ماركة..." autocomplete="off">
+      <div class="drop" id="drop" hidden></div>
+    </div>
+    <button type="button" class="btn" data-quiz="1"><span>لقى العطر ديالك</span><svg class="arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
+  </div>
+</header>
+
+<div dir="rtl" lang="ar">
+<main id="landing">
+  <section class="hero">
+    <div class="wrap">
+      <div class="hero-copy">
+        <p class="eyebrow">اكتشاف العطور بذكاء</p>
+        <h1>لقى العطر <em>لي كيشبه ليك.</em></h1>
+        <p class="lead">جاوب على شي أسئلة بسيطة، ونقترحو عليك العطور لي كتناسب الذوق ديالك، المزاج والميزانية.</p>
+        <div class="cta-row">
+          <button type="button" class="btn lg" data-quiz="1">اكتشف العطر ديالك <svg class="arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
+          <button type="button" class="textlink" data-go="popular">تصفح العطور</button>
+        </div>
+        <ul class="perks">
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>أقل من دقيقة</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><rect x="7" y="7" width="10" height="14" rx="2"/><path d="M10 7V4h4v3"/></svg>اقتراحات على قدك</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M12 3v4M12 17v4M3 12h4M17 12h4M6 6l2.5 2.5M15.5 15.5 18 18M6 18l2.5-2.5M15.5 8.5 18 6"/></svg><span id="perk-count"></span></li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><circle cx="8" cy="8" r="3"/><circle cx="16" cy="8" r="3"/><path d="M3 20c0-3 2.2-5 5-5s5 2 5 5M11 20c0-3 2.2-5 5-5s5 2 5 5"/></svg>للرجال وللنساء</li>
+        </ul>
+      </div>
+      <div class="hero-photo">
+        <img src="/images/hero-bottles.jpg" alt="مجموعة ديال قراعي العطر فوق حجر أبيض مع ورد البنفسج وخشب العود" width="536" height="398">
+        <p class="script" aria-hidden="true">شخصيات مختلفة<br>واختيارات بلا حدود</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="block" id="how">
+    <div class="wrap">
+      <div class="center"><h2>كيفاش كيخدم</h2><p>طريقة ساهلة باش تلقى العطور لي غادي تعجبك.</p></div>
+      <ol class="steps">
+        <li><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M7 3h8l4 4v14H7z"/><path d="M15 3v4h4M10 12h6M10 16h6"/></svg></div><div><b>01</b><h3>قول لينا شنو كيعجبك</h3><p>ستة أسئلة سريعة على الذوق، المناسبة، الفصل والميزانية.</p></div></li>
+        <li><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M9 4a3 3 0 0 0-3 3 3 3 0 0 0-2 5 3 3 0 0 0 2 5 3 3 0 0 0 6 0V5a2 2 0 0 0-3-1zM15 4a3 3 0 0 1 3 3 3 3 0 0 1 2 5 3 3 0 0 1-2 5 3 3 0 0 1-6 0"/></svg></div><div><b>02</b><h3>FragranceFlow كيحلل الأجوبة</h3><p>المحرك كيقارن الأجوبة ديالك مع العائلة العطرية والنوتات ديال كل عطر.</p></div></li>
+        <li><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><rect x="6" y="9" width="12" height="12" rx="3"/><path d="M10 9V6h4v3M9 3h6"/></svg></div><div><b>03</b><h3>اكتشف أحسن 3 عطور ليك</h3><p>اقتراحات مع نسبة التطابق، النوتات، والسبب ديال كل اختيار.</p></div></li>
+      </ol>
+    </div>
+  </section>
+
+  <section class="block" id="popular">
+    <div class="wrap">
+      <div class="sec-head">
+        <div><h2>اكتشافات مشهورة</h2><p>عطور كيحبوها بزاف ديال الناس.</p></div>
+        <button type="button" class="textlink" data-quiz="1">لقى لي يناسبك أنت</button>
+      </div>
+      <div class="rowwrap">
+        <button type="button" class="nav-arrow prev" id="prev" aria-label="اللي قبل"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg></button>
+        <div class="row" id="row"></div>
+        <button type="button" class="nav-arrow next" id="next" aria-label="اللي من بعد"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m15 6-6 6 6 6"/></svg></button>
+      </div>
+      <div class="dots" id="dots" aria-hidden="true"></div>
+
+      <div class="banner">
+        <img src="/images/banner-couple.jpg" alt="امرأة وراجل كل واحد ماسك قرعة عطر" width="504" height="202">
+        <div class="txt">
+          <p class="eyebrow">العطر المناسب ليك قريب منك</p>
+          <h2>ما عرفتيش شنو تختار؟</h2>
+          <p>خلي FragranceFlow يلقى ليك أحسن الاختيارات فأقل من دقيقة.</p>
+          <div class="cta-row">
+            <button type="button" class="btn lg" data-quiz="1">لقى العطر ديالك <svg class="arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
+            <div class="mini">
+              <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M13 2 4 14h7l-1 8 9-12h-7z"/></svg>سريع</span>
+              <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/></svg>على قدك</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="block" id="cats">
+    <div class="wrap">
+      <div class="sec-head"><div><h2>اكتشف حسب التصنيف</h2><p>اختار من فين تبدا: لمن، المناسبة، الفصل أو نوع الريحة.</p></div></div>
+      <div class="cats">
+        <button type="button" class="cat" data-cat="gender:f"><img src="/images/cat-her.jpg" alt=""><span><b>ليها هي</b><small>اكتشف</small></span></button>
+        <button type="button" class="cat" data-cat="gender:m"><img src="/images/cat-him.jpg" alt=""><span><b>ليه هو</b><small>اكتشف</small></span></button>
+        <button type="button" class="cat" data-cat="gender:any"><img src="/images/cat-unisex.jpg" alt=""><span><b>للجوج</b><small>اكتشف</small></span></button>
+        <button type="button" class="cat" data-cat="step:2"><img src="/images/cat-occasion.jpg" alt=""><span><b>حسب المناسبة</b><small>اكتشف</small></span></button>
+        <button type="button" class="cat" data-cat="step:3"><img src="/images/cat-season.jpg" alt=""><span><b>حسب الفصل</b><small>اكتشف</small></span></button>
+        <button type="button" class="cat" data-cat="step:5"><img src="/images/cat-family.jpg" alt=""><span><b>حسب نوع الريحة</b><small>اكتشف</small></span></button>
+      </div>
+    </div>
+  </section>
+</main>
+
+<main id="quizpage" class="quizpage" hidden>
+  <div class="wrap"><div id="ff-widget-root"></div></div>
+</main>
+
+<main id="detail" class="quiz" hidden>
+  <div class="wrap"><div class="qbox"><div id="stage" aria-live="polite"></div></div></div>
+</main>
+
+<footer class="foot">
+  <div class="wrap">
+    <div>
+      <button type="button" class="logo" data-home="1" aria-label="FragranceFlow، الصفحة الرئيسية">
+        <svg viewBox="0 0 32 32" aria-hidden="true"><path d="M16 3c3.6 4.2 5 8.6 4.2 13.2-.6 3.5-2.2 6.4-4.2 8.8-2-2.4-3.6-5.3-4.2-8.8C11 11.6 12.4 7.2 16 3z" fill="#5B2A86"/><path d="M4 11c4.8.6 8.4 2.8 10.4 6.6 1.3 2.5 1.7 5.1 1.6 7.4-2.4-.2-5-1-7.2-2.7C5.6 19.9 4.1 16 4 11z" fill="#7C4BAE"/><path d="M28 11c-.1 5-1.6 8.9-4.8 11.3-2.2 1.7-4.8 2.5-7.2 2.7-.1-2.3.3-4.9 1.6-7.4C19.6 13.8 23.2 11.6 28 11z" fill="#3B185B"/></svg>
+        <span>FragranceFlow</span>
+      </button>
+      <p class="tagline">اكتشف العطر لي كيشبه ليك.</p>
+    </div>
+    <div><h4>اكتشف</h4><ul><li><button type="button" data-go="how">كيفاش كيخدم</button></li><li><button type="button" data-go="popular">العطور</button></li><li><button type="button" data-quiz="1">دوز الاختبار</button></li><li><button type="button" data-go="cats">التصنيفات</button></li></ul></div>
+    <div><h4>للمحلات</h4><ul><li>ولي شريك</li><li>الإشهار فالموقع</li><li>بوابة الشركاء</li></ul></div>
+    <div class="stats">
+      <div><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><rect x="6" y="9" width="12" height="12" rx="3"/><path d="M10 9V6h4v3"/></svg><b id="st-n"></b><span>عطر</span></div>
+      <div><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="m12 3 2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z"/></svg><b id="st-b"></b><span>ماركة</span></div>
+      <div><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M9 11h6M9 15h4"/><rect x="5" y="3" width="14" height="18" rx="2"/></svg><b>6</b><span>أسئلة</span></div>
+    </div>
+    <p class="fine" id="fine"></p>
+  </div>
+</footer>
+</div>
+
+<script type="module" src="/src/main.jsx"></script>
+</body>
+</html>
