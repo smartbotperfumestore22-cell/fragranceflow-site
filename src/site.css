@@ -376,3 +376,47 @@ a { color: inherit; }
 #ff-widget-root .ffr-timeline p, #ff-widget-root .ffr-sense-text { font-size: .98rem; line-height: 1.85; color: var(--ink); }
 #ff-widget-root .ffr-atmos { font-family: var(--font-display); font-size: 1.12rem; line-height: 1.8; color: var(--accent-deep); padding-top: 12px; border-top: 1px solid rgba(91, 42, 134, .18); }
 @media (min-width: 760px) { #ff-widget-root .ffr-featured .ffr-sense { padding: 22px 24px; } }
+
+/* ───────── Results page: wide layout, Top 3 side by side ───────── */
+/* wider container only for the results (quiz questions keep their comfortable width) */
+.quizpage:has(.ffr) .wrap { max-width: 1480px; }
+.ff-page:has(.ffr) { max-width: none; }
+#ff-widget-root .ffr-header p, #ff-widget-root .ffr-persona p, #ff-widget-root .ffr-disclaimer { max-width: 72ch; }
+#ff-widget-root .ffr-disclaimer { margin-inline: auto; }
+
+/* 1 column on phones, 2 on tablets, 3 on desktops */
+#ff-widget-root .ffr-top3 { display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; align-items: stretch; }
+@media (min-width: 700px) { #ff-widget-root .ffr-top3 { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (min-width: 1100px) { #ff-widget-root .ffr-top3-n3 { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; } }
+
+/* every card: same structure, image on top, CTA aligned at the bottom */
+#ff-widget-root .ffr-top3 .ffr-card { display: flex; flex-direction: column; }
+#ff-widget-root .ffr-top3 .ffr-media,
+#ff-widget-root .ffr-top3 .ffr-featured .ffr-media { aspect-ratio: 4 / 3; min-height: 0; }
+#ff-widget-root .ffr-top3 .ffr-body,
+#ff-widget-root .ffr-top3 .ffr-featured .ffr-body { padding: 16px 18px 18px; gap: 14px; flex: 1; }
+#ff-widget-root .ffr-top3 .ffr-actions { margin-top: auto; padding-top: 4px; }
+#ff-widget-root .ffr-top3 .ffr-actions .ffr-btn { flex: 1 1 100%; }
+
+/* #1 stays the clear winner through accent, not size */
+#ff-widget-root .ffr-top3 .ffr-featured { border-width: 2px; box-shadow: 0 10px 28px rgba(59, 24, 91, .10); }
+#ff-widget-root .ffr-top3 .ffr-featured .ffr-kicker { color: #FFFFFF; background: var(--accent); align-self: flex-start; padding: 3px 10px; border-radius: 3px; }
+#ff-widget-root .ffr-top3 .ffr-card:not(.ffr-featured) .ffr-rank { background: var(--accent-deep); }
+
+/* typography tuned for narrower cards (readable, not shrunk aggressively) */
+#ff-widget-root .ffr-top3 .ffr-name,
+#ff-widget-root .ffr-top3 .ffr-featured .ffr-name { font-size: clamp(1.35rem, 2vw, 1.65rem); }
+#ff-widget-root .ffr-top3 .ffr-match b { font-size: 1.9rem; }
+#ff-widget-root .ffr-top3 .ffr-featured .ffr-match b { font-size: 2.3rem; }
+#ff-widget-root .ffr-top3 .ffr-facts div { grid-template-columns: 70px 1fr; padding-block: 6px; font-size: .9rem; }
+#ff-widget-root .ffr-top3 .ffr-why li { font-size: .88rem; }
+#ff-widget-root .ffr-top3 .ffr-why-text { font-size: .86rem; line-height: 1.75; }
+#ff-widget-root .ffr-top3 .ffr-sense { padding: 14px 14px 16px; gap: 10px; }
+#ff-widget-root .ffr-top3 .ffr-sense h4 { font-size: 1.12rem; }
+#ff-widget-root .ffr-top3 .ffr-timeline li { padding-bottom: 10px; }
+#ff-widget-root .ffr-top3 .ffr-timeline p { font-size: .9rem; line-height: 1.8; }
+#ff-widget-root .ffr-top3 .ffr-atmos { font-size: 1rem; line-height: 1.75; padding-top: 10px; }
+
+/* "you may also like": smaller cards, more per row on wide screens */
+@media (min-width: 1100px) { #ff-widget-root .ffr-more ul { grid-template-columns: repeat(6, minmax(0, 1fr)); } }
+@media (min-width: 700px) and (max-width: 1099px) { #ff-widget-root .ffr-more ul { grid-template-columns: repeat(3, minmax(0, 1fr)); } }

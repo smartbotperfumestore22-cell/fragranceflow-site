@@ -2784,7 +2784,7 @@ const RV_LABELS = {
     vibe:    { luxury:"فخامة", elegant:"أناقة", confident:"ثقة", attractive:"جاذبية", fresh_imp:"انتعاش", longlast:"أثر طويل", firstlook:"انطباع أول" },
     title:"✨ العطور المناسبة ليك",
     sub:"بناءً على اختياراتك، هادو أفضل العطور اللي لقيناها ليك.",
-    featured:"أفضل اختيار ليك", alt:"بديل قوي",
+    featured:"أفضل اختيار ليك", alt:"اختيار قوي",
     match:"Match", why:"علاش اخترناه ليك؟",
     rows:{ gender:"لمن", family:"العائلة", vibe:"الطابع", occasion:"المناسبة", season:"الفصل" },
     view:"شوف العطر", where:"فين تلقاه؟", buy:"شوف المنتج", price:"درهم",
@@ -2800,7 +2800,7 @@ const RV_LABELS = {
     vibe:    { luxury:"Luxe", elegant:"Élégance", confident:"Assurance", attractive:"Séduction", fresh_imp:"Fraîcheur", longlast:"Sillage", firstlook:"Première impression" },
     title:"✨ Les parfums faits pour vous",
     sub:"D'après vos réponses, voici les meilleurs parfums que nous avons trouvés pour vous.",
-    featured:"Votre meilleur choix", alt:"Excellente alternative",
+    featured:"Votre meilleur choix", alt:"Autre excellent choix",
     match:"Match", why:"Pourquoi ce choix ?",
     rows:{ gender:"Pour", family:"Famille", vibe:"Caractère", occasion:"Occasion", season:"Saison" },
     view:"Voir le parfum", where:"Où le trouver ?", buy:"Voir le produit", price:"DH",
@@ -3247,12 +3247,10 @@ function ResultsPage({ res, pers, ans, lang, t, questions, reset, favPicked, pic
         <p className="ffr-note">{lang === "fr" ? "Résultats limités — ajustez certains critères pour plus d'options." : "النتائج محدودة — جرب تعدل بعض الشروط باش تظهر اقتراحات أكثر."}</p>
       )}
 
-      {res.main[0] && <RVCard p={res.main[0]} ans={ans} lang={lang} rank={1} used={used}/>}
-      {res.main.length > 1 && (
-        <div className="ffr-alts">
-          {res.main.slice(1).map((p, i) => <RVCard key={p.id} p={p} ans={ans} lang={lang} rank={i + 2} used={used}/>)}
-        </div>
-      )}
+      {/* Top 3 side by side on desktop (1 → 2 → 3 columns as the screen widens); #1 keeps the emphasis */}
+      <div className={"ffr-top3 ffr-top3-n" + res.main.length}>
+        {res.main.map((p, i) => <RVCard key={p.id} p={p} ans={ans} lang={lang} rank={i + 1} used={used}/>)}
+      </div>
 
       {ans.isGift === "gift" ? (
         <aside className="ffr-persona"><p className="ffr-kicker">🎁</p><h3>{t.giftPersona}</h3><p>{t.giftPersonaSub}</p></aside>
