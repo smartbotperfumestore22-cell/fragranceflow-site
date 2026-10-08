@@ -2901,7 +2901,7 @@ function RVStores({ p, L, lang }) {
 }
 
 // ═══════════════════════════════════════════════════════════════
-//  SENSORY EXPERIENCE «🌸 عيش تجربة الرائحة» (results page, presentation only)
+//  SENSORY EXPERIENCE «🌸 تجربة الرائحة» (results page, presentation only)
 //  Built ONLY from data that exists on the fragrance: notes.top / notes.middle / notes.base,
 //  character, occasion, season — plus the visitor's own answers for personalisation.
 //  No notes, longevity or projection are invented: a note is named only if it is in the data,
@@ -2990,20 +2990,56 @@ const RV_TEXTURE = {
 // sentence openers for each stage — several variants so the three cards do not read alike
 const RV_STAGE = {
   ar: {
-    top:[(n,t,pl)=>`من أول رشة ${pl?"كيبانو":"كيبان"} ${n}، ${t}.`, (n,t)=>`الافتتاحية فيها ${n}: ${t}.`, (n,t,pl)=>`أول ما كيترش العطر، ${pl?"كيطلعو":"كيطلع"} ${n} ب${t}.`],
-    middle:[(n,t)=>`مع مرور الوقت كيتحول العطر نحو ${n}، وكيولي فيه ${t}.`, (n,t)=>`من بعد شوية كيبان القلب ديالو: ${n}، ${t}.`, (n,t,pl)=>`ملي كتهدا الافتتاحية، ${pl?"كيطلعو":"كيطلع"} ${n} ب${t}.`],
-    base:[(n,t)=>`فالـDry Down كيستقر على ${n}، ${t}.`, (n,t)=>`فالأخير كيبقى أثر ديال ${n}، ${t}.`, (n,t,pl)=>`وفالقاعدة ${pl?"كيبانو":"كيبان"} ${n} ب${t}.`],
-    labels:{ top:"أول رشة", middle:"بعد دقائق", base:"Dry Down" },
+    top:[(n,t,pl)=>`${pl?"كيبانو":"كيبان"} ${n} مباشرة، ${t}.`, (n,t)=>`كتفتح الرائحة ب${n}: ${t}.`, (n,t)=>`البداية فيها ${n}، ${t}.`],
+    middle:[(n,t)=>`كيتحول العطر نحو ${n}، وكيولي فيه ${t}.`, (n,t)=>`كيبان القلب ديالو: ${n}، ${t}.`, (n,t,pl)=>`ملي كتهدا البداية، ${pl?"كيطلعو":"كيطلع"} ${n} ب${t}.`],
+    base:[(n,t)=>`كيستقر العطر على ${n}، ${t}.`, (n,t)=>`كيبقى أثر ديال ${n}، ${t}.`, (n,t,pl)=>`فالقاعدة ${pl?"كيبانو":"كيبان"} ${n} ب${t}.`],
+    labels:{ top:"أول رشة", middle:"بعد دقائق", base:"الأثر الأخير" },
     and:" و", sep:"، ",
   },
   fr: {
-    top:[(n,t)=>`Dès la première vaporisation, ${n} : ${t}.`, (n,t)=>`L'ouverture s'appuie sur ${n}, avec ${t}.`, (n,t,pl)=>`Au premier contact, ${n} ${pl?"apportent":"apporte"} ${t}.`],
-    middle:[(n,t)=>`Avec le temps, le parfum glisse vers ${n} et ${t} se révèle.`, (n,t)=>`Peu après, le cœur apparaît : ${n}, ${t}.`, (n,t,pl)=>`Quand l'ouverture s'apaise, ${n} ${pl?"prennent":"prend"} le relais avec ${t}.`],
-    base:[(n,t)=>`Au fond, il se pose sur ${n} : ${t}.`, (n,t)=>`Il reste ensuite une trace de ${n}, ${t}.`, (n,t)=>`Le fond révèle ${n}, avec ${t}.`],
-    labels:{ top:"Première vaporisation", middle:"Après quelques minutes", base:"Dry Down" },
+    top:[(n,t)=>`${n} apparaissent tout de suite : ${t}.`, (n,t)=>`Le parfum s'ouvre sur ${n}, avec ${t}.`, (n,t)=>`Le départ réunit ${n} : ${t}.`],
+    middle:[(n,t)=>`Le parfum glisse vers ${n} et révèle ${t}.`, (n,t)=>`Le cœur apparaît : ${n}, ${t}.`, (n,t,pl)=>`Quand le départ s'apaise, ${n} ${pl?"prennent":"prend"} le relais avec ${t}.`],
+    base:[(n,t)=>`Il se pose sur ${n} : ${t}.`, (n,t)=>`Il reste une trace de ${n}, ${t}.`, (n,t)=>`Le fond révèle ${n}, avec ${t}.`],
+    labels:{ top:"Premier contact", middle:"Après quelques minutes", base:"L'empreinte finale" },
     and:" et ", sep:", ",
   },
 };
+// second sentence of each stage: how the scent feels / moves, inferred only from the note families of the
+// layers themselves (warmth goes up, down or stays) — never from performance data, which does not exist
+const RV_WARMTH = { citrus:0, marine:0, mineral:1, green:1, fruit:1, aldehyde:1, floral:2, white_floral:3, powder:3, musk:3, spice:4, wood:4, gourmand:5, resin:5, leather:5, boozy:5 };
+const RV_FLOW = {
+  ar: {
+    open:{ citrus:["إحساس بالانتعاش من اللحظة الأولى.","كتجيب ضوء وخفة للبداية.","البداية صافية وفيها حيوية.","كيعطي إحساس بالخفة من أول لحظة."], spice:["فيها حرارة خفيفة كتشد الانتباه.","البداية فيها شوية حدة ودفء."],
+           fruit:["الحلاوة ديالها مشرقة وماشي ثقيلة.","كتعطي بداية طرية وفرحانة.","البداية فيها حيوية وحلاوة خفيفة."], floral:["النعومة كتبان من البداية.","البداية رقيقة وهادئة.","البداية فيها رقة واضحة."],
+           white_floral:["البداية فيها غنى زهري واضح.","النعومة الزهرية كتبان بسرعة.","البداية زهرية وممتلئة."], green:["إحساس عشبي صافي ومريح.","البداية فيها برودة خضراء خفيفة."],
+           marine:["إحساس بارد ومائي من البداية.","البداية خفيفة وفيها برودة."], gourmand:["الحلاوة كتبان من البداية.","البداية دافية وحلوة."],
+           resin:["البداية فيها عمق واضح.","من البداية كيبان الدفء."], wood:["البداية جافة وأنيقة.","من البداية كيبان طابع خشبي."],
+           powder:["النعومة البودرية كتبان بسرعة.","البداية ناعمة وهادئة."], musk:["البداية ناعمة ونظيفة.","إحساس نظيف من البداية."],
+           aldehyde:["فيها لمعة نظيفة كتميز البداية.","البداية مشرقة ونظيفة."], leather:["البداية جافة وفيها عمق.","من البداية كيبان طابع داكن."],
+           mineral:["فيها برودة خفيفة غير متوقعة.","البداية صافية وباردة."], boozy:["البداية دافية وفيها حلاوة.","فيها دفء من البداية."] },
+    mid:{ up:["الرائحة كتولي أدفأ وأغنى شوية.","كتبدأ الحرارة تبان بشوية بشوية.","كيتعمق الإحساس وكيولي أدفأ.","العطر كيكتسب شوية ديال الدفء والغنى."],
+          down:["كتولي الرائحة أخف وأهدأ.","الرائحة كتولي أنعم وأخف شوية.","كيهدا الإيقاع وكتولي الرائحة أرق."],
+          same:["الطابع كيبقى نفسو ولكن كيولي أنعم.","الرائحة كتتماسك وكتبان شخصيتها بشكل أوضح.","كيبقى نفس الخط ولكن كيولي أكثر امتلاء.","الشخصية ديالو كتوضح أكثر بلا ما تتبدل."] },
+    end:{ up:["القاعدة أدفأ، وهي اللي كتعطي العطر العمق ديالو.","الإحساس كيولي أعمق وأهدأ مع الوقت.","كيبقى دفء هادئ هو اللي كيختم العطر."],
+          down:["الأثر اللي كيبقى أخف وأصفى من القلب.","كيهدا العطر وكيبقى إحساس أبسط وأنقى.","الختام أخف وأهدأ من القلب."],
+          same:["الأثر كيكمل نفس الإحساس بهدوء.","كيبقى نفس الطابع ولكن بصوت أهدأ.","الختام كيحافظ على نفس الروح بنعومة.","كيمشي نفس الإحساس حتى للآخر، ولكن بهدوء."] },
+  },
+  fr: {
+    open:{ citrus:["Une fraîcheur immédiate.","Un départ lumineux et léger."], spice:["Une chaleur légère qui attire l'attention.","Un départ un peu vif et chaleureux."],
+           fruit:["Une douceur lumineuse, jamais lourde.","Un départ juteux et gai."], floral:["La douceur se fait sentir dès le départ.","Un départ délicat et calme."],
+           white_floral:["Un départ floral riche.","La douceur florale arrive vite."], green:["Une fraîcheur herbacée apaisante.","Un départ légèrement vert et frais."],
+           marine:["Une sensation froide et aquatique dès le départ.","Un départ léger et frais."], gourmand:["La douceur se montre dès le départ.","Un départ chaud et sucré."],
+           resin:["Un départ déjà profond.","La chaleur est là dès le début."], wood:["Un départ sec et élégant.","Le bois se devine dès le départ."],
+           powder:["La douceur poudrée arrive vite.","Un départ doux et calme."], musk:["Un départ doux et propre.","Une sensation propre dès le départ."],
+           aldehyde:["Un éclat propre marque le départ.","Un départ lumineux et propre."], leather:["Un départ sec et profond.","Un caractère sombre dès le départ."],
+           mineral:["Une fraîcheur inattendue.","Un départ net et frais."], boozy:["Un départ chaud et sucré.","De la chaleur dès le départ."] },
+    mid:{ up:["Le parfum devient plus chaud et plus riche.","La chaleur s'installe peu à peu.","L'impression gagne en profondeur."], down:["Le parfum devient plus léger et plus calme.","Le parfum s'adoucit et s'allège.","Le rythme ralentit, le parfum devient plus délicat."],
+          same:["Le caractère reste le même, en plus doux.","Le parfum se tient et sa personnalité s'affirme.","La même ligne continue, plus pleine."] },
+    end:{ up:["Le fond est plus chaud et donne sa profondeur au parfum.","L'impression devient plus profonde et plus calme.","Une chaleur calme referme le parfum."], down:["Ce qui reste est plus léger et plus net que le cœur.","Le parfum s'apaise et laisse une impression plus simple.","La fin est plus légère que le cœur."],
+          same:["L'empreinte prolonge la même sensation, calmement.","Le même caractère demeure, plus discret.","La fin garde le même esprit, en douceur."] },
+  },
+};
+
 // atmosphere images per family; "when" restricts an image to perfumes whose own data supports it
 const RV_ATMOS = {
   ar: {
@@ -3073,7 +3109,7 @@ function rvStageText(layer, notes, lang, seed, usedTex, character) {
   if (!pick) { const o = TEX[fams[0]] || []; pick = o.length ? o[seed % o.length] : ""; }
   usedTex.add(pick);
   const variants = S[layer];
-  return variants[seed % variants.length](list, pick, names.length > 1);
+  return { text: variants[seed % variants.length](list, pick, names.length > 1), fam: fams[0] };
 }
 
 // returns { stages:[{label,text}], atmosphere } — stages only when the notes pyramid has at least 2 layers
@@ -3083,8 +3119,16 @@ function rvSensory(p, ans, lang, used) {
   const seed = rvSeed(String(p.id) + p.name);
   const stages = [];
   ["top", "middle", "base"].forEach((layer, i) => {
-    const txt = rvStageText(layer, p.notes?.[layer], lang, seed + i, used.tex, p.character);
-    if (txt) stages.push({ label: S.labels[layer], text: txt });
+    const r = rvStageText(layer, p.notes?.[layer], lang, seed + i, used.tex, p.character);
+    if (r) stages.push({ layer, label: S.labels[layer], text: r.text, fam: r.fam });
+  });
+  const F = RV_FLOW[isFr ? "fr" : "ar"];
+  const pickFlow = (arr, k) => { const free = (arr || []).filter(x => !used.ctx.has(x)); if (!free.length) return ""; const v = free[(seed + k) % free.length]; used.ctx.add(v); return v; };
+  const dir = (a, b) => { const d = (RV_WARMTH[b] ?? 2) - (RV_WARMTH[a] ?? 2); return d > 0 ? "up" : d < 0 ? "down" : "same"; };
+  if (stages.length >= 2) stages.forEach((st, k) => {
+    const extra = k === 0 ? pickFlow(F.open[st.fam], k)
+      : pickFlow((k === stages.length - 1 && st.layer === "base" ? F.end : F.mid)[dir(stages[k - 1].fam, st.fam)], k);
+    if (extra) st.text += " " + extra;
   });
   // atmosphere: first family of the fragrance that has an image supported by its own data, not used yet on this page
   const A = RV_ATMOS[isFr ? "fr" : "ar"];
@@ -3112,8 +3156,8 @@ function RVSensory({ p, ans, lang, used }) {
   const s = rvSensory(p, ans, lang, used);
   if (!s.stages.length && !s.single && !s.atmosphere) return null;
   return (
-    <section className="ffr-sense" aria-label={lang === "fr" ? "L'expérience olfactive" : "عيش تجربة الرائحة"}>
-      <h4>{lang === "fr" ? "🌸 Vivre l'expérience du parfum" : "🌸 عيش تجربة الرائحة"}</h4>
+    <section className="ffr-sense" aria-label={lang === "fr" ? "L'expérience du parfum" : "تجربة الرائحة"}>
+      <h4>{lang === "fr" ? "🌸 L'expérience du parfum" : "🌸 تجربة الرائحة"}</h4>
       {s.stages.length > 0 && (
         <ol className="ffr-timeline">
           {s.stages.map((st, i) => <li key={i}><span className="ffr-stage">{st.label}</span><p>{st.text}</p></li>)}
