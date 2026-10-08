@@ -2786,7 +2786,8 @@ const RV_LABELS = {
     sub:"بناءً على اختياراتك، هادو أفضل العطور اللي لقيناها ليك.",
     featured:"أفضل اختيار ليك", alt:"اختيار قوي",
     match:"Match", why:"علاش اخترناه ليك؟",
-    rows:{ gender:"لمن", family:"العائلة", vibe:"الطابع", occasion:"المناسبة", season:"الفصل" },
+    rows:{ gender:"لمن", family:"العائلة", vibe:"الطابع", occasion:"المناسبة", season:"الفصل", alsoOcc:"مناسبات أخرى", alsoSeason:"فصول أخرى" },
+    profileSub:"بناءً على اختياراتك", profileNote:"اخترنا لك عطور قريبة من اختياراتك.", top3:"أفضل 3 عطور ليك",
     view:"شوف العطر", where:"فين تلقاه؟", buy:"شوف المنتج", price:"درهم",
     approx:"تقريباً", more:"يمكن يعجبوك حتى هادو", retry:"دير الاختبار من جديد", all:"اكتشف جميع العطور",
     sponsored:"Sponsorisé",
@@ -2802,7 +2803,8 @@ const RV_LABELS = {
     sub:"D'après vos réponses, voici les meilleurs parfums que nous avons trouvés pour vous.",
     featured:"Votre meilleur choix", alt:"Autre excellent choix",
     match:"Match", why:"Pourquoi ce choix ?",
-    rows:{ gender:"Pour", family:"Famille", vibe:"Caractère", occasion:"Occasion", season:"Saison" },
+    rows:{ gender:"Pour", family:"Famille", vibe:"Caractère", occasion:"Occasion", season:"Saison", alsoOcc:"Autres occasions", alsoSeason:"Autres saisons" },
+    profileSub:"D'après vos réponses", profileNote:"Nous avons choisi des parfums proches de vos réponses.", top3:"Vos 3 meilleurs parfums",
     view:"Voir le parfum", where:"Où le trouver ?", buy:"Voir le produit", price:"DH",
     approx:"environ", more:"Vous pourriez aussi aimer", retry:"Refaire le quiz", all:"Découvrir tous les parfums",
     sponsored:"Sponsorisé",
@@ -2860,14 +2862,23 @@ function rvMoreLikeThis(res, ans, n) {
   return [...(res.similar || []), ...extra].slice(0, n);
 }
 
-function RVFacts({ p, L }) {
+// Card facts: only what is specific to this fragrance. Values that just repeat the visitor's own answers
+// (shown once in the profile above the cards) are left out; anything that differs is kept.
+function RVFacts({ p, L, ans }) {
+  const occUser = new Set([ans.occasion, mapOccasion(ans.occasion)].filter(Boolean));
+  const genderDiffers = ans.gender && !(p.gender || []).includes(ans.gender);
+  const extraOcc = (p.occasion || []).filter(o => !occUser.has(o));
+  const seasons = p.season || [];
+  const seasonDiffers = ans.season === "allseasons" ? !seasons.includes("allseasons") : seasons.includes("allseasons");
+  const extraSeason = ans.season && ans.season !== "allseasons" && !seasons.includes("allseasons")
+    ? seasons.filter(s => !(ans.season === "summer" ? ["summer", "spring"] : ans.season === "winter" ? ["winter", "autumn", "fall"] : [ans.season]).includes(s)) : [];
   const rows = [
-    [L.rows.gender, rvJoin(L.gender, p.gender)],
     [L.rows.family, rvJoin(L.family, (p.character || []).slice(0, 3))],
     [L.rows.vibe, rvJoin(L.vibe, autoImpressions(p.character, p.occasion).slice(0, 2))],
-    [L.rows.occasion, rvUniq(rvJoin(L.occasion, p.occasion))],
-    [L.rows.season, rvSeasons(L, p)],
-  ].filter(r => r[1].length);
+    genderDiffers ? [L.rows.gender, rvJoin(L.gender, p.gender)] : null,
+    extraOcc.length ? [L.rows.alsoOcc, rvUniq(rvJoin(L.occasion, extraOcc))] : null,
+    seasonDiffers ? [L.rows.season, rvSeasons(L, p)] : extraSeason.length ? [L.rows.alsoSeason, rvUniq(rvJoin(L.season, extraSeason))] : null,
+  ].filter(r => r && r[1].length);
   return (
     <dl className="ffr-facts">
       {rows.map(([k, v]) => (
@@ -2875,6 +2886,40 @@ function RVFacts({ p, L }) {
       ))}
     </dl>
   );
+}
+
+// "علاش اخترناه ليك؟" — what makes THIS fragrance stand out next to the other two results.
+// Built only from fields of the three fragrances (character, impressions, notes vs the visitor's family, price)
+// and the existing match %; never repeats the shared profile (gender / occasion / season).
+const RV_VIBE_DEF = { luxury:"الفخامة", elegant:"الأناقة", confident:"الثقة", attractive:"الجاذبية", fresh_imp:"الانتعاش", longlast:"الأثر الطويل", firstlook:"الانطباع الأول" };
+function rvDistinct(p, peers, ans, lang) {
+  const L = rvL(lang), fr = lang === "fr";
+  const out = [];
+  const isTop = p.slotType === "best";
+  if (isTop && p._pct !== undefined) out.push(fr ? `Le plus proche de vos réponses (${p._pct}%)` : `الأقرب لاختياراتك بنسبة ${p._pct}%`);
+  // a family no other result has
+  const peerFams = new Set(peers.flatMap(x => x.character || []));
+  const ownFam = (p.character || []).find(c => !peerFams.has(c) && L.family[c]);
+  if (ownFam) out.push(fr ? `Le seul des trois avec une touche ${L.family[ownFam].toLowerCase()}` : `الوحيد فالثلاثة اللي فيه طابع ${L.family[ownFam]}`);
+  // its main family is the one the visitor chose, while the others only have it as a secondary note
+  const userFam = mapCharacter(ans.character);
+  const primary = (p.character || [])[0];
+  if (!ownFam && (primary === ans.character || primary === userFam) && peers.some(x => (x.character || [])[0] !== primary) && L.family[primary])
+    out.push(fr ? `La famille ${L.family[primary].toLowerCase()} est son caractère principal` : `الطابع الأساسي ديالو ${L.family[primary]}`);
+  // a dominant impression the other two do not lead with
+  const vibe = autoImpressions(p.character, p.occasion)[0];
+  if (vibe && L.vibe[vibe] && peers.every(x => autoImpressions(x.character, x.occasion)[0] !== vibe))
+    out.push(fr ? `Il penche davantage vers : ${L.vibe[vibe].toLowerCase()}` : `كيميل أكثر ل${"ل" + (RV_VIBE_DEF[vibe] || ("ال" + L.vibe[vibe])).slice(2)}`);
+  // notes close to the visitor's family: the most of the three
+  const count = x => { const prefs = NOTES_PREFS[mapCharacter(ans.character || "heavy")] || []; return [...(x.notes?.top||[]), ...(x.notes?.middle||[]), ...(x.notes?.base||[])].filter(n => prefs.some(pn => n.toLowerCase().includes(pn.toLowerCase()))).length; };
+  const n = count(p);
+  if (n > 0 && peers.every(x => count(x) < n)) out.push(fr ? `Le plus de notes proches de vos goûts (${n})` : `فيه أكثر نوتات قريبة من الذوق ديالك (${n})`);
+  // price, only when it is the most affordable of the three
+  if (p.price && peers.length && peers.every(x => x.price && x.price > p.price))
+    out.push(fr ? `Le plus abordable des trois (≈ ${p.price} ${L.price})` : `الأقل ثمناً بين الثلاثة (≈ ${p.price} ${L.price})`);
+  if (!out.length && n > 0) out.push(fr ? `${n} notes proches de vos goûts` : `فيه ${n} نوتات قريبة من الذوق ديالك`);
+  if (!out.length && p._pct !== undefined) out.push(fr ? `Proche de vos réponses (${p._pct}%)` : `قريب من اختياراتك بنسبة ${p._pct}%`);
+  return out.slice(0, 3);
 }
 
 function RVStores({ p, L, lang }) {
@@ -3169,10 +3214,10 @@ function RVSensory({ p, ans, lang, used }) {
   );
 }
 
-function RVCard({ p, ans, lang, rank, used }) {
+function RVCard({ p, ans, lang, rank, used, peers }) {
   const L = rvL(lang);
   const featured = rank === 1;
-  const reasons = rvReasons(p, ans, lang);
+  const reasons = rvDistinct(p, peers || [], ans, lang);
   const why = generateWhyChosen(p, ans, p.slotType || "best", lang);
   return (
     <article className={"ffr-card" + (featured ? " ffr-featured" : "")} aria-label={"#" + rank + " " + p.name}>
@@ -3195,7 +3240,7 @@ function RVCard({ p, ans, lang, rank, used }) {
             <p className="ffr-match"><b>{p._pct}%</b><span>{L.match}</span></p>
           )}
         </div>
-        <RVFacts p={p} L={L}/>
+        <RVFacts p={p} L={L} ans={ans}/>
         {reasons.length > 0 && (
           <div className="ffr-why">
             <h4>{L.why}</h4>
@@ -3222,8 +3267,14 @@ function ResultsPage({ res, pers, ans, lang, t, questions, reset, favPicked, pic
     const o = q && (q.opts || []).find(o => String(o.v) === String(ans[id]));
     return o ? o.l : null;
   };
-  const summary = [pickLabel("gender"), pickLabel("occasion"), pickLabel("season"), pickLabel("character"),
-    ans.impression ? (L.vibe[ans.impression] || null) : null].filter(Boolean);
+  // the visitor's profile, built only from their own answers (short labels; season keeps the quiz wording)
+  const summary = rvUniq([
+    ans.gender ? (L.gender[ans.gender] || pickLabel("gender")) : null,
+    ans.character ? (L.family[ans.character] || pickLabel("character")) : null,
+    ans.impression ? (L.vibe[ans.impression] || pickLabel("impression")) : null,
+    ans.occasion ? (L.occasion[ans.occasion] || pickLabel("occasion")) : null,
+    ans.season ? (ans.season === "allseasons" ? L.season.allseasons : pickLabel("season")) : null,
+  ].filter(Boolean));
   const topPct = res.main[0]?._pct ?? 100;
   const more = rvMoreLikeThis(res, ans, 6);
   const used = { tex: new Set(), atmos: new Set(), ctx: new Set() };
@@ -3236,8 +3287,11 @@ function ResultsPage({ res, pers, ans, lang, t, questions, reset, favPicked, pic
     <section className="ffr" aria-labelledby="ffr-title">
       <header className="ffr-header">
         <h2 id="ffr-title">{L.title}</h2>
-        <p>{L.sub}</p>
-        {summary.length > 0 && <p className="ffr-summary">{summary.join(" · ")}</p>}
+        <p>{L.profileSub}</p>
+        {summary.length > 0 && (
+          <ul className="ffr-profile" aria-label={L.profileSub}>{summary.map(s => <li key={s}>{s}</li>)}</ul>
+        )}
+        <p className="ffr-profile-note">{L.profileNote}</p>
       </header>
 
       {res.main.length === 1 && topPct < 80 && (
@@ -3247,9 +3301,10 @@ function ResultsPage({ res, pers, ans, lang, t, questions, reset, favPicked, pic
         <p className="ffr-note">{lang === "fr" ? "Résultats limités — ajustez certains critères pour plus d'options." : "النتائج محدودة — جرب تعدل بعض الشروط باش تظهر اقتراحات أكثر."}</p>
       )}
 
+      <h3 className="ffr-top3-title">{L.top3}</h3>
       {/* Top 3 side by side on desktop (1 → 2 → 3 columns as the screen widens); #1 keeps the emphasis */}
       <div className={"ffr-top3 ffr-top3-n" + res.main.length}>
-        {res.main.map((p, i) => <RVCard key={p.id} p={p} ans={ans} lang={lang} rank={i + 1} used={used}/>)}
+        {res.main.map((p, i) => <RVCard key={p.id} p={p} ans={ans} lang={lang} rank={i + 1} used={used} peers={res.main.filter(x => x.id !== p.id)}/>)}
       </div>
 
       {ans.isGift === "gift" ? (

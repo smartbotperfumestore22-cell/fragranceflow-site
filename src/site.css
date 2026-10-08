@@ -408,7 +408,7 @@ a { color: inherit; }
 #ff-widget-root .ffr-top3 .ffr-featured .ffr-name { font-size: clamp(1.35rem, 2vw, 1.65rem); }
 #ff-widget-root .ffr-top3 .ffr-match b { font-size: 1.9rem; }
 #ff-widget-root .ffr-top3 .ffr-featured .ffr-match b { font-size: 2.3rem; }
-#ff-widget-root .ffr-top3 .ffr-facts div { grid-template-columns: 70px 1fr; padding-block: 6px; font-size: .9rem; }
+#ff-widget-root .ffr-top3 .ffr-facts div { grid-template-columns: 92px 1fr; padding-block: 6px; font-size: .9rem; }
 #ff-widget-root .ffr-top3 .ffr-why li { font-size: .88rem; }
 #ff-widget-root .ffr-top3 .ffr-why-text { font-size: .86rem; line-height: 1.75; }
 #ff-widget-root .ffr-top3 .ffr-sense { padding: 14px 14px 16px; gap: 10px; }
@@ -420,3 +420,9 @@ a { color: inherit; }
 /* "you may also like": smaller cards, more per row on wide screens */
 @media (min-width: 1100px) { #ff-widget-root .ffr-more ul { grid-template-columns: repeat(6, minmax(0, 1fr)); } }
 @media (min-width: 700px) and (max-width: 1099px) { #ff-widget-root .ffr-more ul { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+
+/* ───────── Results: shared profile shown once, then "أفضل 3 عطور ليك" ───────── */
+#ff-widget-root .ffr-profile { list-style: none; padding: 0; margin: 4px 0 0; display: flex; flex-wrap: wrap; gap: 8px; }
+#ff-widget-root .ffr-profile li { padding: 5px 14px; border: 1px solid rgba(91, 42, 134, .35); background: var(--soft); color: var(--accent-deep); border-radius: 99px; font-size: .9rem; font-weight: 600; }
+#ff-widget-root .ffr-profile-note { font-size: .9rem; color: var(--muted); }
+#ff-widget-root .ffr-top3-title { font-family: var(--font-display); font-weight: 700; font-size: clamp(1.5rem, 3vw, 1.9rem); margin-bottom: -6px; }
