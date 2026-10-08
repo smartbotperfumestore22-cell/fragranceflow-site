@@ -3,6 +3,7 @@
 import "./config.js";
 import "./site.css";
 import { startSite } from "./site.js";
+import { showSharedPersona } from "./share-landing.js";
 
 let quizReady = null;
 function loadQuiz() {
@@ -22,3 +23,4 @@ function loadQuiz() {
 }
 
 startSite({ loadQuiz });
+showSharedPersona(); // note above the quiz when the visitor opened a shared personality link

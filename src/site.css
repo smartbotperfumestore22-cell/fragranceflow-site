@@ -426,3 +426,32 @@ a { color: inherit; }
 #ff-widget-root .ffr-profile li { padding: 5px 14px; border: 1px solid rgba(91, 42, 134, .35); background: var(--soft); color: var(--accent-deep); border-radius: 99px; font-size: .9rem; font-weight: 600; }
 #ff-widget-root .ffr-profile-note { font-size: .9rem; color: var(--muted); }
 #ff-widget-root .ffr-top3-title { font-family: var(--font-display); font-weight: 700; font-size: clamp(1.5rem, 3vw, 1.9rem); margin-bottom: -6px; }
+
+/* ---------- sharing the fragrance personality (results page) ---------- */
+#ff-widget-root .ffr-share { display: flex; flex-direction: column; gap: 10px; padding-top: 12px; border-top: 1px solid rgba(91, 42, 134, .15); }
+#ff-widget-root .ffr-share-toggle { align-self: flex-start; min-height: 44px; padding: 10px 18px; border: 1px solid var(--accent); background: var(--accent); color: var(--on-accent); border-radius: var(--radius); font-weight: 600; font-size: .95rem; cursor: pointer; }
+#ff-widget-root .ffr-share-toggle:hover { background: var(--accent-deep); border-color: var(--accent-deep); }
+#ff-widget-root .ffr-share-toggle[aria-expanded="true"] { background: var(--bg); color: var(--accent); }
+#ff-widget-root .ffr-share-opts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+#ff-widget-root .ffr-share-opts button { display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 46px; padding: 8px 12px; border: 1px solid var(--line); background: var(--bg); color: var(--ink); border-radius: var(--radius); font-size: .9rem; font-weight: 500; cursor: pointer; }
+#ff-widget-root .ffr-share-opts button:hover { border-color: var(--accent); color: var(--accent); }
+#ff-widget-root .ffr-share-opts svg { width: 20px; height: 20px; flex: none; color: var(--accent); }
+#ff-widget-root .ffr-share-ig { display: flex; flex-direction: column; align-items: center; gap: 10px; }
+#ff-widget-root .ffr-share-ig-title { align-self: stretch; font-weight: 600; color: var(--ink); }
+#ff-widget-root .ffr-share-ig img { width: min(220px, 60vw); height: auto; aspect-ratio: 9 / 16; border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); background: var(--bg); }
+#ff-widget-root .ffr-share-making { padding: 40px 0; color: var(--muted); font-size: .9rem; }
+#ff-widget-root .ffr-share-ig-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
+#ff-widget-root .ffr-share-ig-actions button { min-height: 44px; padding: 8px 16px; border: 1px solid var(--accent); background: var(--bg); color: var(--accent); border-radius: var(--radius); font-weight: 600; font-size: .9rem; cursor: pointer; }
+#ff-widget-root .ffr-share-ig-actions button.is-primary { background: var(--accent); color: var(--on-accent); }
+#ff-widget-root .ffr-share-ig-actions button:disabled { opacity: .5; cursor: default; }
+#ff-widget-root .ffr-share-note, #ff-widget-root .ffr-share-msg { font-size: .82rem; color: var(--muted); line-height: 1.7; }
+#ff-widget-root .ffr-share-msg:empty { display: none; }
+#ff-widget-root .ffr-share-msg { color: var(--accent); font-weight: 500; word-break: break-all; }
+@media (min-width: 760px) { #ff-widget-root .ffr-share-opts { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+
+/* note above the quiz for a visitor who opened a shared personality link */
+.shared-persona { max-width: 720px; margin: 0 auto 16px; padding: 16px 18px; background: var(--soft); border-inline-start: 3px solid var(--accent); border-radius: var(--radius); text-align: center; }
+.shared-persona-kicker { font-size: .85rem; color: var(--muted); }
+.shared-persona-name { font-family: var(--font-display); font-size: 1.6rem; color: var(--accent-deep); line-height: 1.4; }
+.shared-persona-latin { font-family: var(--font-latin); font-style: italic; color: var(--accent); }
+.shared-persona-cta { margin-top: 6px; font-size: .95rem; color: var(--ink); }

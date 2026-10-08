@@ -7,6 +7,7 @@ if (typeof window !== 'undefined' && !document.getElementById('ff-widget-root'))
   document.body.appendChild(_c);
 }
 import { useState, useEffect } from "react";
+import ShareResult from "./Share.jsx";
 
 
 
@@ -3323,6 +3324,7 @@ function ResultsPage({ res, pers, ans, lang, t, questions, reset, favPicked, pic
               </>
             ) : <span>{lang === "fr" ? "Merci pour votre retour 🙏" : "شكراً على رأيك 🙏"}</span>}
           </div>
+          <ShareResult name={persName} latin={lang === "fr" ? "" : pers.fr} icon={pers.icon} desc={persDesc} lang={lang}/>
         </aside>
       )}
 
