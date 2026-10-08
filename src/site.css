@@ -384,38 +384,13 @@ a { color: inherit; }
 #ff-widget-root .ffr-header p, #ff-widget-root .ffr-persona p, #ff-widget-root .ffr-disclaimer { max-width: 72ch; }
 #ff-widget-root .ffr-disclaimer { margin-inline: auto; }
 
-/* 1 column on phones, 2 on tablets, 3 on desktops */
-#ff-widget-root .ffr-top3 { display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; align-items: stretch; }
-@media (min-width: 700px) { #ff-widget-root .ffr-top3 { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-@media (min-width: 1100px) { #ff-widget-root .ffr-top3-n3 { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; } }
 
-/* every card: same structure, image on top, CTA aligned at the bottom */
-#ff-widget-root .ffr-top3 .ffr-card { display: flex; flex-direction: column; }
-#ff-widget-root .ffr-top3 .ffr-media,
-#ff-widget-root .ffr-top3 .ffr-featured .ffr-media { aspect-ratio: 4 / 3; min-height: 0; }
-#ff-widget-root .ffr-top3 .ffr-body,
-#ff-widget-root .ffr-top3 .ffr-featured .ffr-body { padding: 16px 18px 18px; gap: 14px; flex: 1; }
-#ff-widget-root .ffr-top3 .ffr-actions { margin-top: auto; padding-top: 4px; }
-#ff-widget-root .ffr-top3 .ffr-actions .ffr-btn { flex: 1 1 100%; }
 
 /* #1 stays the clear winner through accent, not size */
 #ff-widget-root .ffr-top3 .ffr-featured { border-width: 2px; box-shadow: 0 10px 28px rgba(59, 24, 91, .10); }
 #ff-widget-root .ffr-top3 .ffr-featured .ffr-kicker { color: #FFFFFF; background: var(--accent); align-self: flex-start; padding: 3px 10px; border-radius: 3px; }
 #ff-widget-root .ffr-top3 .ffr-card:not(.ffr-featured) .ffr-rank { background: var(--accent-deep); }
 
-/* typography tuned for narrower cards (readable, not shrunk aggressively) */
-#ff-widget-root .ffr-top3 .ffr-name,
-#ff-widget-root .ffr-top3 .ffr-featured .ffr-name { font-size: clamp(1.35rem, 2vw, 1.65rem); }
-#ff-widget-root .ffr-top3 .ffr-match b { font-size: 1.9rem; }
-#ff-widget-root .ffr-top3 .ffr-featured .ffr-match b { font-size: 2.3rem; }
-#ff-widget-root .ffr-top3 .ffr-facts div { grid-template-columns: 92px 1fr; padding-block: 6px; font-size: .9rem; }
-#ff-widget-root .ffr-top3 .ffr-why li { font-size: .88rem; }
-#ff-widget-root .ffr-top3 .ffr-why-text { font-size: .86rem; line-height: 1.75; }
-#ff-widget-root .ffr-top3 .ffr-sense { padding: 14px 14px 16px; gap: 10px; }
-#ff-widget-root .ffr-top3 .ffr-sense h4 { font-size: 1.12rem; }
-#ff-widget-root .ffr-top3 .ffr-timeline li { padding-bottom: 10px; }
-#ff-widget-root .ffr-top3 .ffr-timeline p { font-size: .9rem; line-height: 1.8; }
-#ff-widget-root .ffr-top3 .ffr-atmos { font-size: 1rem; line-height: 1.75; padding-top: 10px; }
 
 /* "you may also like": smaller cards, more per row on wide screens */
 @media (min-width: 1100px) { #ff-widget-root .ffr-more ul { grid-template-columns: repeat(6, minmax(0, 1fr)); } }
@@ -426,3 +401,31 @@ a { color: inherit; }
 #ff-widget-root .ffr-profile li { padding: 5px 14px; border: 1px solid rgba(91, 42, 134, .35); background: var(--soft); color: var(--accent-deep); border-radius: 99px; font-size: .9rem; font-weight: 600; }
 #ff-widget-root .ffr-profile-note { font-size: .9rem; color: var(--muted); }
 #ff-widget-root .ffr-top3-title { font-family: var(--font-display); font-weight: 700; font-size: clamp(1.5rem, 3vw, 1.9rem); margin-bottom: -6px; }
+
+/* ───────── Results: Top 3 as large horizontal cards, stacked #1 → #2 → #3 ───────── */
+#ff-widget-root .ffr-top3 { display: flex; flex-direction: column; gap: 36px; }
+#ff-widget-root .ffr-top3 .ffr-card { display: flex; flex-direction: column; }
+#ff-widget-root .ffr-top3 .ffr-media { aspect-ratio: 4 / 3; min-height: 0; }
+#ff-widget-root .ffr-top3 .ffr-body { padding: 18px 18px 22px; gap: 16px; flex: 1; }
+#ff-widget-root .ffr-top3 .ffr-actions { margin-top: auto; }
+#ff-widget-root .ffr-top3 .ffr-actions .ffr-btn { flex: 1 1 100%; }
+/* desktop and wide tablets: image ~38% on the RIGHT (first column in RTL), information ~62% on the LEFT */
+@media (min-width: 900px) {
+  #ff-widget-root .ffr-top3 { gap: 44px; }
+  #ff-widget-root .ffr-top3 .ffr-card { display: grid; grid-template-columns: 38% minmax(0, 1fr); align-items: start; }
+  #ff-widget-root .ffr-top3 .ffr-media { aspect-ratio: 1 / 1; position: sticky; top: calc(84px + env(safe-area-inset-top, 0px)); }
+  #ff-widget-root .ffr-top3 .ffr-body { padding: 28px 36px 32px; gap: 20px; }
+  /* keep reading lines comfortable inside the wide information area */
+  #ff-widget-root .ffr-top3 .ffr-body > * { max-width: 760px; }
+  #ff-widget-root .ffr-top3 .ffr-actions .ffr-btn { flex: 0 0 auto; min-width: 220px; }
+  #ff-widget-root .ffr-top3 .ffr-name { font-size: clamp(1.8rem, 2.6vw, 2.4rem); }
+  #ff-widget-root .ffr-top3 .ffr-match b { font-size: 2.2rem; }
+  #ff-widget-root .ffr-top3 .ffr-featured .ffr-match b { font-size: 2.8rem; }
+}
+#ff-widget-root .ffr-top3 .ffr-facts div { grid-template-columns: 96px 1fr; }
+/* #1 stays the clear winner through accent, not size; #2/#3 share the same system */
+#ff-widget-root .ffr-top3 .ffr-card:not(.ffr-featured) { border-color: var(--line); }
+#ff-widget-root .ffr-top3 .ffr-card { overflow: clip; }
+/* the quiz's inner wrapper scrolls (overflow:auto) in the popup widget; on the results page it must not,
+   otherwise position:sticky on the result images has no effect */
+.ff-page-card:has(.ffr) > div { overflow: visible !important; }

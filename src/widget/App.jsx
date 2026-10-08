@@ -3302,7 +3302,7 @@ function ResultsPage({ res, pers, ans, lang, t, questions, reset, favPicked, pic
       )}
 
       <h3 className="ffr-top3-title">{L.top3}</h3>
-      {/* Top 3 side by side on desktop (1 → 2 → 3 columns as the screen widens); #1 keeps the emphasis */}
+      {/* Top 3 stacked #1 → #2 → #3; each card is horizontal on wide screens (image right, info left) */}
       <div className={"ffr-top3 ffr-top3-n" + res.main.length}>
         {res.main.map((p, i) => <RVCard key={p.id} p={p} ans={ans} lang={lang} rank={i + 1} used={used} peers={res.main.filter(x => x.id !== p.id)}/>)}
       </div>
