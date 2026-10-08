@@ -364,3 +364,15 @@ a { color: inherit; }
 #ff-widget-root .ffr-end { display: flex; flex-wrap: wrap; gap: 12px; }
 #ff-widget-root .ffr-end .ffr-btn { flex: 1 1 220px; }
 #ff-widget-root .ffr-disclaimer { font-size: .8rem; color: var(--muted); text-align: center; }
+
+/* ───────── «🌸 عيش تجربة الرائحة» sensory section (distinct from the analytical "why" list) ───────── */
+#ff-widget-root .ffr-sense { background: var(--soft); border-inline-start: 2px solid var(--accent); padding: 18px 18px 20px; display: flex; flex-direction: column; gap: 14px; }
+#ff-widget-root .ffr-sense h4 { font-family: var(--font-display); font-weight: 700; font-size: 1.25rem; color: var(--accent-deep); }
+#ff-widget-root .ffr-timeline { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; }
+#ff-widget-root .ffr-timeline li { position: relative; padding-inline-start: 22px; padding-bottom: 14px; }
+#ff-widget-root .ffr-timeline li::before { content: ""; position: absolute; inset-inline-start: 3px; top: 9px; width: 7px; height: 7px; border-radius: 50%; background: var(--accent); }
+#ff-widget-root .ffr-timeline li:not(:last-child)::after { content: ""; position: absolute; inset-inline-start: 6px; top: 20px; bottom: 0; width: 1px; background: rgba(91, 42, 134, .3); }
+#ff-widget-root .ffr-stage { display: block; font-size: .74rem; font-weight: 600; letter-spacing: .08em; color: var(--accent); margin-bottom: 2px; }
+#ff-widget-root .ffr-timeline p, #ff-widget-root .ffr-sense-text { font-size: .98rem; line-height: 1.85; color: var(--ink); }
+#ff-widget-root .ffr-atmos { font-family: var(--font-display); font-size: 1.12rem; line-height: 1.8; color: var(--accent-deep); padding-top: 12px; border-top: 1px solid rgba(91, 42, 134, .18); }
+@media (min-width: 760px) { #ff-widget-root .ffr-featured .ffr-sense { padding: 22px 24px; } }

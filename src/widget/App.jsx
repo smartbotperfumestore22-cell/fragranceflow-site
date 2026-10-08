@@ -2900,7 +2900,232 @@ function RVStores({ p, L, lang }) {
   );
 }
 
-function RVCard({ p, ans, lang, rank }) {
+// ═══════════════════════════════════════════════════════════════
+//  SENSORY EXPERIENCE «🌸 عيش تجربة الرائحة» (results page, presentation only)
+//  Built ONLY from data that exists on the fragrance: notes.top / notes.middle / notes.base,
+//  character, occasion, season — plus the visitor's own answers for personalisation.
+//  No notes, longevity or projection are invented: a note is named only if it is in the data,
+//  and its texture comes from the note itself (RV_NOTES). Third-person, gender-neutral wording.
+// ═══════════════════════════════════════════════════════════════
+// note → [Arabic name, French name, texture family]
+const RV_NOTES = {
+  "Aldehydes":["الألدهيدات","les aldéhydes","aldehyde"], "Almond":["اللوز","l'amande","gourmand"], "Amber":["العنبر","l'ambre","resin"],
+  "Ambergris":["العنبر الرمادي","l'ambre gris","musk"], "Amberwood":["خشب العنبر","le bois ambré","wood"], "Ambrette":["بذور الأمبريت","l'ambrette","musk"],
+  "Ambroxan":["الأمبروكسان","l'ambroxan","musk"], "Apple":["التفاح","la pomme","fruit"], "Apricot":["المشمش","l'abricot","fruit"],
+  "Bamboo":["الخيزران","le bambou","green"], "Bay Leaf":["ورق الغار","le laurier","green"], "Bergamot":["البرغموت","la bergamote","citrus"],
+  "Birch":["خشب البتولا","le bouleau","wood"], "Black Currant":["الكشمش الأسود","le cassis","fruit"], "Blackberry":["التوت الأسود","la mûre","fruit"],
+  "Blood Mandarin":["اليوسفي الأحمر","la mandarine sanguine","citrus"], "Brown Sugar":["السكر البني","le sucre brun","gourmand"], "Cacao":["الكاكاو","le cacao","gourmand"],
+  "Caramel":["الكراميل","le caramel","gourmand"], "Cardamom":["الهيل","la cardamome","spice"], "Cashmeran":["الكشميران","le cashmeran","musk"],
+  "Cedar":["الأرز","le cèdre","wood"], "Chestnut":["الكستناء","la châtaigne","gourmand"], "Chili":["الفلفل الحار","le piment","spice"],
+  "Chocolate":["الشوكولاتة","le chocolat","gourmand"], "Cinnamon":["القرفة","la cannelle","spice"], "Clary Sage":["المريمية","la sauge sclarée","green"],
+  "Clove":["القرنفل","le clou de girofle","spice"], "Coffee":["القهوة","le café","gourmand"], "Cotton Candy":["حلوى القطن","la barbe à papa","gourmand"],
+  "Cumin":["الكمون","le cumin","spice"], "Dates":["التمر","la datte","gourmand"], "Fir Resin":["راتنج التنوب","la résine de sapin","resin"],
+  "Flint":["حجر الصوان","le silex","mineral"], "Freesia":["الفريزيا","le freesia","floral"], "Gardenia":["الغاردينيا","le gardénia","white_floral"],
+  "Geranium":["الجيرانيوم","le géranium","floral"], "Ginger":["الزنجبيل","le gingembre","spice"], "Gourmand":["نوتات حلوة","des notes gourmandes","gourmand"],
+  "Grapefruit":["الجريب فروت","le pamplemousse","citrus"], "Green Apple":["التفاح الأخضر","la pomme verte","fruit"], "Guaiac Wood":["خشب الغاياك","le bois de gaïac","wood"],
+  "Heliotrope":["الهليوتروب","l'héliotrope","powder"], "Honey":["العسل","le miel","gourmand"], "Incense":["البخور","l'encens","resin"],
+  "Iris":["الإيريس","l'iris","powder"], "Jasmine":["الياسمين","le jasmin","white_floral"], "Java Vetiver":["الفيتيفر","le vétiver","wood"],
+  "Juniper":["العرعر","le genièvre","green"], "Labdanum":["اللابدانوم","le labdanum","resin"], "Lavender":["اللافندر","la lavande","green"],
+  "Leather":["الجلد","le cuir","leather"], "Lemon":["الليمون","le citron","citrus"], "Lily":["الزنبق","le lys","white_floral"],
+  "Lime":["الليم","le citron vert","citrus"], "Litchi":["الليتشي","le litchi","fruit"], "Mandarin":["اليوسفي","la mandarine","citrus"],
+  "Melon":["البطيخ","le melon","fruit"], "Mint":["النعناع","la menthe","green"], "Musk":["المسك","le musc","musk"],
+  "Neroli":["النيرولي","le néroli","white_floral"], "Nutmeg":["جوزة الطيب","la noix de muscade","spice"], "Oakmoss":["طحلب البلوط","la mousse de chêne","green"],
+  "Olive Blossom":["زهر الزيتون","la fleur d'olivier","floral"], "Orange":["البرتقال","l'orange","citrus"], "Orange Blossom":["زهر البرتقال","la fleur d'oranger","white_floral"],
+  "Orchid":["الأوركيد","l'orchidée","floral"], "Orris":["جذر السوسن","l'iris (orris)","powder"], "Osmanthus":["الأوسمانثوس","l'osmanthus","floral"],
+  "Oud":["العود","l'oud","resin"], "Patchouli":["الباتشولي","le patchouli","wood"], "Peach":["الخوخ","la pêche","fruit"],
+  "Pear":["الإجاص","la poire","fruit"], "Peony":["الفاوانيا","la pivoine","floral"], "Pepper":["الفلفل","le poivre","spice"],
+  "Peru Balsam":["بلسم البيرو","le baume du Pérou","resin"], "Pineapple":["الأناناس","l'ananas","fruit"], "Pink Pepper":["الفلفل الوردي","la baie rose","spice"],
+  "Plum":["البرقوق","la prune","fruit"], "Praline":["البرالين","la praline","gourmand"], "Rangoon Creeper":["زهرة الرانغون","la liane de Rangoon","white_floral"],
+  "Raspberry":["توت العليق","la framboise","fruit"], "Red Berries":["التوت الأحمر","les fruits rouges","fruit"], "Rhubarb":["الراوند","la rhubarbe","green"],
+  "Rose":["الورد","la rose","floral"], "Rosemary":["إكليل الجبل","le romarin","green"], "Rosewood":["خشب الورد","le bois de rose","wood"],
+  "Rum":["الروم","le rhum","boozy"], "Saffron":["الزعفران","le safran","spice"], "Sandalwood":["خشب الصندل","le santal","wood"],
+  "Sea Notes":["نوتات البحر","les notes marines","marine"], "Sichuan Pepper":["فلفل سيتشوان","le poivre de Sichuan","spice"], "Spices":["التوابل","les épices","spice"],
+  "Star Anise":["اليانسون النجمي","l'anis étoilé","spice"], "Strawberry":["الفراولة","la fraise","fruit"], "Styrax":["الميعة","le styrax","resin"],
+  "Tangerine":["اليوسفي","la tangerine","citrus"], "Tea":["الشاي","le thé","green"], "Tobacco":["التبغ","le tabac","leather"],
+  "Tonka Bean":["حبوب التونكا","la fève tonka","gourmand"], "Tropical Fruits":["الفواكه الاستوائية","les fruits tropicaux","fruit"], "Tuberose":["المسك الرومي","la tubéreuse","white_floral"],
+  "Vanilla":["الفانيليا","la vanille","gourmand"], "Vetiver":["الفيتيفر","le vétiver","wood"], "Violet":["البنفسج","la violette","powder"],
+  "Violet Leaf":["ورق البنفسج","la feuille de violette","green"], "White Amber":["العنبر الأبيض","l'ambre blanc","musk"], "White Musk":["المسك الأبيض","le musc blanc","musk"],
+  "White Rose":["الورد الأبيض","la rose blanche","floral"], "White Woods":["الأخشاب البيضاء","les bois blancs","wood"], "Woody Notes":["نوتات خشبية","des notes boisées","wood"],
+  "Ylang-Ylang":["اليلانغ يلانغ","l'ylang-ylang","white_floral"],
+};
+// texture of each note family — describes how the family feels, never a performance claim
+const RV_TEXTURE = {
+  ar: {
+    citrus:["نفحة مشرقة ومنعشة","إشراقة حمضية صافية","انتعاش حمضي خفيف"],
+    spice:["دفء حار خفيف","لمسة حارة فيها شوية حدة","دفء متبل"],
+    floral:["نعومة زهرية","طابع زهري رقيق","زهور ناعمة ومشرقة"],
+    white_floral:["زهور بيضاء غنية وناعمة","نعومة زهرية كريمية","طابع زهري أبيض دافئ"],
+    fruit:["حلاوة فاكهية مشرقة","طابع فاكهي عصيري","نضارة فاكهية حلوة"],
+    green:["انتعاش عشبي","طابع عشبي هادئ","خضرة باردة ونظيفة"],
+    marine:["برودة مائية","إحساس مائي خفيف","انتعاش بارد بحال الما"],
+    wood:["دفء خشبي جاف","حضور خشبي أنيق","طابع خشبي هادئ"],
+    resin:["عمق دافئ وغني","دفء راتنجي كثيف","عمق مخملي دافئ"],
+    gourmand:["حلاوة كريمية","دفء حلو ومخملي","حلاوة دافية ناعمة"],
+    musk:["نعومة نظيفة","أثر مسكي ناعم","دفء نظيف وهادئ"],
+    powder:["لمسة بودرية ناعمة","نعومة بودرية أنيقة","طابع بودري هادئ"],
+    leather:["عمق جاف فيه دفء","دفء داكن وجاف","طابع جاف وغني"],
+    aldehyde:["إشراقة نظيفة فيها شوية بودرة","لمعة نظيفة وبودرية"],
+    mineral:["لمسة معدنية باردة","برودة حجرية خفيفة"],
+    boozy:["دفء كحولي حلو","لمسة دافية بحال الروم"],
+  },
+  fr: {
+    citrus:["une touche lumineuse et fraîche","un éclat hespéridé limpide","une fraîcheur zestée"],
+    spice:["une chaleur légèrement poivrée","une pointe épicée un peu vive","une chaleur épicée"],
+    floral:["une douceur florale","un caractère floral délicat","des fleurs douces et lumineuses"],
+    white_floral:["des fleurs blanches riches et douces","une douceur florale crémeuse","un floral blanc chaleureux"],
+    fruit:["une douceur fruitée lumineuse","un côté fruité juteux","une fraîcheur fruitée et sucrée"],
+    green:["une fraîcheur aromatique","un caractère herbacé apaisé","un vert frais et propre"],
+    marine:["une fraîcheur aquatique","une sensation d'eau légère","une fraîcheur froide et limpide"],
+    wood:["une chaleur boisée sèche","une présence boisée élégante","un boisé calme"],
+    resin:["une profondeur chaude et riche","une chaleur résineuse dense","une profondeur veloutée"],
+    gourmand:["une douceur crémeuse","une chaleur sucrée et veloutée","une douceur tiède et moelleuse"],
+    musk:["une douceur propre","un sillage musqué doux","une chaleur propre et calme"],
+    powder:["une touche poudrée douce","une douceur poudrée élégante","un caractère poudré apaisé"],
+    leather:["une profondeur sèche et chaude","une chaleur sombre et sèche","un caractère sec et riche"],
+    aldehyde:["un éclat propre légèrement poudré","une brillance propre et poudrée"],
+    mineral:["une touche minérale fraîche","une fraîcheur de pierre"],
+    boozy:["une chaleur liquoreuse","une touche chaude comme un rhum"],
+  },
+};
+// sentence openers for each stage — several variants so the three cards do not read alike
+const RV_STAGE = {
+  ar: {
+    top:[(n,t,pl)=>`من أول رشة ${pl?"كيبانو":"كيبان"} ${n}، ${t}.`, (n,t)=>`الافتتاحية فيها ${n}: ${t}.`, (n,t,pl)=>`أول ما كيترش العطر، ${pl?"كيطلعو":"كيطلع"} ${n} ب${t}.`],
+    middle:[(n,t)=>`مع مرور الوقت كيتحول العطر نحو ${n}، وكيولي فيه ${t}.`, (n,t)=>`من بعد شوية كيبان القلب ديالو: ${n}، ${t}.`, (n,t,pl)=>`ملي كتهدا الافتتاحية، ${pl?"كيطلعو":"كيطلع"} ${n} ب${t}.`],
+    base:[(n,t)=>`فالـDry Down كيستقر على ${n}، ${t}.`, (n,t)=>`فالأخير كيبقى أثر ديال ${n}، ${t}.`, (n,t,pl)=>`وفالقاعدة ${pl?"كيبانو":"كيبان"} ${n} ب${t}.`],
+    labels:{ top:"أول رشة", middle:"بعد دقائق", base:"Dry Down" },
+    and:" و", sep:"، ",
+  },
+  fr: {
+    top:[(n,t)=>`Dès la première vaporisation, ${n} : ${t}.`, (n,t)=>`L'ouverture s'appuie sur ${n}, avec ${t}.`, (n,t,pl)=>`Au premier contact, ${n} ${pl?"apportent":"apporte"} ${t}.`],
+    middle:[(n,t)=>`Avec le temps, le parfum glisse vers ${n} et ${t} se révèle.`, (n,t)=>`Peu après, le cœur apparaît : ${n}, ${t}.`, (n,t,pl)=>`Quand l'ouverture s'apaise, ${n} ${pl?"prennent":"prend"} le relais avec ${t}.`],
+    base:[(n,t)=>`Au fond, il se pose sur ${n} : ${t}.`, (n,t)=>`Il reste ensuite une trace de ${n}, ${t}.`, (n,t)=>`Le fond révèle ${n}, avec ${t}.`],
+    labels:{ top:"Première vaporisation", middle:"Après quelques minutes", base:"Dry Down" },
+    and:" et ", sep:", ",
+  },
+};
+// atmosphere images per family; "when" restricts an image to perfumes whose own data supports it
+const RV_ATMOS = {
+  ar: {
+    fresh:[{t:"إحساس منعش وخفيف، بحال نسمة باردة فنهار صيفي", when:p=>rvHasSeason(p,["summer","spring"])}, {t:"إحساس صافي ومنعش، بحال صباح بكري ومشمس"}],
+    citrus:[{t:"إشراقة صافية، بحال قشرة حامض طرية مقشرة للتو"}],
+    aquatic:[{t:"إحساس مائي بارد، كيقرب من هوا البحر فنهار سخون", when:p=>rvHasFam(p,["marine"])}, {t:"انتعاش بارد وواسع بحال الهوا قرب الما"}],
+    clean:[{t:"إحساس بالنظافة، بحال ملابس نظيفة خرجات للتو من الشمس"}],
+    musky:[{t:"نعومة نظيفة ودافية، بحال قماش ناعم قريب من الجلد"}],
+    floral:[{t:"أناقة هادئة كتقرب من إحساس باقة زهور ناعمة فمكان راقي"}, {t:"رقة زهرية بحال صباح فجردة فالربيع", when:p=>rvHasSeason(p,["spring"])}],
+    fruity:[{t:"طابع مشرق ومرح، بحال فواكه طرية مقطعة للتو"}],
+    sweet:[{t:"دفء حلو وكريمي كيعطي إحساس بالراحة والهدوء", when:p=>rvHasSeason(p,["winter","autumn"])}, {t:"حلاوة دافية ومريحة، بحال حلوى طرية خارجة من الفران", when:p=>rvHasFam(p,["gourmand"])}],
+    oriental:[{t:"دفء غني وعميق، بحال جلسة هادئة فليلة باردة", when:p=>rvHasSeason(p,["winter"])}, {t:"حضور دافئ وغني كيبان أكثر مع مرور الوقت"}],
+    woody:[{t:"حضور دافئ وعميق، فيه إحساس بالخشب الأنيق والدفء"}, {t:"طابع خشبي جاف وهادئ، بحال خشب مصقول فبيت هادئ"}],
+    heavy:[{t:"حضور عميق وواضح فيه دفء"}],
+  },
+  fr: {
+    fresh:[{t:"Une sensation fraîche et légère, comme une brise froide un jour d'été", when:p=>rvHasSeason(p,["summer","spring"])}, {t:"Une fraîcheur limpide, comme un matin ensoleillé de bonne heure"}],
+    citrus:[{t:"Un éclat limpide, comme un zeste fraîchement pelé"}],
+    aquatic:[{t:"Une fraîcheur aquatique, proche de l'air marin un jour de chaleur", when:p=>rvHasFam(p,["marine"])}, {t:"Une fraîcheur ample, comme l'air au bord de l'eau"}],
+    clean:[{t:"Une sensation de propreté, comme un linge qui sort du soleil"}],
+    musky:[{t:"Une douceur propre et tiède, comme un tissu doux contre la peau"}],
+    floral:[{t:"Une élégance calme, proche d'un bouquet de fleurs douces dans un lieu raffiné"}, {t:"Une délicatesse florale, comme un matin au jardin au printemps", when:p=>rvHasSeason(p,["spring"])}],
+    fruity:[{t:"Un caractère lumineux et gai, comme des fruits tout juste coupés"}],
+    sweet:[{t:"Une chaleur sucrée et crémeuse qui donne une sensation de confort et de calme", when:p=>rvHasSeason(p,["winter","autumn"])}, {t:"Une douceur tiède et réconfortante, comme une pâtisserie qui sort du four", when:p=>rvHasFam(p,["gourmand"])}],
+    oriental:[{t:"Une chaleur riche et profonde, comme une soirée calme par une nuit froide", when:p=>rvHasSeason(p,["winter"])}, {t:"Une présence chaude et riche qui s'affirme avec le temps"}],
+    woody:[{t:"Une présence chaude et profonde, avec l'idée d'un bois élégant"}, {t:"Un boisé sec et calme, comme un bois poli dans une maison tranquille"}],
+    heavy:[{t:"Une présence profonde et nette, avec de la chaleur"}],
+  },
+};
+// personal context: only when the fragrance's own data supports the visitor's answer
+const RV_CONTEXT = {
+  ar: { occasion:{ evening:["كيناسب الأجواء الليلية","كيتلبس مزيان فالسهرات","مناسب لليالي والخرجات"], dates:["كيناسب الأمسيات الخاصة","مناسب للمواعيد","كيتلبس مزيان فالأمسيات الهادئة"],
+                   daily:["كيناسب النهار والخدمة","مناسب للاستعمال اليومي","كيتلبس بسهولة فالنهار"], travel:["كيناسب الخرجات والسفر","مناسب للسفر","كيرافق الخرجات"], allday:["كيتلبس فبزاف ديال المناسبات"] },
+        season:{ summer:["فالأيام السخونة","فالصيف","ملي كيسخن الجو"], spring:["فالربيع"], winter:["فالأيام الباردة","فالشتا","ملي كيبرد الجو"], autumn:["فالخريف"], fall:["فالخريف"], allseasons:["فكل الفصول","طول العام"] },
+        impression:{ luxury:"الفخامة", elegant:"الأناقة الهادئة", confident:"الثقة", attractive:"الجاذبية", fresh_imp:"النظافة والانتعاش", firstlook:"حضور واضح من البداية" },
+        withImp:["، مع إحساس ب", "، وفيه لمسة ديال ", " — والإحساس اللي كيبقى هو "], general:"الإحساس العام: " },
+  fr: { occasion:{ evening:["idéal pour les ambiances du soir","parfait pour les soirées","fait pour les nuits et les sorties"], dates:["idéal pour les soirées à deux","parfait pour un rendez-vous","agréable pour les soirées calmes"],
+                   daily:["idéal pour la journée et le travail","facile à porter au quotidien","naturel en journée"], travel:["idéal pour les sorties et les voyages","parfait en voyage","agréable pour les sorties"], allday:["facile à porter en toute occasion"] },
+        season:{ summer:["par temps chaud","en été","quand il fait chaud"], spring:["au printemps"], winter:["par temps froid","en hiver","quand il fait froid"], autumn:["en automne"], fall:["en automne"], allseasons:["en toute saison","toute l'année"] },
+        impression:{ luxury:"luxe", elegant:"élégance discrète", confident:"assurance", attractive:"séduction", fresh_imp:"propreté et fraîcheur", firstlook:"présence affirmée dès le départ" },
+        withImp:[", avec une sensation de ", ", avec une touche de ", " — et ce qui reste, c'est une impression de "], general:"Impression générale : " },
+};
+function rvHasSeason(p, list) { const s = p.season || []; return s.includes("allseasons") || list.some(x => s.includes(x)); }
+function rvNoteFams(p) { return [...(p.notes?.top||[]), ...(p.notes?.middle||[]), ...(p.notes?.base||[])].map(n => (RV_NOTES[n]||[])[2]).filter(Boolean); }
+function rvHasFam(p, fams) { const f = rvNoteFams(p); return fams.some(x => f.includes(x)); }
+function rvSeed(str) { let h = 0; for (let i = 0; i < str.length; i++) h = (h * 31 + str.charCodeAt(i)) >>> 0; return h; }
+
+// which note families fit each fragrance character (used only to break ties between note families)
+const RV_AFFINITY = { fresh:["citrus","green","marine"], citrus:["citrus"], aquatic:["marine","citrus"], clean:["musk","aldehyde","powder"],
+  musky:["musk","powder"], floral:["floral","white_floral","powder"], fruity:["fruit"], sweet:["gourmand","fruit"],
+  oriental:["resin","spice","gourmand"], woody:["wood","resin"], heavy:["resin","wood","leather"] };
+// one stage sentence from the notes of that layer (max 3 named), texture from their dominant family
+function rvStageText(layer, notes, lang, seed, usedTex, character) {
+  const isFr = lang === "fr";
+  const known = (notes || []).filter(n => RV_NOTES[n]);
+  if (!known.length) return null;
+  const names = known.slice(0, 3).map(n => RV_NOTES[n][isFr ? 1 : 0]);
+  const S = RV_STAGE[isFr ? "fr" : "ar"];
+  const list = names.length > 1 ? names.slice(0, -1).join(S.sep) + S.and + names[names.length - 1] : names[0];
+  const aff = new Set((character || []).flatMap(c => RV_AFFINITY[c] || []));
+  const counts = {}; known.forEach((n, i) => { const f = RV_NOTES[n][2]; counts[f] = (counts[f] || 0) + 1 + (i === 0 ? 0.1 : 0); });
+  const fams = Object.keys(counts).sort((a, b) => (counts[b] + (aff.has(b) ? 0.5 : 0)) - (counts[a] + (aff.has(a) ? 0.5 : 0)));
+  const TEX = RV_TEXTURE[isFr ? "fr" : "ar"];
+  // first family (in that order) that still has a texture not used on this page; otherwise the top family
+  let pick = "";
+  for (const f of fams) { const free = (TEX[f] || []).filter(o => !usedTex.has(o)); if (free.length) { pick = free[seed % free.length]; break; } }
+  if (!pick) { const o = TEX[fams[0]] || []; pick = o.length ? o[seed % o.length] : ""; }
+  usedTex.add(pick);
+  const variants = S[layer];
+  return variants[seed % variants.length](list, pick, names.length > 1);
+}
+
+// returns { stages:[{label,text}], atmosphere } — stages only when the notes pyramid has at least 2 layers
+function rvSensory(p, ans, lang, used) {
+  const isFr = lang === "fr";
+  const S = RV_STAGE[isFr ? "fr" : "ar"];
+  const seed = rvSeed(String(p.id) + p.name);
+  const stages = [];
+  ["top", "middle", "base"].forEach((layer, i) => {
+    const txt = rvStageText(layer, p.notes?.[layer], lang, seed + i, used.tex, p.character);
+    if (txt) stages.push({ label: S.labels[layer], text: txt });
+  });
+  // atmosphere: first family of the fragrance that has an image supported by its own data, not used yet on this page
+  const A = RV_ATMOS[isFr ? "fr" : "ar"];
+  let image = null;
+  for (const fam of (p.character || [])) {
+    const cands = (A[fam] || []).filter(c => (!c.when || c.when(p)) && !used.atmos.has(c.t));
+    if (cands.length) { image = cands[seed % cands.length].t; break; }
+  }
+  if (image) used.atmos.add(image);
+  const C = RV_CONTEXT[isFr ? "fr" : "ar"];
+  const occOk = ans.occasion && ((p.occasion || []).includes(ans.occasion) || (p.occasion || []).includes(mapOccasion(ans.occasion)));
+  const seaOk = ans.season && rvHasSeason(p, [ans.season]);
+  // pick a phrasing not yet used on this page, so the three cards do not repeat the same line
+  const pickFree = (arr) => { if (!arr || !arr.length) return null; const free = arr.filter(x => !used.ctx.has(x)); const v = (free.length ? free : arr)[seed % (free.length || arr.length)]; used.ctx.add(v); return v; };
+  const ctx = [occOk ? pickFree(C.occasion[ans.occasion]) : null, seaOk ? pickFree(C.season[(p.season||[]).includes(ans.season) ? ans.season : "allseasons"]) : null].filter(Boolean).join(" ");
+  const impOk = ans.impression && C.impression[ans.impression] && autoImpressions(p.character, p.occasion).includes(ans.impression);
+  let atmosphere = image || "";
+  if (ctx) atmosphere = atmosphere ? atmosphere + (isFr ? " — " : "، ") + ctx : C.general + ctx;
+  if (impOk) atmosphere = (atmosphere || C.general.trim()) + C.withImp[seed % C.withImp.length] + C.impression[ans.impression];
+  if (atmosphere) atmosphere += ".";
+  return { stages: stages.length >= 2 ? stages : [], single: stages.length === 1 ? stages[0].text : null, atmosphere };
+}
+
+function RVSensory({ p, ans, lang, used }) {
+  const s = rvSensory(p, ans, lang, used);
+  if (!s.stages.length && !s.single && !s.atmosphere) return null;
+  return (
+    <section className="ffr-sense" aria-label={lang === "fr" ? "L'expérience olfactive" : "عيش تجربة الرائحة"}>
+      <h4>{lang === "fr" ? "🌸 Vivre l'expérience du parfum" : "🌸 عيش تجربة الرائحة"}</h4>
+      {s.stages.length > 0 && (
+        <ol className="ffr-timeline">
+          {s.stages.map((st, i) => <li key={i}><span className="ffr-stage">{st.label}</span><p>{st.text}</p></li>)}
+        </ol>
+      )}
+      {s.single && <p className="ffr-sense-text">{s.single}</p>}
+      {s.atmosphere && <p className="ffr-atmos">{s.atmosphere}</p>}
+    </section>
+  );
+}
+
+function RVCard({ p, ans, lang, rank, used }) {
   const L = rvL(lang);
   const featured = rank === 1;
   const reasons = rvReasons(p, ans, lang);
@@ -2934,6 +3159,7 @@ function RVCard({ p, ans, lang, rank }) {
             {featured && why ? <p className="ffr-why-text">{why}</p> : null}
           </div>
         )}
+        <RVSensory p={p} ans={ans} lang={lang} used={used}/>
         <RVStores p={p} L={L} lang={lang}/>
         <div className="ffr-actions">
           <a className={"ffr-btn" + (featured ? "" : " ffr-btn-ghost")} href={"#f-" + encodeURIComponent(p.id)}>{L.view}</a>
@@ -2956,6 +3182,7 @@ function ResultsPage({ res, pers, ans, lang, t, questions, reset, favPicked, pic
     ans.impression ? (L.vibe[ans.impression] || null) : null].filter(Boolean);
   const topPct = res.main[0]?._pct ?? 100;
   const more = rvMoreLikeThis(res, ans, 6);
+  const used = { tex: new Set(), atmos: new Set(), ctx: new Set() };
   const persName = pers && (lang === "fr" ? pers.fr :
     ans.gender === "men" && pers.ar_male ? pers.ar_male : ans.gender === "women" && pers.ar_female ? pers.ar_female : pers.ar);
   const persDesc = pers && (lang === "fr" ? (pers.desc_fr || pers.desc) :
@@ -2976,10 +3203,10 @@ function ResultsPage({ res, pers, ans, lang, t, questions, reset, favPicked, pic
         <p className="ffr-note">{lang === "fr" ? "Résultats limités — ajustez certains critères pour plus d'options." : "النتائج محدودة — جرب تعدل بعض الشروط باش تظهر اقتراحات أكثر."}</p>
       )}
 
-      {res.main[0] && <RVCard p={res.main[0]} ans={ans} lang={lang} rank={1}/>}
+      {res.main[0] && <RVCard p={res.main[0]} ans={ans} lang={lang} rank={1} used={used}/>}
       {res.main.length > 1 && (
         <div className="ffr-alts">
-          {res.main.slice(1).map((p, i) => <RVCard key={p.id} p={p} ans={ans} lang={lang} rank={i + 2}/>)}
+          {res.main.slice(1).map((p, i) => <RVCard key={p.id} p={p} ans={ans} lang={lang} rank={i + 2} used={used}/>)}
         </div>
       )}
 
