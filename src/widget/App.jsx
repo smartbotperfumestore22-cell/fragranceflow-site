@@ -3318,7 +3318,7 @@ function ResultsPage({ res, pers, ans, lang, t, questions, reset, favPicked, pic
           <div className="ffr-feedback">
             {personaFeedback === null ? (
               <>
-                <span>{lang === "fr" ? "Cette personnalité vous ressemble ?" : "هل تشبهك هذه الشخصية؟"}</span>
+                <span>{lang === "fr" ? "Cette personnalité vous ressemble ?" : "واش هاد الشخصية كتشبه ليك؟"}</span>
                 <button type="button" onClick={() => { setPersonaFeedback("yes"); window.track && window.track("persona_feedback", { character: ans.character, impression: ans.impression, perfume: "yes" }); }}>👍</button>
                 <button type="button" onClick={() => { setPersonaFeedback("no"); window.track && window.track("persona_feedback", { character: ans.character, impression: ans.impression, perfume: "no" }); }}>👎</button>
               </>
@@ -4628,15 +4628,28 @@ console.log('FF_BUILD_2026');
 window.track = async function track(event, data) {
   try {
     const cfg = window.__FF_CONFIG__ || {};
-    const base = cfg.SHEETS_API_URL || "";
+    // ANALYTICS_URL = a script that only records events (the FragranceFlow site); it needs no store key.
+    // Without it, the partner widget keeps its original behaviour: SHEETS_API_URL + store + key.
+    const own = !!cfg.ANALYTICS_URL;
+    const base = cfg.ANALYTICS_URL || cfg.SHEETS_API_URL || "";
     const store = cfg.STORE_ID || cfg.STORE_NAME || "";
     const key = cfg.STORE_KEY || "";
-    if (!base || !store || !key) return;
+    if (!base || (!own && (!store || !key))) return;
+    const extra = {};
+    if (own) {
+      try {
+        let sid = sessionStorage.getItem("ff_sid");
+        if (!sid) { sid = Math.random().toString(36).slice(2, 10); sessionStorage.setItem("ff_sid", sid); }
+        extra.sid = sid; // anonymous per-tab id, to count visits without personal data
+        const utm = sessionStorage.getItem("ff_utm"); if (utm) extra.utm = utm;
+      } catch (e) {}
+    }
     const params = new URLSearchParams({ 
       action: "analytics", 
       store, 
       key,
       event, 
+      ...extra,
       ...data 
     });
     fetch(`${base}?${params.toString()}`, { mode: 'no-cors' });
