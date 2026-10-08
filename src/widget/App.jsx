@@ -1445,14 +1445,14 @@ function scoreP(p, ans) {
 
   // ── Budget HARD FILTER — يحذف العطور اللي فوق الميزانية ──
   if (ans.budget && ans.budget !== "any") {
+    // same ranges the visitor was shown (built from the catalogue for this size and fragrance world)
     const sizeType = ans.sizeType || CONFIG.DEFAULT_SIZE || "full";
-    const budgetRanges = {
-      decant:[{v:"low",min:0,max:99},{v:"mid",min:100,max:300},{v:"high",min:301,max:99999}],
-      full:[{v:"low",min:0,max:299},{v:"mid",min:300,max:700},{v:"high",min:701,max:1000},{v:"luxury",min:1001,max:99999}]
-    };
-    const bud = (budgetRanges[sizeType]||[]).find(b=>b.v===ans.budget);
-    if (bud && (p.price < bud.min || p.price > bud.max)) return 0;
+    const bud = (calcDynamicBudget(sizeType, "ar", ans.world) || []).find(b=>b.v===ans.budget);
+    if (bud && (p.price < bud.min || p.price >= bud.maxEx)) return 0;
   }
+
+  // ── Fragrance world HARD FILTER — "any" (or no answer) means no world filter ──
+  if (ans.world && ans.world !== "any" && worldOf(p) !== ans.world) return 0;
 
   let s = 0;
 
@@ -2289,33 +2289,101 @@ function roundToNice(n) {
 }
 
 // حساب نطاقات الميزانية ديناميكياً من الـ PRODUCTS
-function calcDynamicBudget(sizeType, lang="ar") {
-  const isAr = lang !== "fr";
-  const filtered = getProducts().filter(p => p.sizeType === sizeType && p.price > 0);
-  if (!filtered.length) return sizeType === "decant" ? BUDGET_OPTIONS.decant : BUDGET_OPTIONS.full;
-
-  const prices = filtered.map(p => p.price).sort((a,b) => a-b);
-  const minP = prices[0];
-  const maxP = prices[prices.length-1];
-
-  // إلا الفرق صغير جداً (أقل من 50 درهم) → ما يبانش سؤال الميزانية
-  if (maxP - minP < 50) return null;
-
-  // نقسم على 3 نطاقات متساوية تقريباً
-  const third = Math.round((maxP - minP) / 3);
-  const cut1 = roundToNice(minP + third);
-  const cut2 = roundToNice(minP + third * 2);
-
-  return [
-    { v:"any",  l: isAr ? "الثمن غير مهم" : "Prix libre",            i:"🌟", d: isAr ? "كل العطور المناسبة" : "Tous les parfums",  min:0,    max:99999 },
-    { v:"low",  l: isAr ? `أقل من ${cut1} درهم` : `Moins de ${cut1} Dh`, i:"💚", d: isAr ? "قيمة ممتازة" : "Bon rapport",          min:0,    max:cut1-1 },
-    { v:"mid",  l: isAr ? `${cut1} – ${cut2} درهم` : `${cut1} – ${cut2} Dh`, i:"💙", d: isAr ? "الأكثر مبيعاً" : "Les plus vendus", min:cut1, max:cut2 },
-    { v:"high", l: isAr ? `+${cut2} درهم` : `+${cut2} Dh`,           i:"💛", d: isAr ? "فخامة راقية" : "Luxe raffiné",             min:cut2+1, max:99999 },
-  ];
+// ── Fragrance world (designer / niche / ultra_niche / arabian) ──────────────
+// Read from each fragrance's own "world" field; anything else counts as not classified ("")
+// and is only shown when the visitor has no preference. Nothing is guessed from the brand.
+const WORLDS = ["designer", "niche", "ultra_niche", "arabian"];
+function worldOf(p) {
+  const w = String((p && p.world) || "").trim().toLowerCase().replace(/[\s-]+/g, "_");
+  return WORLDS.includes(w) ? w : "";
+}
+const WORLD_LABELS = {
+  ar: { designer:["Designer","🖤","ماركات الموضة الكبيرة"], niche:["Niche","✨","دور عطور متخصصة"],
+        ultra_niche:["Ultra-Niche","🖤","إصدارات نادرة ومحدودة"], arabian:["Arabian","🌙","دور العطور العربية"],
+        any:["ما عنديش تفضيل","🤍","كل الأنواع"] },
+  fr: { designer:["Designer","🖤","Les grandes maisons de mode"], niche:["Niche","✨","Maisons de parfum spécialisées"],
+        ultra_niche:["Ultra-Niche","🖤","Créations rares et limitées"], arabian:["Arabian","🌙","Maisons de parfum arabes"],
+        any:["Pas de préférence","🤍","Tous les univers"] },
+};
+// world question: only the worlds that have at least one active fragrance right now
+// (a world with none, e.g. Ultra-Niche today, appears on its own once one is added).
+// Skipped entirely when the catalogue has fewer than two classified worlds (e.g. a partner sheet without the column).
+function buildWorldQ(sizeType, lang="ar") {
+  const L = WORLD_LABELS[lang === "fr" ? "fr" : "ar"];
+  const live = getProducts().filter(p => p.active !== false && p.sizeType === sizeType);
+  const present = WORLDS.filter(w => live.some(p => worldOf(p) === w));
+  if (present.length < 2) return null;
+  const opt = (w) => ({ v:w, l:L[w][0], i:L[w][1], d:L[w][2] });
+  return {
+    id: "world",
+    q:   lang === "fr" ? "Quel univers de parfums vous attire le plus ?" : "شنو نوع العطور اللي كيجذبك أكثر؟",
+    sub: lang === "fr" ? "Le budget s'adapte à votre choix" : "الميزانية غادي تتبدل حسب اختيارك",
+    opts: [...present.map(opt), opt("any")],
+  };
 }
 
+// round to a figure people read easily (nearest, not up, so a cut stays inside the real prices)
+function roundNear(n) {
+  const step = n < 100 ? 10 : n < 500 ? 50 : n < 1000 ? 100 : n < 3000 ? 100 : 500;
+  return Math.max(step, Math.round(n / step) * step);
+}
+const _budgetCache = new WeakMap();
+// Budget options built from the fragrances that are active, have a valid price and belong to the chosen world.
+// 2 to 4 ranges cut at the price quantiles, so each range holds real fragrances; fewer fragrances → fewer ranges.
+// Returns null when prices are too close to split (the question is then skipped).
+function calcDynamicBudget(sizeType, lang="ar", world) {
+  const isAr = lang !== "fr";
+  const products = getProducts();
+  const key = [sizeType, lang, world || "any"].join("|");
+  let cache = _budgetCache.get(products);
+  if (!cache) { cache = new Map(); _budgetCache.set(products, cache); }
+  if (cache.has(key)) return cache.get(key);
 
-function buildQS(sizeType, lang="ar") {
+  const prices = products
+    .filter(p => p.active !== false && p.sizeType === sizeType && (!world || world === "any" || worldOf(p) === world))
+    .map(p => Number(p.price)).filter(v => Number.isFinite(v) && v > 0)
+    .sort((a, b) => a - b);
+  const anyOpt = { v:"any", l: isAr ? "الثمن غير مهم" : "Prix libre", i:"🌟", d: isAr ? "كل العطور المناسبة" : "Tous les parfums", min:0, maxEx:Infinity };
+  let out;
+  if (!prices.length) {
+    // no usable price in this world: no invented ranges, the visitor continues without a budget filter
+    out = [{ ...anyOpt, l: isAr ? "كمل بلا ميزانية" : "Continuer sans budget",
+             d: isAr ? "مازال ما عندناش أثمنة كافية لهاد الفئة" : "Pas encore assez de prix pour cette catégorie" }];
+  } else if (prices[prices.length - 1] - prices[0] < 50) {
+    out = null; // all prices practically the same → nothing to choose
+  } else {
+    const n = prices.length;
+    const count = (lo, hi) => prices.filter(v => v >= lo && v < hi).length;
+    let cuts = null;
+    for (let k = n >= 12 ? 4 : n >= 6 ? 3 : 2; k >= 2 && !cuts; k--) {
+      const c = [];
+      for (let i = 1; i < k; i++) {
+        const v = roundNear(prices[Math.floor(i * n / k)]);
+        if (v > prices[0] && v <= prices[n - 1] && (!c.length || v > c[c.length - 1])) c.push(v);
+      }
+      const edges = [0, ...c, Infinity];
+      if (c.length === k - 1 && edges.slice(1).every((hi, j) => count(edges[j], hi) > 0)) cuts = c;
+    }
+    if (!cuts) out = null;
+    else {
+      const KEYS = [["low","high"], ["low","mid","high"], ["low","mid","high","luxury"]][cuts.length - 1];
+      const ICO = { low:"💚", mid:"💙", high:"💛", luxury:"💎" };
+      const edges = [0, ...cuts, Infinity];
+      const cur = isAr ? "درهم" : "Dh";
+      out = [anyOpt, ...KEYS.map((v, j) => {
+        const lo = edges[j], hi = edges[j + 1], nb = count(lo, hi);
+        const l = j === 0 ? (isAr ? `أقل من ${hi} ${cur}` : `Moins de ${hi} ${cur}`)
+                : hi === Infinity ? (isAr ? `${lo} ${cur} وأكثر` : `${lo} ${cur} et plus`)
+                : `${lo} – ${hi} ${cur}`;
+        return { v, l, i: ICO[v], d: isAr ? `${nb} ${nb === 1 ? "عطر" : "عطور"}` : `${nb} parfum${nb > 1 ? "s" : ""}`, min: lo, maxEx: hi };
+      })];
+    }
+  }
+  cache.set(key, out);
+  return out;
+}
+
+function buildQS(sizeType, lang="ar", world) {
   const hasDecant = CONFIG.HAS_DECANT !== false;
   const hasFull   = CONFIG.HAS_FULL   !== false;
   const base      = lang==="fr" ? QS_FR : QS_BASE;
@@ -2325,12 +2393,16 @@ function buildQS(sizeType, lang="ar") {
                           : !hasFull   ? "decant"
                           : (sizeType || CONFIG.DEFAULT_SIZE || "full");
 
-  // سؤال الميزانية — يمكن تحييده من CONFIG
-  if (CONFIG.HAS_BUDGET_QUESTION === false) return base;
+  // سؤال العالم العطري — قبل الميزانية، غير إلا كانو عطور مصنفة ف الكاتالوج
+  const worldQ = buildWorldQ(effectiveSizeType, lang);
+  const pre = worldQ ? [...base, worldQ] : base;
 
-  // نطاقات ديناميكية من الـ PRODUCTS
-  const dynamicOpts = calcDynamicBudget(effectiveSizeType, lang);
-  if (!dynamicOpts) return base; // إلا الأثمان متقاربة → ما يبانش السؤال
+  // سؤال الميزانية — يمكن تحييده من CONFIG
+  if (CONFIG.HAS_BUDGET_QUESTION === false) return pre;
+
+  // نطاقات ديناميكية من الـ PRODUCTS، حسب العالم العطري المختار
+  const dynamicOpts = calcDynamicBudget(effectiveSizeType, lang, worldQ ? world : "any");
+  if (!dynamicOpts) return pre; // إلا الأثمان متقاربة → ما يبانش السؤال
 
   const budgetQ = {
     id:       "budget",
@@ -2341,7 +2413,7 @@ function buildQS(sizeType, lang="ar") {
     opts:     dynamicOpts,
   };
 
-  return [...base, budgetQ];
+  return [...pre, budgetQ];
 }
 
 
@@ -3273,6 +3345,7 @@ function ResultsPage({ res, pers, ans, lang, t, questions, reset, favPicked, pic
     ans.gender ? (L.gender[ans.gender] || pickLabel("gender")) : null,
     ans.character ? (L.family[ans.character] || pickLabel("character")) : null,
     ans.impression ? (L.vibe[ans.impression] || pickLabel("impression")) : null,
+    ans.world && ans.world !== "any" ? pickLabel("world") : null,
     ans.occasion ? (L.occasion[ans.occasion] || pickLabel("occasion")) : null,
     ans.season ? (ans.season === "allseasons" ? L.season.allseasons : pickLabel("season")) : null,
   ].filter(Boolean));
@@ -3400,14 +3473,12 @@ function WidgetContent({ onClose, lang: langProp, initialStep="intro" }) {
   window.track && window.track("widget_open", {});
 }, []);
   const t = TRANSLATIONS[lang];
-  const questions = buildQS(ans.sizeType, lang);
+  const questions = buildQS(ans.sizeType, lang, ans.world);
 
   function getBudgetOpts(q) {
     const st = ans.sizeType || q?.sizeType || CONFIG.DEFAULT_SIZE || "full";
     const validSt = (st === "decant" || st === "full") ? st : "full";
-    const dynamic = calcDynamicBudget(validSt, lang);
-    if (dynamic && dynamic.length) return dynamic;
-    return (BUDGET_OPTIONS[validSt] || BUDGET_OPTIONS["full"] || []);
+    return calcDynamicBudget(validSt, lang, ans.world) || [];
   }
 
   function toggleBudgetSize() {
@@ -3419,13 +3490,15 @@ function WidgetContent({ onClose, lang: langProp, initialStep="intro" }) {
 
   const answer = async (qId, val) => {
     let na = {...ans, [qId]:val};
+    // a new fragrance world changes the budget ranges, so an earlier budget answer no longer applies
+    if (qId === "world" && val !== ans.world) na.budget = null;
     // sizeType تلقائي حسب CONFIG
     if (CONFIG.HAS_DECANT === false) na.sizeType = "full";
     if (CONFIG.HAS_FULL   === false) na.sizeType = "decant";
     // isGift من الـ toggle مش من السؤال
     // sizeType من الـ budget toggle
     setAns(na);
-    const updatedQS = buildQS(na.sizeType, lang);
+    const updatedQS = buildQS(na.sizeType, lang, na.world);
     if (qi+1 < updatedQS.length) {
       setTimeout(()=>{setQi(q=>q+1); setAKey(k=>k+1);}, 200);
       return;
