@@ -5,6 +5,8 @@
 import { writeFileSync } from "node:fs";
 
 const OUT = new URL("../src/data/catalog.json", import.meta.url);
+// what happened at the last build, readable at <site>/catalog-status.json (no data, no URLs)
+const STATUS = new URL("../public/catalog-status.json", import.meta.url);
 const BASE = process.env.VITE_FF_SCRIPT_URL || "";
 const MIN_PERFUMES = 5; // fewer valid rows than this = something is wrong with the Sheet → keep the built-in list
 
@@ -15,7 +17,18 @@ const str = (v) => String(v ?? "").trim();
 const isOff = (v) => ["false", "0", "no", "non", "لا"].includes(str(v).toLowerCase());
 const num = (v) => { const n = Number(String(v ?? "").replace(/[^\d.]/g, "")); return Number.isFinite(n) && n > 0 ? n : 0; };
 
-function keep(value, why) { writeFileSync(OUT, JSON.stringify(value, null, 1) + "\n"); console.log("[catalog] " + why); }
+let WARN = [];
+function keep(value, why) {
+  writeFileSync(OUT, JSON.stringify(value, null, 1) + "\n");
+  console.log("[catalog] " + why);
+  try {
+    writeFileSync(STATUS, JSON.stringify({
+      source: Array.isArray(value) ? "sheet" : "built-in list",
+      perfumes: Array.isArray(value) ? value.length : null,
+      message: why, warnings: WARN.slice(0, 50), built_at: new Date().toISOString(),
+    }, null, 1) + "\n");
+  } catch (e) {}
+}
 
 function build(data) {
   const warn = [];
@@ -61,8 +74,18 @@ async function main() {
   try {
     const res = await fetch(BASE + (BASE.includes("?") ? "&" : "?") + "action=catalog", { redirect: "follow", signal: AbortSignal.timeout(20000) });
     if (!res.ok) return keep(null, `Sheet answered ${res.status}: using the built-in list`);
-    const data = await res.json();
+    const body = await res.text();
+    let data;
+    try { data = JSON.parse(body); }
+    catch (e) {
+      const login = /accounts\.google\.com|ServiceLogin|<html/i.test(body);
+      return keep(null, login
+        ? "the Sheet script asked for a Google login: in Apps Script, the deployment must have Who has access = Anyone (Tout le monde)"
+        : "the Sheet script did not answer with data (check the /exec URL and that ?action=catalog shows the perfumes)");
+    }
+    if (!data || !Array.isArray(data.perfumes)) return keep(null, "the Sheet script answered without a perfumes list (is the code pasted and deployed as a new version?)");
     const { perfumes, warn } = build(data);
+    WARN = warn;
     warn.forEach((w) => console.warn("[catalog] " + w));
     if (perfumes.length < MIN_PERFUMES) return keep(null, `only ${perfumes.length} valid perfumes in the Sheet: using the built-in list`);
     keep(perfumes, `${perfumes.length} perfumes from the Sheet (${warn.length} warning(s))`);
