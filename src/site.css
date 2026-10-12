@@ -461,3 +461,12 @@ a { color: inherit; }
 .store-bar b { color: var(--accent-deep); }
 .store-bar .textlink { font-size: .85rem; }
 @media (min-width: 760px) { .store-bar { padding-inline: max(16px, calc((100% - 1180px) / 2)); } }
+.store-exit { margin-top: 12px; font-size: .85rem; }
+#quizpage .store-quiz-note { max-width: 720px; margin: 0 auto 16px; padding: 14px 18px; background: var(--soft); border-radius: var(--radius); text-align: center; font-size: .92rem; color: var(--ink); }
+#quizpage .store-quiz-title { font-family: var(--font-display); font-size: 1.4rem; color: var(--accent-deep); line-height: 1.4; }
+.qr-page { display: flex; flex-direction: column; align-items: center; gap: 12px; text-align: center; padding-block: 24px; }
+.qr-page h1 { font-family: var(--font-display); color: var(--accent-deep); font-size: 1.8rem; }
+.qr-sub, .qr-hint { color: var(--muted); max-width: 46ch; }
+.qr-canvas { width: 320px; max-width: 80vw; height: auto; border: 1px solid var(--line); border-radius: var(--radius); }
+.qr-link { font-size: .8rem; color: var(--muted); word-break: break-all; max-width: 60ch; }
+.qr-actions { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }

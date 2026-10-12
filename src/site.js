@@ -51,10 +51,12 @@ export function startSite({ loadQuiz }) {
   if (STORE) {
     document.body.classList.add('in-store');
     var bar = h('div', { class: 'store-bar', role: 'note' },
-      h('p', {}, h('span', { text: 'كتشوف العطور المتوفرة عند ' }), h('b', { text: STORE.name + (STORE.city ? ' – ' + STORE.city : '') })),
-      h('a', { class: 'textlink', href: location.pathname, text: 'شوف جميع العطور ف FragranceFlow' }));
+      h('p', {}, h('span', { text: 'كتشوف العطور المتوفرة عند ' }), h('b', { text: STORE.name + (STORE.city ? ' – ' + STORE.city : '') })));
     var headEl = document.querySelector('header.head');
     headEl.parentNode.insertBefore(bar, headEl.nextSibling);
+    // the way back to the full, neutral site stays available, but quietly, at the foot of every page
+    var foot = document.querySelector('footer.foot .wrap');
+    if (foot) foot.appendChild(h('p', { class: 'store-exit' }, h('a', { class: 'textlink', href: location.pathname, text: 'استكشف المزيد من العطور على FragranceFlow' })));
   }
 
   /* ---------- counts ---------- */
@@ -82,6 +84,7 @@ export function startSite({ loadQuiz }) {
   function route() {
     var hsh = location.hash;
     if (hsh === '#quiz') { openQuiz(); return; }
+    if (hsh === '#qr') { renderQR(); return; }
     if (hsh === '#fragrances') { show('catalog'); window.scrollTo(0, 0); document.title = 'اكتشف العطور | FragranceFlow'; return; }
     if (hsh === '#about') { show('about'); window.scrollTo(0, 0); document.title = 'About | FragranceFlow'; return; }
     if (hsh.indexOf('#f-') === 0) { var p = byId(decodeURIComponent(hsh.slice(3))); if (p) { renderPerfume(p); return; } }
@@ -92,10 +95,47 @@ export function startSite({ loadQuiz }) {
   window.addEventListener('hashchange', route);
   window.FF_ON_CLOSE = function () { goHome(); };
 
+  /* ---------- store QR code: <site>/?store=<id>#qr (for the shop counter, packaging, stories) ---------- */
+  function renderQR() {
+    show('detail'); window.scrollTo(0, 0); stage.textContent = '';
+    document.title = 'QR | FragranceFlow';
+    if (!STORE) {
+      stage.appendChild(h('section', { class: 'stage qr-page' }, h('h1', { text: 'QR ديال المحل' }),
+        h('p', { text: 'زيد ?store= ومعاه store_id ديال المحل ف الرابط، مثلا: ?store=parfumerie-x#qr' })));
+      return;
+    }
+    var link = location.origin + location.pathname + '?store=' + encodeURIComponent(STORE.id) + '&utm_source=qr#quiz';
+    var canvas = h('canvas', { class: 'qr-canvas', 'aria-label': 'QR code: ' + link });
+    var dl = h('a', { class: 'btn', download: 'qr-' + STORE.id + '.png', href: '#', text: 'تحميل الصورة (PNG)' });
+    var copyBtn = h('button', { type: 'button', class: 'btn ghost', text: 'نسخ الرابط' });
+    copyBtn.addEventListener('click', function () {
+      (navigator.clipboard ? navigator.clipboard.writeText(link) : Promise.reject()).then(function () { copyBtn.textContent = 'تنسخ ✓'; }, function () { copyBtn.textContent = link; });
+    });
+    stage.appendChild(h('section', { class: 'stage qr-page' },
+      h('h1', { text: 'اختبار العطور مع ' + STORE.name }),
+      h('p', { class: 'qr-sub', text: 'دير سكان للكود، وجاوب على شي أسئلة، ولقى العطر لي كيناسبك من المجموعة ديالنا' }),
+      canvas,
+      h('p', { class: 'qr-link latin', text: link }),
+      h('div', { class: 'qr-actions' }, dl, copyBtn),
+      h('p', { class: 'qr-hint', text: 'حطو ف الكونطوار، على الباكاج، ولا ف الستوري. كل سكان كيتسجل ف الإحصائيات ديال المحل (المصدر: qr).' })));
+    import('qrcode').then(function (m) {
+      var QR = m.default || m;
+      QR.toCanvas(canvas, link, { width: 320, margin: 2, color: { dark: '#3B185B', light: '#FFFFFF' } }, function () {
+        dl.href = canvas.toDataURL('image/png');
+      });
+    });
+  }
+
   /* ---------- the existing quiz, loaded on first use ---------- */
   var quizOpen = false;
   function openQuiz() {
     show('quiz'); window.scrollTo(0, 0);
+    if (STORE && !document.getElementById('store-quiz-note')) {
+      var root = document.getElementById('ff-widget-root');
+      root.parentNode.insertBefore(h('aside', { class: 'store-quiz-note', id: 'store-quiz-note' },
+        h('p', { class: 'store-quiz-title', text: 'اختبار العطور مع ' + STORE.name }),
+        h('p', { text: 'جاوب على بعض الأسئلة، ونلقاو ليك العطور الأنسب من المجموعة المتوفرة عندهم.' })), root);
+    }
     document.title = 'الاختبار | FragranceFlow';
     if (quizOpen) return;
     quizOpen = true;

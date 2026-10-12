@@ -3008,7 +3008,7 @@ function RVStores({ p, L, lang }) {
             <span className="ffr-store-name">{s.name || (lang === "fr" ? "Magasin partenaire" : "محل شريك")}</span>
             {s.price ? <span className="ffr-store-price">{s.price} {L.price}</span> : null}
             <a href={s.url} target="_blank" rel="noopener noreferrer" className="ffr-btn ffr-btn-ghost"
-              onClick={() => window.track && window.track("buy_click", { perfume: p.name, price: s.price || p.price, store: s.name || "" })}>
+              onClick={() => window.track && window.track(/^https:\/\/wa\.me\//.test(s.url || "") ? "whatsapp_click" : "buy_click", { perfume: p.name, price: s.price || p.price, store: s.name || "" })}>
               {L.buy}
             </a>
           </li>

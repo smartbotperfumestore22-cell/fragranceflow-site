@@ -29,7 +29,7 @@ var EVENTS = [
 ];
 // "most looked-for" score per fragrance, over the last POP_DAYS days of the Events tab
 var POP_DAYS = 30;
-var POP_WEIGHTS = { perfume_view: 1, search_pick: 2, favorite_pick: 3, buy_click: 4 };
+var POP_WEIGHTS = { perfume_view: 1, search_pick: 2, favorite_pick: 3, buy_click: 4, whatsapp_click: 4 };
 var EVENT_HEADER = ['Time', 'Event', 'Session', 'Source', 'Perfume / answer', 'Character', 'Impression', 'Details'];
 var EVENT_SKIP = ['action', 'store', 'key', 'event', 'visit', 'utm', 'perfume', 'character', 'impression'];
 
