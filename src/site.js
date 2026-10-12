@@ -20,8 +20,9 @@ export function startSite({ loadQuiz }) {
 
   var landing = document.getElementById('landing'), detail = document.getElementById('detail'), quizpage = document.getElementById('quizpage');
   var catalog = document.getElementById('catalog'), about = document.getElementById('about');
-  // Popular fragrances on the homepage: perfumes flagged topSeller in the database come first;
-  // until the database has that flag, this short list of well-known names is used (all exist in the data).
+  // Popular fragrances on the homepage: when the Sheet has enough visitor activity, the build gives each
+  // fragrance a "pop" score (views, searches, favourites, buy clicks over the last 30 days) and the most
+  // looked-for ones are shown. Until then: perfumes flagged topSeller first, then this short list of well-known names.
   var POPULAR = ['Coco Mademoiselle', 'Sauvage', 'Baccarat Rouge 540', 'La Vie est Belle', 'Bleu de Chanel', 'Oud Wood'];
   var stage = document.getElementById('stage');
 
@@ -166,9 +167,18 @@ export function startSite({ loadQuiz }) {
 
   /* ---------- homepage: popular fragrances ---------- */
   (function () {
-    var pick = DB.filter(function (p) { return p.topSeller; });
-    POPULAR.forEach(function (n) { var p = DB.filter(function (x) { return x.name === n; })[0]; if (p && pick.indexOf(p) < 0) pick.push(p); });
-    if (pick.length < 4) BROWSE.forEach(function (p) { if (pick.length < 6 && pick.indexOf(p) < 0) pick.push(p); });
+    var ranked = DB.filter(function (p) { return p.pop > 0; }).sort(function (a, b) { return b.pop - a.pop; });
+    var pick;
+    if (ranked.length >= 4) {
+      // real visitor activity: the title tells the truth; full rows only (3 or 6), never padded with unvisited perfumes
+      pick = ranked.slice(0, ranked.length >= 6 ? 6 : 3);
+      document.querySelector('#popular .eyebrow').textContent = 'حسب الزوار ف آخر 30 يوم';
+      document.getElementById('pop-title').textContent = 'العطور لي كيقلبو عليها بزاف';
+    } else {
+      pick = DB.filter(function (p) { return p.topSeller; });
+      POPULAR.forEach(function (n) { var p = DB.filter(function (x) { return x.name === n; })[0]; if (p && pick.indexOf(p) < 0) pick.push(p); });
+      if (pick.length < 4) BROWSE.forEach(function (p) { if (pick.length < 6 && pick.indexOf(p) < 0) pick.push(p); });
+    }
     var pg = document.getElementById('pop-grid');
     pick.slice(0, 6).forEach(function (p) { pg.appendChild(card(p)); });
   })();
@@ -244,7 +254,9 @@ export function startSite({ loadQuiz }) {
     var m = DB.filter(function (p) { return (p.name + ' ' + p.brand).toLowerCase().indexOf(t) > -1; }).slice(0, 6);
     if (!m.length) drop.appendChild(h('p', { text: 'ما لقينا حتى عطر بهاد السمية.' }));
     m.forEach(function (p) {
-      drop.appendChild(h('button', { type: 'button', onclick: function () { drop.hidden = true; q.value = ''; closeMenu(); go('#f-' + encodeURIComponent(p.id)); } },
+      drop.appendChild(h('button', { type: 'button', onclick: function () {
+          if (window.track) window.track('search_pick', { perfume: p.name, pid: p.id });
+          drop.hidden = true; q.value = ''; closeMenu(); go('#f-' + encodeURIComponent(p.id)); } },
         h('span', { class: 'latin', text: p.name }), h('small', { text: charLabel(p.character[0]) })));
     });
     drop.hidden = false;
@@ -254,6 +266,7 @@ export function startSite({ loadQuiz }) {
   /* ---------- fragrance page ---------- */
   function layer(label, list) { return h('div', { class: 'layer' }, h('b', { text: label }), h('span', { class: 'latin', text: list.join(' · ') })); }
   function renderPerfume(p) {
+    if (window.track) window.track('perfume_view', { perfume: p.name, pid: p.id });
     show('detail'); window.scrollTo(0, 0);
     document.title = p.name + ' – ' + p.brand + ' | FragranceFlow';
     stage.textContent = '';

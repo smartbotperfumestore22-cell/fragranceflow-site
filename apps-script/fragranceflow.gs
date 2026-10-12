@@ -24,8 +24,12 @@ var EVENTS = [
   'widget_open', 'quiz_complete', 'result_shown', 'persona_feedback', 'favorite_pick',
   'buy_click', 'whatsapp_click', 'lost_sale',
   'personality_share_click', 'personality_share_whatsapp', 'personality_share_facebook',
-  'personality_share_instagram', 'personality_share_copy'
+  'personality_share_instagram', 'personality_share_copy',
+  'perfume_view', 'search_pick'
 ];
+// "most looked-for" score per fragrance, over the last POP_DAYS days of the Events tab
+var POP_DAYS = 30;
+var POP_WEIGHTS = { perfume_view: 1, search_pick: 2, favorite_pick: 3, buy_click: 4 };
 var EVENT_HEADER = ['Time', 'Event', 'Session', 'Source', 'Perfume / answer', 'Character', 'Impression', 'Details'];
 var EVENT_SKIP = ['action', 'store', 'key', 'event', 'visit', 'utm', 'perfume', 'character', 'impression'];
 
@@ -52,7 +56,25 @@ function rows_(name) {
 }
 
 function catalog_() {
-  return { perfumes: rows_(TAB.perfumes), stores: rows_(TAB.stores), offers: rows_(TAB.offers), at: new Date().toISOString() };
+  return { perfumes: rows_(TAB.perfumes), stores: rows_(TAB.stores), offers: rows_(TAB.offers), popular: popular_(), at: new Date().toISOString() };
+}
+
+// counts only — never the raw events — so nothing about visitors leaves the Sheet
+function popular_() {
+  var since = Date.now() - POP_DAYS * 864e5, by = {}, total = 0;
+  rows_(TAB.events).forEach(function (e) {
+    var w = POP_WEIGHTS[e.Event];
+    var t = e.Time instanceof Date ? e.Time.getTime() : Date.parse(e.Time);
+    if (!w || !(t >= since)) return;
+    var pid = '', name = String(e['Perfume / answer'] || '').trim();
+    try { pid = String((JSON.parse(e.Details || '{}') || {}).pid || ''); } catch (x) {}
+    var key = pid || name;
+    if (!key) return;
+    var v = by[key] = by[key] || { pid: pid, perfume: name, score: 0, n: 0 };
+    v.score += w; v.n += 1; total += 1;
+  });
+  var items = Object.keys(by).map(function (k) { return by[k]; }).sort(function (a, b) { return b.score - a.score; }).slice(0, 30);
+  return { days: POP_DAYS, interactions: total, items: items };
 }
 
 function recordEvent_(p) {
@@ -81,6 +103,9 @@ function onOpen() {
   SpreadsheetApp.getUi().createMenu('FragranceFlow')
     .addItem('✅ تحقق من البيانات', 'checkData')
     .addItem('🚀 نشر الموقع', 'publishSite')
+    .addSeparator()
+    .addItem('🔁 تحديث يومي أوتوماتيكي: شعل', 'enableDailyPublish')
+    .addItem('⏹ تحديث يومي أوتوماتيكي: طفي', 'disableDailyPublish')
     .addSeparator()
     .addItem('🔑 بدل رابط النشر (Deploy Hook)', 'setDeployHook')
     .addToUi();
@@ -146,6 +171,24 @@ function publishSite() {
   } else {
     ui.alert('Vercel جاوب بـ ' + res.getResponseCode() + '. تأكد من رابط النشر (القائمة ← بدل رابط النشر).');
   }
+}
+
+/* ---------------- daily refresh (keeps "most looked-for" up to date) ---------------- */
+
+// called every day by the trigger: rebuilds the site so the popular section follows the latest activity
+function dailyPublish() {
+  var hook = PropertiesService.getScriptProperties().getProperty('VERCEL_DEPLOY_HOOK');
+  if (!hook || problems_().length) return; // never publish data that fails the checks
+  UrlFetchApp.fetch(hook, { method: 'post', muteHttpExceptions: true });
+}
+function enableDailyPublish() {
+  disableDailyPublish(true);
+  ScriptApp.newTrigger('dailyPublish').timeBased().everyDays(1).atHour(5).create();
+  SpreadsheetApp.getUi().alert('🔁 تشعل: الموقع غادي يتحدث كل نهار مع 5 د الصباح تقريبا.');
+}
+function disableDailyPublish(silent) {
+  ScriptApp.getProjectTriggers().forEach(function (t) { if (t.getHandlerFunction() === 'dailyPublish') ScriptApp.deleteTrigger(t); });
+  if (silent !== true) SpreadsheetApp.getUi().alert('⏹ التحديث اليومي طفا.');
 }
 
 /* ---------------- helpers ---------------- */

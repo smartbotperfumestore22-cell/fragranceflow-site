@@ -10,6 +10,8 @@ const OUT = new URL("../src/data/catalog.json", import.meta.url);
 const STATUS = new URL("../public/catalog-status.json", import.meta.url);
 const BASE = process.env.VITE_FF_SCRIPT_URL || FF_SCRIPT_URL || "";
 const MIN_PERFUMES = 5; // fewer valid rows than this = something is wrong with the Sheet → keep the built-in list
+// "most looked-for" needs real activity before it replaces the default selection on the homepage
+const POP_MIN_INTERACTIONS = 20, POP_MIN_PERFUMES = 4;
 
 const GENDERS = ["men", "women", "unisex"];
 const WORLDS = ["designer", "niche", "ultra_niche", "arabian"];
@@ -18,7 +20,7 @@ const str = (v) => String(v ?? "").trim();
 const isOff = (v) => ["false", "0", "no", "non", "لا"].includes(str(v).toLowerCase());
 const num = (v) => { const n = Number(String(v ?? "").replace(/[^\d.]/g, "")); return Number.isFinite(n) && n > 0 ? n : 0; };
 
-let WARN = [];
+let WARN = [], POP = null;
 function keep(value, why) {
   writeFileSync(OUT, JSON.stringify(value, null, 1) + "\n");
   console.log("[catalog] " + why);
@@ -26,7 +28,7 @@ function keep(value, why) {
     writeFileSync(STATUS, JSON.stringify({
       source: Array.isArray(value) ? "sheet" : "built-in list",
       perfumes: Array.isArray(value) ? value.length : null,
-      message: why, warnings: WARN.slice(0, 50), built_at: new Date().toISOString(),
+      message: why, popular: POP, warnings: WARN.slice(0, 50), built_at: new Date().toISOString(),
     }, null, 1) + "\n");
   } catch (e) {}
 }
@@ -67,7 +69,18 @@ function build(data) {
       url: "", store: "", active: true, boost: 0,
     });
   });
-  return { perfumes: out, warn };
+  // popularity: score from the Sheet (views, searches, favourites, buy clicks), matched by perfume_id, else by name
+  const pop = data.popular || {}, scores = {};
+  for (const it of pop.items || []) {
+    const p = out.find((x) => (it.pid && x.id === str(it.pid)) || (!it.pid && x.name.toLowerCase() === str(it.perfume).toLowerCase()));
+    if (p) scores[p.id] = (scores[p.id] || 0) + (Number(it.score) || 0);
+  }
+  const ranked = Object.keys(scores).filter((k) => scores[k] > 0);
+  const enough = (Number(pop.interactions) || 0) >= POP_MIN_INTERACTIONS && ranked.length >= POP_MIN_PERFUMES;
+  if (enough) out.forEach((p) => { if (scores[p.id]) p.pop = scores[p.id]; });
+  const popInfo = { interactions: Number(pop.interactions) || 0, perfumes_with_activity: ranked.length, used: enough,
+    note: enough ? "homepage shows the most looked-for perfumes" : `homepage keeps its default selection until ${POP_MIN_INTERACTIONS} interactions on ${POP_MIN_PERFUMES}+ perfumes (last ${pop.days || 30} days)` };
+  return { perfumes: out, warn, popInfo };
 }
 
 async function main() {
@@ -85,8 +98,8 @@ async function main() {
         : "the Sheet script did not answer with data (check the /exec URL and that ?action=catalog shows the perfumes)");
     }
     if (!data || !Array.isArray(data.perfumes)) return keep(null, "the Sheet script answered without a perfumes list (is the code pasted and deployed as a new version?)");
-    const { perfumes, warn } = build(data);
-    WARN = warn;
+    const { perfumes, warn, popInfo } = build(data);
+    WARN = warn; POP = popInfo;
     warn.forEach((w) => console.warn("[catalog] " + w));
     if (perfumes.length < MIN_PERFUMES) return keep(null, `only ${perfumes.length} valid perfumes in the Sheet: using the built-in list`);
     keep(perfumes, `${perfumes.length} perfumes from the Sheet (${warn.length} warning(s))`);

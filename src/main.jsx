@@ -2,6 +2,7 @@
 // The quiz (src/widget/App.jsx) is loaded only when needed, so the homepage loads faster.
 import "./config.js";
 import "./site.css";
+import "./track.js"; // window.track for the site pages (the quiz brings its own identical one)
 import { startSite } from "./site.js";
 import { showSharedPersona } from "./share-landing.js";
 

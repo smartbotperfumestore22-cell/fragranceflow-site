@@ -4725,7 +4725,7 @@ window.track = async function track(event, data) {
       ...extra,
       ...data 
     });
-    fetch(`${base}?${params.toString()}`, { mode: 'no-cors' });
+    fetch(`${base}?${params.toString()}`, { mode: 'no-cors' }).catch(() => {}); // blocked (ad-blocker) or offline: ignore
   } catch(e) {}
 }
 export default function App() {
