@@ -4,6 +4,7 @@
  * One script, bound to the FragranceFlow Sheet (tabs: Perfumes, Stores, Offers, Events).
  *   • ?action=catalog   → the website reads Perfumes / Stores / Offers when it is built
  *   • ?action=analytics → the website records an event in the Events tab
+ *     (never send a parameter named "sid" or "c": Apps Script reserves them and answers 400)
  *   • Menu "FragranceFlow" → "Check data" and "Publish the site" (rebuilds the site on Vercel)
  *
  * Setup: see the Guide tab or the steps you received. In short:
@@ -26,7 +27,7 @@ var EVENTS = [
   'personality_share_instagram', 'personality_share_copy'
 ];
 var EVENT_HEADER = ['Time', 'Event', 'Session', 'Source', 'Perfume / answer', 'Character', 'Impression', 'Details'];
-var EVENT_SKIP = ['action', 'store', 'key', 'event', 'sid', 'utm', 'perfume', 'character', 'impression'];
+var EVENT_SKIP = ['action', 'store', 'key', 'event', 'visit', 'utm', 'perfume', 'character', 'impression'];
 
 /* ---------------- web endpoints ---------------- */
 
@@ -64,7 +65,7 @@ function recordEvent_(p) {
     var ss = SpreadsheetApp.getActiveSpreadsheet();
     var sh = ss.getSheetByName(TAB.events);
     if (!sh) { sh = ss.insertSheet(TAB.events); sh.appendRow(EVENT_HEADER); sh.setFrozenRows(1); }
-    sh.appendRow([new Date(), p.event, clip_(p.sid, 20), clip_(p.utm, 40), clip_(p.perfume, 120),
+    sh.appendRow([new Date(), p.event, clip_(p.visit, 20), clip_(p.utm, 40), clip_(p.perfume, 120),
       clip_(p.character, 40), clip_(p.impression, 40), Object.keys(details).length ? JSON.stringify(details) : '']);
     return 'ok';
   } catch (err) {
