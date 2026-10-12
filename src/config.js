@@ -3,7 +3,7 @@
 // ─────────────────────────────────────────────────────────────
 //  للتجربة: اترك SHEETS_API_URL فارغاً، فيستعمل الموقع العطور الـ 41 الموجودة في src/data/perfumes.js
 //  للربط بالقاعدة الحقيقية: ضع رابط Apps Script و STORE_KEY، فيجلب الكويز العطور من Master Database
-import { IMG } from "./data/images.js";
+import { IMG, imageFor, watchImageErrors } from "./data/images.js";
 import { buildCatalog } from "./data/perfumes.js";
 import { FF_SCRIPT_URL } from "./ff-script-url.js";
 import SHEET from "./data/catalog.json"; // written at build time from the Google Sheet (scripts/fetch-catalog.mjs); null = not set up
@@ -32,9 +32,11 @@ try {
   if (utm && /^[\w.-]{1,40}$/.test(utm)) sessionStorage.setItem("ff_utm", utm);
 } catch (e) {}
 
+watchImageErrors(); // a real photo that fails to load falls back to its illustrative photo
+
 if (!window.__FF_CONFIG__.SHEETS_API_URL) {
   // perfumes from the Google Sheet when the build could read it, otherwise the built-in list
   window.__ffDP__ = Array.isArray(SHEET) && SHEET.length
-    ? SHEET.map(({ imageKey, imageUrl, ...p }) => ({ ...p, image: imageUrl || IMG[imageKey] || IMG.c2 }))
+    ? SHEET.map(({ imageKey, imageUrl, ...p }) => ({ ...p, ...imageFor(imageUrl, imageKey) }))
     : buildCatalog(IMG);
 }

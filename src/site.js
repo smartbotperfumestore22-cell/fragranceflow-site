@@ -51,7 +51,9 @@ export function startSite({ loadQuiz }) {
   document.getElementById('perk-count').textContent = DB.length;
   document.getElementById('st-n').textContent = DB.length;
   document.getElementById('st-b').textContent = Object.keys(brands).length;
-  document.getElementById('fine').textContent = 'نسخة تجريبية بـ ' + DB.length + ' عطر. الأثمنة والتصنيفات تقريبية، والصور توضيحية حتى توصل صور المحلات الشريكة.';
+  var allReal = DB.every(function (p) { return p.realImage; });
+  document.getElementById('fine').textContent = 'نسخة تجريبية بـ ' + DB.length + ' عطر. الأثمنة والتصنيفات تقريبية' +
+    (allReal ? '.' : '، وبعض الصور توضيحية حتى توصل الصور الحقيقية.');
 
   /* ---------- views (hash routes so the back button and shared links work) ---------- */
   // #quiz → quiz page, #fragrances → catalogue, #about → about, #f-<id> → fragrance page, anything else → homepage
@@ -145,7 +147,7 @@ export function startSite({ loadQuiz }) {
     var fam = p.character.slice(0, 2).map(charLabel).join(' · ');
     return h('article', { class: 'pc' },
       h('div', { class: 'ph' },
-        h('img', { src: p.image, alt: 'صورة توضيحية لقرعة عطر ' + fam, loading: 'lazy', decoding: 'async', width: '172', height: '119' }),
+        h('img', { src: p.image, alt: p.realImage ? p.name + ' – ' + p.brand : 'صورة توضيحية لقرعة عطر ' + fam, loading: 'lazy', decoding: 'async', width: '172', height: '119' }),
         h('span', { class: 'badge', text: GEN[p.gender[0]] }), heart),
       h('div', { class: 'in' },
         h('p', { class: 'br latin', text: p.brand }),
@@ -277,7 +279,8 @@ export function startSite({ loadQuiz }) {
       h('nav', { class: 'crumbs', 'aria-label': 'المسار' }, h('button', { type: 'button', class: 'textlink', onclick: function () { goHome(); } }, 'الرئيسية'), '/',
         h('a', { class: 'textlink', href: '#fragrances' }, 'العطور')),
       h('article', { class: 'rc' },
-        h('div', { class: 'ph' }, h('img', { src: p.image, alt: 'صورة توضيحية لقرعة عطر', width: '172', height: '119' }), h('small', { text: 'صورة توضيحية' })),
+        h('div', { class: 'ph' }, h('img', { src: p.image, alt: p.realImage ? p.name + ' – ' + p.brand : 'صورة توضيحية لقرعة عطر', width: '172', height: '119' }),
+          p.realImage ? null : h('small', { text: 'صورة توضيحية' })),
         h('div', { class: 'in' },
           h('div', { class: 'rc-head' },
             h('div', { style: 'min-width:0' }, h('h1', { class: 'latin', text: p.name }), h('p', { class: 'br latin', text: p.brand + ' · ' + p.concentration + ' · ' + p.size })),
