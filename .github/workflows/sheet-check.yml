@@ -14,6 +14,6 @@ jobs:
           URL=$(grep -o 'https://script.google.com/[^"]*' src/ff-script-url.js)
           note() { msg=$(printf '%s' "$2" | tr -d '\r' | head -c 900 | sed ':a;N;$!ba;s/\n/ ¶ /g'); echo "::notice title=$1::$msg"; }
           note catalog "$(curl -sSL -m 40 "$URL?action=catalog" | head -c 250)"
-          note analytics-follow "$(curl -sSL -m 40 -w ' || HTTP %{http_code} final=%{url_effective}' "$URL?action=analytics&event=widget_open&sid=gh-check-$GITHUB_RUN_NUMBER" | head -c 700)"
-          note analytics-noredirect "$(curl -sS -m 40 -o /dev/null -w 'HTTP %{http_code} location=%{redirect_url}' "$URL?action=analytics&event=persona_feedback&sid=gh-check-$GITHUB_RUN_NUMBER-b&perfume=yes")"
-          note analytics-browser-ua "$(curl -sSL -m 40 -A 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/126 Safari/537.36' "$URL?action=analytics&event=widget_open&sid=gh-check-$GITHUB_RUN_NUMBER-c" | head -c 400)"
+          note analytics-follow "$(curl -sSL -m 40 -w ' || HTTP %{http_code} final=%{url_effective}' "$URL?action=analytics&event=widget_open&visit=gh-check-$GITHUB_RUN_NUMBER" | head -c 700)"
+          note analytics-noredirect "$(curl -sS -m 40 -o /dev/null -w 'HTTP %{http_code} location=%{redirect_url}' "$URL?action=analytics&event=persona_feedback&visit=gh-check-$GITHUB_RUN_NUMBER-b&perfume=yes")"
+          note analytics-browser-ua "$(curl -sSL -m 40 -A 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/126 Safari/537.36' "$URL?action=analytics&event=widget_open&visit=gh-check-$GITHUB_RUN_NUMBER-c&store=FragranceFlow&key=&utm=whatsapp" | head -c 400)"
