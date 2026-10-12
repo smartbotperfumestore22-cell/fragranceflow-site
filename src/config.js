@@ -5,6 +5,7 @@
 //  للربط بالقاعدة الحقيقية: ضع رابط Apps Script و STORE_KEY، فيجلب الكويز العطور من Master Database
 import { IMG } from "./data/images.js";
 import { buildCatalog } from "./data/perfumes.js";
+import { FF_SCRIPT_URL } from "./ff-script-url.js";
 import SHEET from "./data/catalog.json"; // written at build time from the Google Sheet (scripts/fetch-catalog.mjs); null = not set up
 
 window.__FF_CONFIG__ = {
@@ -13,8 +14,8 @@ window.__FF_CONFIG__ = {
   STORE_KEY: "",
   SHEETS_API_URL: "",
   // التحليلات (👍/👎، المشاركة، الشراء...) كتمشي لـ Apps Script ديال الـ Google Sheet (apps-script/fragranceflow.gs).
-  // الرابط كيتحط ف Vercel → Settings → Environment Variables باسم VITE_FF_SCRIPT_URL، وهو نفسو لي كيجيب منو الموقع العطور فاش كيتبنى.
-  ANALYTICS_URL: import.meta.env.VITE_FF_SCRIPT_URL || import.meta.env.VITE_ANALYTICS_URL || "",
+  // الرابط ف src/ff-script-url.js (ولا VITE_FF_SCRIPT_URL ف Vercel إلا تحط)، وهو نفسو لي كيجيب منو الموقع العطور فاش كيتبنى.
+  ANALYTICS_URL: import.meta.env.VITE_FF_SCRIPT_URL || import.meta.env.VITE_ANALYTICS_URL || FF_SCRIPT_URL || "",
   DEFAULT_LANGUAGE: "ar",
   CURRENCY: "درهم",
   HAS_DECANT: false,

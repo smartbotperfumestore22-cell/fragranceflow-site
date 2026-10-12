@@ -3,11 +3,12 @@
 // It never breaks the build: if the Sheet is not set up, unreachable or looks wrong, it writes null
 // and the site keeps its built-in list (src/data/perfumes.js).
 import { writeFileSync } from "node:fs";
+import { FF_SCRIPT_URL } from "../src/ff-script-url.js";
 
 const OUT = new URL("../src/data/catalog.json", import.meta.url);
 // what happened at the last build, readable at <site>/catalog-status.json (no data, no URLs)
 const STATUS = new URL("../public/catalog-status.json", import.meta.url);
-const BASE = process.env.VITE_FF_SCRIPT_URL || "";
+const BASE = process.env.VITE_FF_SCRIPT_URL || FF_SCRIPT_URL || "";
 const MIN_PERFUMES = 5; // fewer valid rows than this = something is wrong with the Sheet → keep the built-in list
 
 const GENDERS = ["men", "women", "unisex"];
@@ -70,7 +71,7 @@ function build(data) {
 }
 
 async function main() {
-  if (!BASE) return keep(null, "VITE_FF_SCRIPT_URL not set: using the built-in list");
+  if (!BASE) return keep(null, "no Sheet script URL: using the built-in list");
   try {
     const res = await fetch(BASE + (BASE.includes("?") ? "&" : "?") + "action=catalog", { redirect: "follow", signal: AbortSignal.timeout(20000) });
     if (!res.ok) return keep(null, `Sheet answered ${res.status}: using the built-in list`);
