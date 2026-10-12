@@ -54,6 +54,7 @@ function shareUrl(channel, persona) {
   const base = window.location.origin + window.location.pathname;
   const q = new URLSearchParams();
   if (persona && persona.name) q.set("p", b64url(JSON.stringify({ n: persona.name, l: persona.latin || "", i: persona.icon || "" })));
+  if (window.__FF_STORE__) q.set("store", window.__FF_STORE__.id); // shared from a store link: the friend lands in the same store
   q.set("utm_source", channel); q.set("utm_medium", "share"); q.set("utm_campaign", "persona");
   return `${base}?${q.toString()}#quiz`;
 }

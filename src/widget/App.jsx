@@ -4714,6 +4714,7 @@ window.track = async function track(event, data) {
         let sid = sessionStorage.getItem("ff_sid");
         if (!sid) { sid = Math.random().toString(36).slice(2, 10); sessionStorage.setItem("ff_sid", sid); }
         extra.visit = sid; // anonymous per-tab id, to count visits without personal data ("sid" is reserved by Apps Script: it answers 400)
+        if (window.__FF_STORE__) extra.shop = window.__FF_STORE__.id; // visit came through a store link
         const utm = sessionStorage.getItem("ff_utm"); if (utm) extra.utm = utm;
       } catch (e) {}
     }

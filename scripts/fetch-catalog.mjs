@@ -37,14 +37,20 @@ function build(data) {
   const warn = [];
   const stores = {};
   for (const s of data.stores || []) {
-    const id = str(s.store_id);
-    if (id && !isOff(s.active)) stores[id] = { name: str(s.name), city: str(s.city) };
+    const id = str(s.store_id).toLowerCase();
+    if (!id || isOff(s.active)) continue;
+    const wa = str(s.whatsapp).replace(/\D/g, "");
+    stores[id] = { name: str(s.name), city: str(s.city), whatsapp: wa.length >= 9 ? wa : "" };
   }
   const offers = {};
   for (const o of data.offers || []) {
-    const st = stores[str(o.store_id)], pid = str(o.perfume_id), url = str(o.url);
-    if (!st || !pid || !/^https?:\/\//i.test(url) || isOff(o.in_stock)) continue;
-    (offers[pid] = offers[pid] || []).push({ name: st.name, city: st.city, price: num(o.price) || null, url, size: str(o.size) });
+    const sid = str(o.store_id).toLowerCase(), st = stores[sid], pid = str(o.perfume_id);
+    let url = str(o.url);
+    if (!st || !pid || isOff(o.in_stock)) continue;
+    // a store without a product page (Instagram / WhatsApp sellers): the buy button opens a WhatsApp chat
+    if (!/^https?:\/\//i.test(url)) url = st.whatsapp ? "https://wa.me/" + st.whatsapp : "";
+    if (!url) continue;
+    (offers[pid] = offers[pid] || []).push({ storeId: sid, name: st.name, city: st.city, price: num(o.price) || null, url, size: str(o.size) });
   }
   const seen = new Set(), out = [];
   (data.perfumes || []).forEach((p, i) => {

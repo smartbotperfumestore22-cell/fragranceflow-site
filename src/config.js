@@ -7,6 +7,7 @@ import { IMG } from "./data/images.js";
 import { buildCatalog } from "./data/perfumes.js";
 import { FF_SCRIPT_URL } from "./ff-script-url.js";
 import SHEET from "./data/catalog.json"; // written at build time from the Google Sheet (scripts/fetch-catalog.mjs); null = not set up
+import { applyStoreMode } from "./store-mode.js";
 
 window.__FF_CONFIG__ = {
   STORE_NAME: "FragranceFlow",
@@ -34,7 +35,11 @@ try {
 
 if (!window.__FF_CONFIG__.SHEETS_API_URL) {
   // perfumes from the Google Sheet when the build could read it, otherwise the built-in list
-  window.__ffDP__ = Array.isArray(SHEET) && SHEET.length
+  const db = Array.isArray(SHEET) && SHEET.length
     ? SHEET.map(({ imageKey, imageUrl, ...p }) => ({ ...p, image: imageUrl || IMG[imageKey] || IMG.c2 }))
     : buildCatalog(IMG);
+  // store link (?store=<store_id>): only that store's fragrances, at its prices; otherwise everything, neutral
+  const { db: shown, store } = applyStoreMode(db);
+  window.__ffDP__ = shown;
+  window.__FF_STORE__ = store;
 }

@@ -3,6 +3,7 @@
 
 export function startSite({ loadQuiz }) {
   var DB = (window.__ffDP__ || []).filter(function (p) { return p.active !== false; });
+  var STORE = window.__FF_STORE__ || null; // set when the visit came through a store link (?store=…)
   // display order for browsing: alternate women / men / unisex so the grid never opens on one gender only
   var BROWSE = (function () {
     var buckets = { women: [], men: [], unisex: [] }, out = [];
@@ -45,6 +46,16 @@ export function startSite({ loadQuiz }) {
   function charLabel(c) { return CHAR[c] || c; }
   function byId(id) { for (var i = 0; i < DB.length; i++) if (String(DB[i].id) === id) return DB[i]; return null; }
   function seasons(p) { return p.season.indexOf('allseasons') > -1 ? 'كل الفصول' : p.season.map(function (s) { return SEA[s] || s; }).join('، '); }
+
+  /* ---------- store link: banner on every page, with a way back to the full, neutral site ---------- */
+  if (STORE) {
+    document.body.classList.add('in-store');
+    var bar = h('div', { class: 'store-bar', role: 'note' },
+      h('p', {}, h('span', { text: 'كتشوف العطور المتوفرة عند ' }), h('b', { text: STORE.name + (STORE.city ? ' – ' + STORE.city : '') })),
+      h('a', { class: 'textlink', href: location.pathname, text: 'شوف جميع العطور ف FragranceFlow' }));
+    var headEl = document.querySelector('header.head');
+    headEl.parentNode.insertBefore(bar, headEl.nextSibling);
+  }
 
   /* ---------- counts ---------- */
   var brands = {}; DB.forEach(function (p) { brands[p.brand] = 1; });

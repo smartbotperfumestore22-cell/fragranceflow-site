@@ -10,6 +10,7 @@ export function siteTrack(event, data) {
       let v = sessionStorage.getItem("ff_sid");
       if (!v) { v = Math.random().toString(36).slice(2, 10); sessionStorage.setItem("ff_sid", v); }
       extra.visit = v; // never "sid": Apps Script reserves it and answers 400
+      if (window.__FF_STORE__) extra.shop = window.__FF_STORE__.id; // visit came through a store link
       const utm = sessionStorage.getItem("ff_utm"); if (utm) extra.utm = utm;
     } catch (e) {}
     const params = new URLSearchParams({ action: "analytics", store: (window.__FF_CONFIG__ || {}).STORE_NAME || "", key: "", event, ...extra, ...(data || {}) });
