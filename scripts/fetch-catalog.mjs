@@ -20,7 +20,7 @@ const str = (v) => String(v ?? "").trim();
 const isOff = (v) => ["false", "0", "no", "non", "لا"].includes(str(v).toLowerCase());
 const num = (v) => { const n = Number(String(v ?? "").replace(/[^\d.]/g, "")); return Number.isFinite(n) && n > 0 ? n : 0; };
 
-let WARN = [], POP = null;
+let WARN = [], POP = null, STORES = null;
 function keep(value, why) {
   writeFileSync(OUT, JSON.stringify(value, null, 1) + "\n");
   console.log("[catalog] " + why);
@@ -28,7 +28,7 @@ function keep(value, why) {
     writeFileSync(STATUS, JSON.stringify({
       source: Array.isArray(value) ? "sheet" : "built-in list",
       perfumes: Array.isArray(value) ? value.length : null,
-      message: why, popular: POP, warnings: WARN.slice(0, 50), built_at: new Date().toISOString(),
+      message: why, stores: STORES, popular: POP, warnings: WARN.slice(0, 50), built_at: new Date().toISOString(),
     }, null, 1) + "\n");
   } catch (e) {}
 }
@@ -86,7 +86,16 @@ function build(data) {
   if (enough) out.forEach((p) => { if (scores[p.id]) p.pop = scores[p.id]; });
   const popInfo = { interactions: Number(pop.interactions) || 0, perfumes_with_activity: ranked.length, used: enough,
     note: enough ? "homepage shows the most looked-for perfumes" : `homepage keeps its default selection until ${POP_MIN_INTERACTIONS} interactions on ${POP_MIN_PERFUMES}+ perfumes (last ${pop.days || 30} days)` };
-  return { perfumes: out, warn, popInfo };
+  // store links available after this build (ids are public anyway: they are in the links)
+  const storeInfo = Object.keys(stores).map((id) => ({ id, name: stores[id].name,
+    offers: out.filter((p) => (p.stores || []).some((o) => o.storeId === id)).length,
+    link: "?store=" + id + "#quiz" }));
+  for (const o of data.offers || []) {
+    const sid = str(o.store_id).toLowerCase();
+    if (sid && !stores[sid]) warn.push(`Offers: store_id "${o.store_id}" is not an active store in Stores (offer ignored)`);
+    else if (str(o.perfume_id) && !out.some((p) => p.id === str(o.perfume_id))) warn.push(`Offers: perfume_id "${o.perfume_id}" is not in Perfumes (offer ignored)`);
+  }
+  return { perfumes: out, warn, popInfo, storeInfo };
 }
 
 async function main() {
@@ -104,8 +113,8 @@ async function main() {
         : "the Sheet script did not answer with data (check the /exec URL and that ?action=catalog shows the perfumes)");
     }
     if (!data || !Array.isArray(data.perfumes)) return keep(null, "the Sheet script answered without a perfumes list (is the code pasted and deployed as a new version?)");
-    const { perfumes, warn, popInfo } = build(data);
-    WARN = warn; POP = popInfo;
+    const { perfumes, warn, popInfo, storeInfo } = build(data);
+    WARN = warn; POP = popInfo; STORES = storeInfo;
     warn.forEach((w) => console.warn("[catalog] " + w));
     if (perfumes.length < MIN_PERFUMES) return keep(null, `only ${perfumes.length} valid perfumes in the Sheet: using the built-in list`);
     keep(perfumes, `${perfumes.length} perfumes from the Sheet (${warn.length} warning(s))`);
