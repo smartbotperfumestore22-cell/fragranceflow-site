@@ -76,7 +76,7 @@ const CONFIG = {
 // ═══════════════════════════════════════════════════════════════
 const TRANSLATIONS = {
   ar: {
-    title:       "✨ اكتشف شخصيتك العطرية",
+    title:       "✨ اكتشف بصمتك العطرية",
     subtitle:    "واحصل على أفضل العطور المناسبة لك في 30 ثانية — من مجموعة",
     exclusive:   "الحصرية",
     start:       "ابدأ الآن — مجانًا",
@@ -104,7 +104,7 @@ const TRANSLATIONS = {
     noResultSub: "تواصل معنا وغنعاونوك",
     talkToUs:    "تحدث معنا",
     spraysLabel: "رشات تكفي",
-    persona:     "شخصيتك العطرية",
+    persona:     "بصمتك العطرية",
     poweredBy:   "powered by FragranceFlow",
     statsCount:  "عطر",
     statsSec:    "30 ثانية",
@@ -135,7 +135,7 @@ const TRANSLATIONS = {
     tip_5:         "صيفي منعش",
     tip_6:         "خفيف جداً",
     // Persona label
-    personaLabel:  "شخصيتك العطرية",
+    personaLabel:  "بصمتك العطرية",
     // Decant hint
     decantHint:    "💡 إلا ماجربتيه قبل — ابدأ بـ Décante. إلا كنتي متأكد — خد الزجاجة الكاملة وفر أكثر.",
     // Gift badge
@@ -177,7 +177,7 @@ const TRANSLATIONS = {
     noResultSub: "Contactez-nous pour vous aider",
     talkToUs:    "Nous contacter",
     spraysLabel: "sprays suffisent",
-    persona:     "Votre personnalité olfactive",
+    persona:     "Votre signature olfactive",
     poweredBy:   "powered by FragranceFlow",
     statsCount:  "parfums",
     statsSec:    "30 secondes",
@@ -208,7 +208,7 @@ const TRANSLATIONS = {
     tip_5:         "Estival et frais",
     tip_6:         "Très léger",
     // Persona label
-    personaLabel:  "Votre personnalité olfactive",
+    personaLabel:  "Votre signature olfactive",
     // Decant hint
     decantHint:    "💡 Pas encore essayé ? Commencez par une décante. Sûr de vous ? Prenez le flacon complet.",
     // Gift badge
@@ -1244,7 +1244,7 @@ function generateSensoryDesc(p, lang="ar") {
 
 const SLOT_WHY = {
   ar: {
-    best:      "الأقرب لذوقك وشخصيتك العطرية",
+    best:      "الأقرب لذوقك وبصمتك العطرية",
     topSeller: "الأقرب لذوقك والأكثر طلباً",
     sale:      "الأقرب لذوقك وعليه عرض خاص الآن",
     third:     "بديل مميز بنفس ذوقك",
@@ -2855,7 +2855,7 @@ const RV_LABELS = {
     occasion:{ daily:"يومي", evening:"سهرات", dates:"مواعيد", travel:"سفر", allday:"كل وقت" },
     season:  { summer:"صيف", spring:"ربيع", autumn:"خريف", fall:"خريف", winter:"شتاء", allseasons:"كل الفصول" },
     vibe:    { luxury:"فخامة", elegant:"أناقة", confident:"ثقة", attractive:"جاذبية", fresh_imp:"انتعاش", longlast:"أثر طويل", firstlook:"انطباع أول" },
-    title:"✨ العطور المناسبة ليك",
+    title:"العطور المناسبة ليك",
     sub:"بناءً على اختياراتك، هادو أفضل العطور اللي لقيناها ليك.",
     featured:"أفضل اختيار ليك", alt:"اختيار قوي",
     match:"Match", why:"علاش اخترناه ليك؟",
@@ -2872,7 +2872,7 @@ const RV_LABELS = {
     occasion:{ daily:"Quotidien", evening:"Soirée", dates:"Rendez-vous", travel:"Voyage", allday:"Toute occasion" },
     season:  { summer:"Été", spring:"Printemps", autumn:"Automne", fall:"Automne", winter:"Hiver", allseasons:"Toutes saisons" },
     vibe:    { luxury:"Luxe", elegant:"Élégance", confident:"Assurance", attractive:"Séduction", fresh_imp:"Fraîcheur", longlast:"Sillage", firstlook:"Première impression" },
-    title:"✨ Les parfums faits pour vous",
+    title:"Les parfums faits pour vous",
     sub:"D'après vos réponses, voici les meilleurs parfums que nous avons trouvés pour vous.",
     featured:"Votre meilleur choix", alt:"Autre excellent choix",
     match:"Match", why:"Pourquoi ce choix ?",
@@ -3332,6 +3332,26 @@ function RVCard({ p, ans, lang, rank, used, peers }) {
   );
 }
 
+// FragranceFlow fingerprint: nested arches. `done`/`total` turn it into the quiz progress.
+function ffArches(n) {
+  const step = n > 1 ? Math.min(6, 42 / (n - 1)) : 6;
+  return Array.from({ length: n }, (_, k) => {
+    const r = 5 + step * k, right = 118 - k * 1.6;
+    return `M${50 - r} 118V64A${r} ${r} 0 0 1 ${50 + r} 64V${right}`;
+  });
+}
+function FFPrint({ className, total = 8, done = null }) {
+  const arches = ffArches(total);
+  return (
+    <svg className={className} viewBox="0 0 100 120" aria-hidden="true" focusable="false">
+      {arches.map((d, k) => (
+        <path key={k} d={d} fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"
+          className={done === null ? undefined : k < done ? "is-done" : k === done ? "is-now" : "is-next"}/>
+      ))}
+    </svg>
+  );
+}
+
 function ResultsPage({ res, pers, ans, lang, t, questions, reset, favPicked, pickFavorite, personaFeedback, setPersonaFeedback }) {
   const L = rvL(lang);
   // summary of the user's answers, using the quiz's own option labels
@@ -3357,8 +3377,42 @@ function ResultsPage({ res, pers, ans, lang, t, questions, reset, favPicked, pic
   const persDesc = pers && (lang === "fr" ? (pers.desc_fr || pers.desc) :
     ans.gender === "men" && pers.desc_male ? pers.desc_male : ans.gender === "women" && pers.desc_female ? pers.desc_female : pers.desc);
 
+  const feedback = (v) => {
+    setPersonaFeedback(v);
+    window.track && window.track("persona_feedback", { character: ans.character, impression: ans.impression, perfume: v });
+  };
+
   return (
     <section className="ffr" aria-labelledby="ffr-title">
+      {/* 1. the fragrance signature (the existing persona result, shown first) */}
+      {ans.isGift === "gift" ? (
+        <aside className="ffr-sig" aria-label={t.giftPersona}>
+          <FFPrint className="ffr-sig-fp"/>
+          <p className="ffr-sig-kicker">🎁</p>
+          <h2 className="ffr-sig-name">{t.giftPersona}</h2>
+          <p className="ffr-sig-desc">{t.giftPersonaSub}</p>
+        </aside>
+      ) : pers && (
+        <aside className="ffr-sig" aria-labelledby="ffr-sig-name">
+          <FFPrint className="ffr-sig-fp"/>
+          <p className="ffr-sig-kicker">✨ {t.personaLabel}</p>
+          <h2 className="ffr-sig-name" id="ffr-sig-name">{persName} {pers.icon ? <span className="ffr-sig-icon" aria-hidden="true">{pers.icon}</span> : null}</h2>
+          {lang !== "fr" && pers.fr ? <p className="ffr-sig-latin" lang="fr" dir="ltr">{pers.fr}</p> : null}
+          {persDesc ? <blockquote className="ffr-sig-desc">{persDesc}</blockquote> : null}
+          <div className="ffr-feedback">
+            {personaFeedback === null ? (
+              <>
+                <span>{lang === "fr" ? "Cette signature vous ressemble ?" : "واش هاد البصمة كتشبه ليك؟"}</span>
+                <button type="button" aria-label={lang === "fr" ? "Oui" : "إيه"} onClick={() => feedback("yes")}>👍</button>
+                <button type="button" aria-label={lang === "fr" ? "Non" : "لا"} onClick={() => feedback("no")}>👎</button>
+              </>
+            ) : <span>{lang === "fr" ? "Merci pour votre retour 🙏" : "شكراً على رأيك 🙏"}</span>}
+          </div>
+          <ShareResult name={persName} latin={lang === "fr" ? "" : pers.fr} icon={pers.icon} desc={persDesc} lang={lang}/>
+        </aside>
+      )}
+
+      {/* 2. the fragrances, with the visitor's choices shown once */}
       <header className="ffr-header">
         <h2 id="ffr-title">{L.title}</h2>
         <p>{L.profileSub}</p>
@@ -3375,31 +3429,10 @@ function ResultsPage({ res, pers, ans, lang, t, questions, reset, favPicked, pic
         <p className="ffr-note">{lang === "fr" ? "Résultats limités — ajustez certains critères pour plus d'options." : "النتائج محدودة — جرب تعدل بعض الشروط باش تظهر اقتراحات أكثر."}</p>
       )}
 
-      <h3 className="ffr-top3-title">{L.top3}</h3>
       {/* Top 3 stacked #1 → #2 → #3; each card is horizontal on wide screens (image right, info left) */}
       <div className={"ffr-top3 ffr-top3-n" + res.main.length}>
         {res.main.map((p, i) => <RVCard key={p.id} p={p} ans={ans} lang={lang} rank={i + 1} used={used} peers={res.main.filter(x => x.id !== p.id)}/>)}
       </div>
-
-      {ans.isGift === "gift" ? (
-        <aside className="ffr-persona"><p className="ffr-kicker">🎁</p><h3>{t.giftPersona}</h3><p>{t.giftPersonaSub}</p></aside>
-      ) : pers && (
-        <aside className="ffr-persona">
-          <p className="ffr-kicker">{t.personaLabel} {pers.icon}</p>
-          <h3>{persName}</h3>
-          <p>{persDesc}</p>
-          <div className="ffr-feedback">
-            {personaFeedback === null ? (
-              <>
-                <span>{lang === "fr" ? "Cette personnalité vous ressemble ?" : "واش هاد الشخصية كتشبه ليك؟"}</span>
-                <button type="button" onClick={() => { setPersonaFeedback("yes"); window.track && window.track("persona_feedback", { character: ans.character, impression: ans.impression, perfume: "yes" }); }}>👍</button>
-                <button type="button" onClick={() => { setPersonaFeedback("no"); window.track && window.track("persona_feedback", { character: ans.character, impression: ans.impression, perfume: "no" }); }}>👎</button>
-              </>
-            ) : <span>{lang === "fr" ? "Merci pour votre retour 🙏" : "شكراً على رأيك 🙏"}</span>}
-          </div>
-          <ShareResult name={persName} latin={lang === "fr" ? "" : pers.fr} icon={pers.icon} desc={persDesc} lang={lang}/>
-        </aside>
-      )}
 
       {more.length > 0 && (
         <section className="ffr-more" aria-labelledby="ffr-more-title">
@@ -3830,6 +3863,7 @@ function WidgetContent({ onClose, lang: langProp, initialStep="intro" }) {
   };
 
   const [favPicked,       setFavPicked]       = useState(null);
+  const [picked,          setPicked]          = useState(null); // option just chosen (visual feedback only)
   const [personaFeedback, setPersonaFeedback] = useState(null); // "yes" | "no"
 
   const reset = () => {
@@ -3878,7 +3912,7 @@ window.track && window.track("favorite_pick", {
   }
 
   return (
-    <div style={{ overflowY:"auto", flex:1, padding:"4px 18px 22px" }}>
+    <div className={CONFIG.PAGE_MODE ? "ff-flow" : undefined} style={{ overflowY:"auto", flex:1, padding:"4px 18px 22px" }}>
 
       {/* INTRO */}
       {step==="intro" && (
@@ -3936,8 +3970,54 @@ window.track && window.track("favorite_pick", {
         </div>
       )}
 
+      {/* QUESTIONS — site page: same questions, answers and flow, presented as the FragranceFlow experience */}
+      {step==="questions" && CONFIG.PAGE_MODE && (() => {
+        const q = questions[qi];
+        const opts = q?.id==="budget" ? (getBudgetOpts(q) || []) : (q?.opts || []);
+        const size = ans.sizeType||CONFIG.DEFAULT_SIZE||"full";
+        return (
+          <div className="ffq" key={`q${aKey}`}>
+            <div className="ffq-top">
+              <FFPrint className="ffq-print" total={questions.length} done={qi}/>
+              <p className="ffq-step">
+                {lang==="fr" ? <>Question <b>{qi+1}</b> sur {questions.length}</> : <>السؤال <b>{qi+1}</b> من {questions.length}</>}
+              </p>
+            </div>
+            <h2 className="ffq-title">{q?.q}</h2>
+            {q?.sub ? <p className="ffq-sub">{q.sub}</p> : null}
+            {q?.id === "budget" && q?.hasToggle && (
+              <div className="ffq-seg" role="group" aria-label={lang==="fr" ? "Format" : "الحجم"}>
+                {["full","decant"].map(st=>(
+                  <button key={st} type="button" aria-pressed={size===st} onClick={()=>{ if (size!==st) toggleBudgetSize(); }}>
+                    {st==="full" ? (lang==="fr" ? "Flacon complet" : "زجاجة كاملة") : "Décante"}
+                  </button>
+                ))}
+              </div>
+            )}
+            <div className={"ffq-opts n" + opts.length}>
+              {opts.map((o,i)=>(
+                <button key={o.v} type="button" className={"ffq-opt" + (picked===`${aKey}:${o.v}` ? " is-picked" : "")}
+                  style={{ animationDelay: `${i*0.04}s` }}
+                  onClick={()=>{
+                    setPicked(`${aKey}:${o.v}`); answer(q.id, o.v);
+                    // bring the next question into view when the visitor had scrolled down to answer
+                    setTimeout(()=>{ const top = document.querySelector(".ff-page"); if (top && top.getBoundingClientRect().top < 0) top.scrollIntoView({ behavior: "smooth", block: "start" }); }, 230);
+                  }}>
+                  <span className="ffq-icon" aria-hidden="true">{ICONS[ICON_MAP[o.v]] || <span className="ffq-emoji">{o.i}</span>}</span>
+                  <span className="ffq-text">
+                    <span className="ffq-label">{o.l}</span>
+                    {(o.d || o.detail) ? <span className="ffq-desc">{o.d}{o.detail ? ` — ${o.detail}` : ""}</span> : null}
+                  </span>
+                </button>
+              ))}
+            </div>
+            {q?.id==="sizeType" && <p className="ffq-hint">{t.decantHint}</p>}
+          </div>
+        );
+      })()}
+
       {/* QUESTIONS */}
-      {step==="questions" && (
+      {step==="questions" && !CONFIG.PAGE_MODE && (
         <div key={`q${aKey}`} style={{ animation:"up .28s ease both" }}>
           <div style={{ display:"flex", justifyContent:"space-between",
             alignItems:"center", marginBottom:12, paddingTop:4 }}>
@@ -4024,8 +4104,17 @@ window.track && window.track("favorite_pick", {
         </div>
       )}
 
+      {/* LOADING — site page */}
+      {step==="loading" && CONFIG.PAGE_MODE && (
+        <div className="ffl" role="status" aria-live="polite">
+          <FFPrint className="ffl-print"/>
+          <p className="ffl-msg" key={loadingIdx}>{(t.loadingMsgs || [])[loadingIdx] || t.loading}</p>
+          <p className="ffl-sub">{lang==="fr" ? `Analyse de ${getProducts().length} parfums` : `كنقارنو اختياراتك مع ${getProducts().length} عطر`}</p>
+        </div>
+      )}
+
       {/* LOADING */}
-      {step==="loading" && (
+      {step==="loading" && !CONFIG.PAGE_MODE && (
         <div style={{ textAlign:"center", paddingTop:50,
           display:"flex", flexDirection:"column", alignItems:"center", gap:18 }}>
 
@@ -4194,7 +4283,7 @@ window.track && window.track("favorite_pick", {
                   {personaFeedback === null ? (
                     <>
                       <div style={{ fontSize:10, color:"rgba(91,42,134,0.55)" }}>
-                        {lang==="fr" ? "Cette personnalité vous ressemble ?" : "هل تشبهك هذه الشخصية؟"}
+                        {lang==="fr" ? "Cette signature vous ressemble ?" : "واش هاد البصمة كتشبه ليك؟"}
                       </div>
                       <div style={{ display:"flex", gap:6 }}>
                        <button onClick={()=>{
@@ -4538,7 +4627,7 @@ function PageView({ onClose }) {
         <button className="ff-page-back" onClick={onClose}>
           {lang==="fr" ? "→ Retour à l'accueil" : "→ الرجوع للرئيسية"}
         </button>
-        <span className="ff-page-title">{t.assistant}</span>
+        <span className="ff-page-title">{t.personaLabel}</span>
         <button className="ff-page-lang" onClick={()=>setLang(l=>l==="ar"?"fr":"ar")}>{t.langBtn}</button>
       </div>
       <div className="ff-page-card">

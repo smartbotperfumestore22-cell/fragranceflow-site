@@ -31,10 +31,10 @@ export function showSharedPersona() {
   if (!persona || !root) return;
   const note = document.createElement("aside");
   note.className = "shared-persona";
-  note.setAttribute("aria-label", "نتيجة تشاركات معاك");
+  note.setAttribute("aria-label", "بصمة عطرية تشاركات معاك");
   const kicker = document.createElement("p");
   kicker.className = "shared-persona-kicker";
-  kicker.textContent = "تشاركات معاك هاد الشخصية العطرية";
+  kicker.textContent = "تشاركات معاك هاد البصمة العطرية";
   const name = document.createElement("p");
   name.className = "shared-persona-name";
   name.textContent = (persona.icon ? persona.icon + " " : "") + persona.name;
@@ -47,7 +47,7 @@ export function showSharedPersona() {
   }
   const cta = document.createElement("p");
   cta.className = "shared-persona-cta";
-  cta.textContent = "دابا دورك: جاوب على الأسئلة واكتشف شخصيتك العطرية ✨";
+  cta.textContent = "دابا دورك: جاوب على الأسئلة واكتشف بصمتك العطرية ✨";
   note.append(cta);
   root.parentNode.insertBefore(note, root);
   // the note steps aside once the visitor starts answering

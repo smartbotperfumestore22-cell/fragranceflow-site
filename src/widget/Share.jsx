@@ -9,41 +9,41 @@ import { useState, useRef, useEffect } from "react";
 
 const TXT = {
   ar: {
-    open: "✨ شارك شخصيتك العطرية",
+    open: "✨ شارك بصمتك العطرية",
     close: "إغلاق",
     copy: "نسخ الرابط",
     copied: "تنسخ الرابط ✓",
     copyFail: "ما قدرناش ننسخو. هادا هو الرابط:",
-    line1: "اكتشفت شخصيتي العطرية مع FragranceFlow ✨",
-    line2: (icon, name) => `شخصيتي: ${icon ? icon + " " : ""}${name}`,
-    line3: "شنو هي شخصيتك العطرية؟ اكتشفها هنا 👇",
+    line1: "اكتشفت بصمتي العطرية مع FragranceFlow ✨",
+    line2: (icon, name) => `بصمتي: ${icon ? icon + " " : ""}${name}`,
+    line3: "شنو هي بصمتك العطرية؟ اكتشفها هنا 👇",
     igTitle: "صورة لـ Instagram Story",
     igShare: "شارك الصورة",
     igSave: "حفظ الصورة",
     igNote: "حفظ الصورة وحطها ف Story ديالك. الرابط تنسخ، تقدر تلصقو ف sticker ديال Link.",
     igCopied: "تنسخ الرابط ✓ لصقو ف sticker ديال Link ف Story.",
-    cardKicker: "شخصيتي العطرية",
-    cardCta: "اكتشف شخصيتك العطرية ✨",
-    cardAlt: (name) => `بطاقة الشخصية العطرية: ${name}`,
+    cardKicker: "بصمتي العطرية",
+    cardCta: "اكتشف بصمتك العطرية ✨",
+    cardAlt: (name) => `بطاقة البصمة العطرية: ${name}`,
     making: "كنوجدو الصورة...",
   },
   fr: {
-    open: "✨ Partager ma personnalité olfactive",
+    open: "✨ Partager ma signature olfactive",
     close: "Fermer",
     copy: "Copier le lien",
     copied: "Lien copié ✓",
     copyFail: "Copie impossible. Voici le lien :",
-    line1: "J'ai découvert ma personnalité olfactive avec FragranceFlow ✨",
-    line2: (icon, name) => `Ma personnalité : ${icon ? icon + " " : ""}${name}`,
+    line1: "J'ai découvert ma signature olfactive avec FragranceFlow ✨",
+    line2: (icon, name) => `Ma signature : ${icon ? icon + " " : ""}${name}`,
     line3: "Et vous, quelle est la vôtre ? Découvrez-la ici 👇",
     igTitle: "Image pour Instagram Story",
     igShare: "Partager l'image",
     igSave: "Enregistrer l'image",
     igNote: "Enregistrez l'image et publiez-la en Story. Le lien est copié : collez-le dans un sticker Lien.",
     igCopied: "Lien copié ✓ Collez-le dans un sticker Lien de votre Story.",
-    cardKicker: "Ma personnalité olfactive",
+    cardKicker: "Ma signature olfactive",
     cardCta: "Découvrez la vôtre ✨",
-    cardAlt: (name) => `Carte de personnalité olfactive : ${name}`,
+    cardAlt: (name) => `Carte de signature olfactive : ${name}`,
     making: "Création de l'image...",
   },
 };
@@ -97,25 +97,29 @@ async function storyCard(T, persona, lang) {
   const g = c.getContext("2d");
   if (!g) return null;
   try { g.direction = lang === "fr" ? "ltr" : "rtl"; } catch (e) {}
-  const DISPLAY = '"Amiri", "Noto Naskh Arabic", Georgia, serif';
-  const BODY = '"IBM Plex Sans Arabic", system-ui, -apple-system, "Segoe UI", sans-serif';
-  const LATIN = '"Bodoni Moda", Didot, Georgia, serif';
+  const DISPLAY = '"Alexandria", "IBM Plex Sans Arabic", system-ui, sans-serif';
+  const BODY = '"Manrope", "IBM Plex Sans Arabic", system-ui, -apple-system, "Segoe UI", sans-serif';
+  const LATIN = '"Cormorant Garamond", Georgia, serif';
 
-  g.fillStyle = "#FFFFFF"; g.fillRect(0, 0, W, H);
-  g.fillStyle = "#F4EFF8"; g.fillRect(0, 0, W, 520);           // lavender band behind the header
-  g.strokeStyle = "#5B2A86"; g.lineWidth = 4; g.strokeRect(56, 56, W - 112, H - 112);
+  g.fillStyle = "#FAF7F2"; g.fillRect(0, 0, W, H);              // warm ivory
+  // the FragranceFlow fingerprint: faint nested arches rising from the foot of the card
+  g.save(); g.strokeStyle = "rgba(123, 63, 160, 0.10)"; g.lineWidth = 5; g.lineCap = "round";
+  for (let k = 0; k < 9; k++) { const r = 70 + k * 58; g.beginPath(); g.moveTo(W / 2 - r, H + 40); g.lineTo(W / 2 - r, 1330); g.arc(W / 2, 1330, r, Math.PI, 0); g.lineTo(W / 2 + r, H + 40 - k * 14); g.stroke(); }
+  g.restore();
+  g.strokeStyle = "#4B176F"; g.lineWidth = 3; g.strokeRect(56, 56, W - 112, H - 112);
+  g.strokeStyle = "#C99A8B"; g.lineWidth = 1.5; g.strokeRect(74, 74, W - 148, H - 148);
   g.textAlign = "center"; g.textBaseline = "middle";
 
-  g.fillStyle = "#3B185B"; g.font = `500 76px ${LATIN}`;
-  g.fillText("FragranceFlow ✨", W / 2, 230);
-  g.fillStyle = "#746F78"; g.font = `500 46px ${BODY}`;
+  g.fillStyle = "#4B176F"; g.font = `600 80px ${LATIN}`;
+  g.fillText("FragranceFlow", W / 2, 230);
+  g.fillStyle = "#A87666"; g.font = `600 44px ${BODY}`;
   g.fillText(T.cardKicker, W / 2, 380);
 
   // middle block (icon, name, Latin name, rule, description), measured first and centred between header and CTA
   const NAME_MAX = W - 240;
   let nameSize = 112;
-  g.font = `700 ${nameSize}px ${DISPLAY}`;
-  while (nameSize > 84 && g.measureText(persona.name || "").width > NAME_MAX) { nameSize -= 4; g.font = `700 ${nameSize}px ${DISPLAY}`; }
+  g.font = `600 ${nameSize}px ${DISPLAY}`;
+  while (nameSize > 84 && g.measureText(persona.name || "").width > NAME_MAX) { nameSize -= 4; g.font = `600 ${nameSize}px ${DISPLAY}`; }
   const nameLines = wrap(g, persona.name, NAME_MAX, 2);
   g.font = `400 46px ${BODY}`;
   const descLines = persona.desc ? wrap(g, persona.desc, W - 280, 4) : [];
@@ -124,19 +128,19 @@ async function storyCard(T, persona, lang) {
   const ruleH = 80, descH = descLines.length * 74;
   const top = 540, bottom = 1500;
   let y = top + Math.max(40, (bottom - top - (iconH + nameH + latinH + ruleH + descH)) / 2);
-  if (persona.icon) { g.fillStyle = "#3B185B"; g.font = `150px ${BODY}`; g.fillText(persona.icon, W / 2, y + 75); y += iconH; }
-  g.fillStyle = "#3B185B"; g.font = `700 ${nameSize}px ${DISPLAY}`;
+  if (persona.icon) { g.fillStyle = "#4B176F"; g.font = `150px ${BODY}`; g.fillText(persona.icon, W / 2, y + 75); y += iconH; }
+  g.fillStyle = "#24172C"; g.font = `600 ${nameSize}px ${DISPLAY}`;
   nameLines.forEach((l) => { g.fillText(l, W / 2, y + nameSize / 2); y += nameSize + 28; });
-  if (showLatin) { g.fillStyle = "#5B2A86"; g.font = `italic 500 52px ${LATIN}`; g.fillText(persona.latin, W / 2, y + 40); y += latinH; }
-  g.fillStyle = "#5B2A86"; g.fillRect(W / 2 - 60, y + 20, 120, 4); y += ruleH;
-  g.fillStyle = "#211F23"; g.font = `400 46px ${BODY}`;
+  if (showLatin) { g.fillStyle = "#7B3FA0"; g.font = `italic 500 58px ${LATIN}`; g.fillText(persona.latin, W / 2, y + 40); y += latinH; }
+  g.fillStyle = "#C99A8B"; g.fillRect(W / 2 - 60, y + 20, 120, 3); y += ruleH;
+  g.fillStyle = "#24172C"; g.font = `400 46px ${BODY}`;
   descLines.forEach((l) => { g.fillText(l, W / 2, y + 30); y += 74; });
 
   // call to action, fixed near the foot
-  g.fillStyle = "#5B2A86"; g.fillRect(170, 1560, W - 340, 128);
-  g.fillStyle = "#FFFFFF"; g.font = `600 50px ${BODY}`;
+  g.fillStyle = "#4B176F"; g.beginPath(); (g.roundRect ? g.roundRect(170, 1560, W - 340, 128, 64) : g.rect(170, 1560, W - 340, 128)); g.fill();
+  g.fillStyle = "#FAF7F2"; g.font = `600 48px ${BODY}`;
   g.fillText(T.cardCta, W / 2, 1624);
-  g.fillStyle = "#746F78"; g.font = `500 38px ${BODY}`;
+  g.fillStyle = "#6C6072"; g.font = `500 38px ${BODY}`;
   g.fillText(window.location.host, W / 2, 1765);
   return new Promise((res) => c.toBlob((b) => res(b), "image/png"));
 }

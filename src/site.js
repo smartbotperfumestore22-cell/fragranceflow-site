@@ -61,7 +61,12 @@ export function startSite({ loadQuiz }) {
 
   /* ---------- counts ---------- */
   var brands = {}; DB.forEach(function (p) { brands[p.brand] = 1; });
-  document.getElementById('perk-count').textContent = DB.length;
+  var perkCount = document.getElementById('perk-count'); if (perkCount) perkCount.textContent = DB.length;
+  // number of quiz questions, as the quiz builds them: 5 base questions, the fragrance-world question when the
+  // catalogue has at least two worlds, and the budget question
+  var WORLDS = {}; DB.forEach(function (p) { var w = String(p.world || '').trim().toLowerCase().replace(/[\s-]+/g, '_'); if (/^(designer|niche|ultra_niche|arabian)$/.test(w)) WORLDS[w] = 1; });
+  var QCOUNT = 5 + (Object.keys(WORLDS).length >= 2 ? 1 : 0) + 1;
+  Array.prototype.forEach.call(document.querySelectorAll('.q-count'), function (el) { el.textContent = QCOUNT; });
   document.getElementById('st-n').textContent = DB.length;
   document.getElementById('st-b').textContent = Object.keys(brands).length;
   document.getElementById('fine').textContent = 'نسخة تجريبية بـ ' + DB.length + ' عطر. الأثمنة والتصنيفات تقريبية، والصور توضيحية حتى توصل صور المحلات الشريكة.';
@@ -136,7 +141,7 @@ export function startSite({ loadQuiz }) {
         h('p', { class: 'store-quiz-title', text: 'اختبار العطور مع ' + STORE.name }),
         h('p', { text: 'جاوب على بعض الأسئلة، ونلقاو ليك العطور الأنسب من المجموعة المتوفرة عندهم.' })), root);
     }
-    document.title = 'الاختبار | FragranceFlow';
+    document.title = 'اكتشف بصمتك العطرية | FragranceFlow';
     if (quizOpen) return;
     quizOpen = true;
     if (window.FF_OPEN) { window.FF_OPEN(); return; }
@@ -339,7 +344,7 @@ export function startSite({ loadQuiz }) {
           p.url ? h('a', { class: 'btn', href: p.url, target: '_blank', rel: 'noopener', style: 'align-self:flex-start' }, 'شوف عند ' + (p.store || 'المحل'))
                 : h('p', { class: 'shop' }, h('b', { text: 'فين تلقاه: ' }), 'قريبا، رابط مباشر عند المحلات الشريكة.'))),
       h('div', { class: 'actions' },
-        h('a', { class: 'btn', href: '#quiz' }, 'لقى العطر لي يناسبك'),
+        h('a', { class: 'btn', href: '#quiz' }, 'اكتشف بصمتك العطرية'),
         h('a', { class: 'textlink', href: '#fragrances' }, 'رجع للعطور'))));
   }
 
