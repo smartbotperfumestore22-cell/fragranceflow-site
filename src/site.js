@@ -364,7 +364,7 @@ export function startSite({ loadQuiz }) {
         : h('span', { class: 'dstore-name', text: s.name });
       ul.appendChild(h('li', { class: 'dstore' },
         h('div', { class: 'dstore-id' }, name, s.city ? h('span', { class: 'dstore-city', text: s.city }) : null),
-        s.price ? h('p', { class: 'dstore-price' }, h('b', { class: 'latin', text: fmtPrice(s.price) + ' DH' }), ' تقريباً') : null,
+        s.price ? h('p', { class: 'dstore-price' }, h('b', { class: 'latin', text: fmtPrice(s.price) + ' DH' })) : null,
         s.whatsapp ? h('a', { class: 'btn ghost dstore-wa', href: s.whatsapp, target: '_blank', rel: 'noopener',
           onclick: function () { if (window.track) window.track('whatsapp_click', data); } }, '💬 اطلب عبر واتساب') : null));
     });
