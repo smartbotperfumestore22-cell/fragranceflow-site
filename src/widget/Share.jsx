@@ -97,7 +97,7 @@ async function storyCard(T, persona, lang) {
   const g = c.getContext("2d");
   if (!g) return null;
   try { g.direction = lang === "fr" ? "ltr" : "rtl"; } catch (e) {}
-  const DISPLAY = '"Alexandria", "IBM Plex Sans Arabic", system-ui, sans-serif';
+  const DISPLAY = '"Amiri", "Noto Naskh Arabic", Georgia, serif';
   const BODY = '"Manrope", "IBM Plex Sans Arabic", system-ui, -apple-system, "Segoe UI", sans-serif';
   const LATIN = '"Cormorant Garamond", Georgia, serif';
 
@@ -118,8 +118,8 @@ async function storyCard(T, persona, lang) {
   // middle block (icon, name, Latin name, rule, description), measured first and centred between header and CTA
   const NAME_MAX = W - 240;
   let nameSize = 112;
-  g.font = `600 ${nameSize}px ${DISPLAY}`;
-  while (nameSize > 84 && g.measureText(persona.name || "").width > NAME_MAX) { nameSize -= 4; g.font = `600 ${nameSize}px ${DISPLAY}`; }
+  g.font = `700 ${nameSize}px ${DISPLAY}`;
+  while (nameSize > 84 && g.measureText(persona.name || "").width > NAME_MAX) { nameSize -= 4; g.font = `700 ${nameSize}px ${DISPLAY}`; }
   const nameLines = wrap(g, persona.name, NAME_MAX, 2);
   g.font = `400 46px ${BODY}`;
   const descLines = persona.desc ? wrap(g, persona.desc, W - 280, 4) : [];
@@ -129,7 +129,7 @@ async function storyCard(T, persona, lang) {
   const top = 540, bottom = 1500;
   let y = top + Math.max(40, (bottom - top - (iconH + nameH + latinH + ruleH + descH)) / 2);
   if (persona.icon) { g.fillStyle = "#4B176F"; g.font = `150px ${BODY}`; g.fillText(persona.icon, W / 2, y + 75); y += iconH; }
-  g.fillStyle = "#24172C"; g.font = `600 ${nameSize}px ${DISPLAY}`;
+  g.fillStyle = "#24172C"; g.font = `700 ${nameSize}px ${DISPLAY}`;
   nameLines.forEach((l) => { g.fillText(l, W / 2, y + nameSize / 2); y += nameSize + 28; });
   if (showLatin) { g.fillStyle = "#7B3FA0"; g.font = `italic 500 58px ${LATIN}`; g.fillText(persona.latin, W / 2, y + 40); y += latinH; }
   g.fillStyle = "#C99A8B"; g.fillRect(W / 2 - 60, y + 20, 120, 3); y += ruleH;
