@@ -348,6 +348,17 @@ export function startSite({ loadQuiz }) {
         h('a', { class: 'textlink', href: '#fragrances' }, 'رجع للعطور'))));
   }
 
+  /* ---------- homepage: the three-moment journey appears once, as it scrolls into view ---------- */
+  (function () {
+    var j = document.querySelector('.journey');
+    if (!j || !('IntersectionObserver' in window) || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    j.classList.add('journey-anim');
+    var io = new IntersectionObserver(function (es) {
+      if (es.some(function (e) { return e.isIntersecting; })) { j.classList.add('is-in'); io.disconnect(); }
+    }, { threshold: 0.25 });
+    io.observe(j.querySelector('.journey-strip'));
+  })();
+
   // warm up the quiz code when the browser is idle, so the first click opens instantly
   (window.requestIdleCallback || function (f) { setTimeout(f, 1500); })(function () { loadQuiz(); });
 

@@ -194,19 +194,61 @@ a { color: inherit; }
 .sub { color: var(--muted); margin-top: 8px; max-width: 60ch; }
 @media (min-width: 900px) { .block { padding-block: 104px; } }
 
-/* concept: «العطر ماشي غير رائحة.» */
-.concept { overflow: hidden; border-top: 1px solid var(--line); }
-.concept-fp { position: absolute; width: 420px; height: 504px; left: -120px; top: 50%; transform: translateY(-50%); color: var(--lavender); opacity: .32; pointer-events: none; }
-.concept-grid { position: relative; display: grid; gap: 28px; }
-.concept h2 { font-family: var(--font-display); font-weight: 700; font-size: clamp(2.4rem, 8vw, 4rem); line-height: 1.2; }
-.concept-body { display: flex; flex-direction: column; gap: 22px; max-width: 58ch; }
-.concept-lead { font-size: 1.18rem; line-height: 1.9; color: var(--ink); }
-.concept-body > p:last-child { color: #4D4253; }
-.concept-body b { color: var(--plum); font-weight: 600; }
-.concept-words { list-style: none; margin: 0; padding: 18px 0; display: flex; flex-wrap: wrap; align-items: center; gap: 6px 0; border-block: 1px solid var(--line); font-family: var(--font-display); font-size: clamp(1.25rem, 3.6vw, 1.6rem); color: var(--plum); }
-.concept-words li { display: flex; align-items: center; }
-.concept-words li + li::before { content: ""; width: 7px; height: 7px; margin-inline: 16px; border: 1px solid var(--rose); border-radius: 50%; }
-@media (min-width: 900px) { .concept-grid { grid-template-columns: 1fr 1.25fr; gap: 72px; align-items: start; } .concept-fp { width: 560px; height: 672px; left: -160px; } }
+/* section 2: «العطر ماشي غير رائحة.» — a fragrance lived in three moments (أول رشة → بعد دقائق → الأثر الأخير).
+   Desktop: one flowing ribbon (journey.webp) with the three stages under its three circles, read right to left.
+   Phones: the same three circles, stacked, joined by a thin flowing line. */
+.journey { position: relative; overflow: hidden; background: #FBF1EA; padding-block: 64px 56px; }
+.journey-head { text-align: center; display: flex; flex-direction: column; align-items: center; gap: 12px; }
+.journey-head h2 { font-family: var(--font-display); font-weight: 700; font-size: clamp(2.3rem, 7.6vw, 3.6rem); line-height: 1.3; color: var(--ink); }
+.journey-head h2 .h-accent { color: var(--purple); }
+.journey-line { font-family: var(--font-display); font-size: clamp(1.25rem, 4vw, 1.6rem); line-height: 1.6; color: #4D4253; }
+.journey-text { max-width: 56ch; font-size: .98rem; line-height: 1.9; color: var(--muted); margin-top: 4px; }
+.journey-strip { position: relative; margin-top: 36px; }
+.journey-bg { display: none; }
+.journey-stages { list-style: none; margin: 0 auto; padding: 0 16px; max-width: 460px; position: relative; display: flex; flex-direction: column; gap: 22px; }
+/* the thin scent line joining the three circles on phones */
+.journey-stages::before { content: ""; position: absolute; top: 60px; bottom: 60px; inset-inline-start: calc(16px + 48px - 12px); width: 24px;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 80'%3E%3Cpath d='M12 0C2 20 22 40 12 60S2 80 12 80' fill='none' stroke='%23D8B4E8' stroke-width='1.5'/%3E%3C/svg%3E") repeat-y center / 24px 80px; }
+.jstage { position: relative; display: grid; grid-template-columns: 96px 1fr; align-items: center; column-gap: 18px; }
+.stage-pic { grid-row: span 2; width: 96px; height: 96px; border-radius: 50%; object-fit: cover; position: relative; z-index: 1; box-shadow: 0 0 0 1px rgba(201, 154, 139, .55), 0 10px 24px -14px rgba(75, 23, 111, .45); }
+.stage-num { grid-column: 2; justify-self: start; font-variant-numeric: lining-nums; align-self: end; font-size: 1.2rem; font-weight: 600; color: var(--purple); line-height: 1; }
+.stage-txt { grid-column: 2; align-self: start; }
+.jstage h3 { font-family: var(--font-display); font-weight: 700; font-size: 1.5rem; line-height: 1.5; color: var(--ink); }
+.jstage p { font-size: .95rem; color: var(--muted); }
+.journey-cta { text-align: center; margin-top: 28px; }
+.journey-cta .textlink { display: inline-flex; align-items: center; gap: 8px; }
+.journey-cta .arrow { width: 16px; height: 16px; transition: transform .35s var(--ease); }
+.journey-cta .textlink:hover .arrow { transform: scaleX(-1) translateX(4px); }
+@media (min-width: 820px) {
+  .journey { padding-block: 104px 72px; }
+  .journey-head { gap: 14px; }
+  .journey-text { font-size: 1.02rem; }
+  .journey-strip { margin: 20px auto 0; max-width: 1680px; aspect-ratio: 2103 / 748; }
+  .journey-bg { display: block; position: absolute; inset: 0;
+    -webkit-mask-image: linear-gradient(to bottom, transparent, #000 14%, #000 88%, transparent), linear-gradient(to right, transparent, #000 7%, #000 93%, transparent);
+    -webkit-mask-composite: source-in; mask-image: linear-gradient(to bottom, transparent, #000 14%, #000 88%, transparent), linear-gradient(to right, transparent, #000 7%, #000 93%, transparent); mask-composite: intersect; }
+  .journey-bg img { width: 100%; height: 100%; object-fit: cover; }
+  .journey-stages { position: absolute; inset: 0; max-width: none; padding: 0; display: block; }
+  .journey-stages::before { display: none; }
+  .jstage { position: absolute; top: 0; bottom: 0; right: calc(var(--x) - 13%); width: 26%; display: block; text-align: center; }
+  .stage-pic { display: none; }
+  .stage-num { position: absolute; top: calc(27.8% - 1.5em); inset-inline: 0; margin: 0 auto; width: max-content; padding: 2px 10px; border-radius: 999px; background: rgba(251, 241, 234, .9); font-size: clamp(1.1rem, 1.6vw, 1.5rem); }
+  .stage-txt { position: absolute; top: 70%; inset-inline: 0; }
+  .jstage h3 { font-size: clamp(1.35rem, 2vw, 1.85rem); line-height: 1.4; }
+  .jstage p { font-size: clamp(.86rem, 1.05vw, 1rem); }
+  .journey-cta { margin-top: 8px; }
+}
+/* a slow reveal when the section scrolls into view: the ribbon flows from right to left, the stages follow it.
+   Only switched on by site.js (.journey-anim), so without script or with reduced motion everything is simply visible. */
+@media (prefers-reduced-motion: no-preference) {
+  .journey-anim .jstage { opacity: 0; transform: translateY(10px); transition: opacity .9s var(--ease), transform .9s var(--ease); }
+  .journey-anim .jstage:nth-child(2) { transition-delay: .7s; }
+  .journey-anim .jstage:nth-child(3) { transition-delay: 1.4s; }
+  .journey-anim.is-in .jstage { opacity: 1; transform: none; }
+  .journey-anim .journey-bg, .journey-anim .journey-stages::before { clip-path: inset(0 0 0 100%); transition: clip-path 2.4s cubic-bezier(.45, .05, .25, 1); }
+  .journey-anim .journey-stages::before { clip-path: inset(0 0 100% 0); }
+  .journey-anim.is-in .journey-bg, .journey-anim.is-in .journey-stages::before { clip-path: inset(0); }
+}
 
 /* how it works: a real sequence, so numbered */
 .how { background: var(--paper); border-block: 1px solid var(--line); }
