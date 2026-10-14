@@ -195,13 +195,36 @@
     </div>
   </section>
 
-  <!-- 6. Final call to action -->
+  <!-- 6. Final call to action: emotion → one way into the quiz -->
   <section class="final" aria-labelledby="final-title">
-    <svg class="final-fp" aria-hidden="true"><use href="#fp"/></svg>
+    <div class="final-glow" aria-hidden="true"></div>
+    <svg class="final-ribbons" viewBox="0 0 1200 400" preserveAspectRatio="none" aria-hidden="true" focusable="false">
+      <g fill="none" stroke-linecap="round">
+        <path class="rb rb1" d="M-80 250C140 120 330 330 560 230S960 90 1280 210" stroke="#D8B4E8" stroke-width="1.4"/>
+        <path class="rb rb2" d="M-80 270C150 150 340 350 570 252S970 116 1280 236" stroke="#C99A8B" stroke-width="1"/>
+        <path class="rb rb3" d="M-80 292C160 182 350 372 580 276S980 146 1280 262" stroke="#D8B4E8" stroke-width=".8"/>
+      </g>
+    </svg>
+
     <div class="wrap final-inner">
-      <h2 id="final-title">شنو هي بصمتك؟</h2>
-      <p>شوية أسئلة، وغادي تعرف العطور اللي كتشبه ليك.</p>
-      <a class="btn lg light" href="#quiz">اكتشف بصمتك العطرية <svg class="arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+      <div class="final-copy">
+        <h2 id="final-title">✨ شنو هي بصمتك العطرية؟</h2>
+        <p class="final-text">كل اختيار كيكشف جزء من ذوقك.<br>خليه يقودك للعطر اللي كيشبه ليك.</p>
+        <p class="final-meta"><span class="q-count">7</span> أسئلة · أقل من دقيقة · 3 عطور مناسبة ليك</p>
+        <a class="btn lg light final-btn" href="#quiz">اكتشف بصمتك العطرية <svg class="arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+      </div>
+      <svg class="final-art" viewBox="120 20 360 500" aria-hidden="true" focusable="false">
+        <defs>
+          <linearGradient id="final-line" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#F2DDF7"/><stop offset=".55" stop-color="#D8B4E8"/><stop offset="1" stop-color="#E3BCAE"/></linearGradient>
+          <clipPath id="final-body"><rect x="140" y="128" width="320" height="380" rx="72"/></clipPath>
+        </defs>
+        <g fill="none" stroke="url(#final-line)" stroke-linecap="round">
+          <rect class="fa-line" x="258" y="34" width="84" height="54" rx="12" stroke-width="2"/>
+          <path class="fa-line" d="M276 88v24a6 6 0 0 0 6 6h36a6 6 0 0 0 6-6V88" stroke-width="2"/>
+          <rect class="fa-line" x="140" y="128" width="320" height="380" rx="72" stroke-width="2.2"/>
+          <path class="fa-line fa-print" clip-path="url(#final-body)" stroke-width="1.6" d="M288.0 505V340A12.0 12.0 0 0 1 312.0 340V505 M270.5 505V340A29.5 29.5 0 0 1 329.5 340V498 M253.0 505V340A47.0 47.0 0 0 1 347.0 340V491 M235.5 505V340A64.5 64.5 0 0 1 364.5 340V484 M218.0 505V340A82.0 82.0 0 0 1 382.0 340V477 M200.5 505V340A99.5 99.5 0 0 1 399.5 340V470 M183.0 505V340A117.0 117.0 0 0 1 417.0 340V463 M165.5 505V340A134.5 134.5 0 0 1 434.5 340V456 M148.0 505V340A152.0 152.0 0 0 1 452.0 340V449"/>
+        </g>
+    </svg>
     </div>
   </section>
 </main>

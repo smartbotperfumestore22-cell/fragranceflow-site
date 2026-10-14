@@ -392,13 +392,45 @@ a { color: inherit; }
 @media (min-width: 760px) { .fcard-name { font-size: 1.65rem; } }
 .disc-cta { text-align: center; margin-top: 44px; }
 
-/* ───────── final call to action ───────── */
-.final { position: relative; overflow: hidden; background: var(--plum); color: var(--ivory); text-align: center; padding-block: 88px; isolation: isolate; }
-.final-fp { position: absolute; z-index: -1; width: 640px; height: 768px; left: 50%; bottom: -380px; transform: translateX(-50%); color: var(--lavender); opacity: .22; }
-.final-inner { display: flex; flex-direction: column; align-items: center; gap: 16px; }
-.final h2 { font-family: var(--font-display); font-weight: 700; font-size: clamp(2.6rem, 9vw, 4.4rem); line-height: 1.2; color: #FFF; }
-.final p { color: rgba(250, 247, 242, .82); font-size: 1.08rem; margin-bottom: 14px; }
-@media (min-width: 900px) { .final { padding-block: 128px; } .final-fp { width: 900px; height: 1080px; bottom: -560px; } }
+/* ───────── final call to action: «✨ شنو هي بصمتك العطرية؟» ─────────
+   The page turns from ivory to deep purple; a fingerprint bottle drawn in lavender and rose-gold light stands behind the words,
+   with three slow scent ribbons. One button, into the existing quiz. */
+.final { position: relative; overflow: hidden; isolation: isolate; text-align: center; color: var(--ivory); padding-block: 120px 96px;
+  background: linear-gradient(to bottom, var(--ivory) 0, #DCC6E8 34px, #9A66BE 92px, var(--purple) 150px, var(--plum) 46%, #3A1158 100%); }
+.final-glow { position: absolute; z-index: -2; left: 50%; top: 56%; width: min(900px, 140vw); aspect-ratio: 1; transform: translate(-50%, -50%); border-radius: 50%;
+  background: radial-gradient(closest-side, rgba(216, 180, 232, .34), rgba(201, 154, 139, .12) 55%, rgba(75, 23, 111, 0) 100%); }
+.final-ribbons path { vector-effect: non-scaling-stroke; }
+.final-ribbons { position: absolute; z-index: -1; left: 0; top: 34%; width: 100%; height: 46%; opacity: .3; }
+.final-art { display: block; width: 110px; height: auto; margin: 0 auto; order: -1; opacity: .8; filter: drop-shadow(0 0 6px rgba(216, 180, 232, .55)); }
+.final-inner { position: relative; display: flex; flex-direction: column; align-items: center; gap: 22px; }
+.final-copy { display: flex; flex-direction: column; align-items: center; gap: 16px; }
+.final h2 { font-family: var(--font-display); font-weight: 700; font-size: clamp(2.4rem, 8.4vw, 4.4rem); line-height: 1.3; color: #FFF; text-shadow: 0 2px 24px rgba(54, 16, 79, .45); }
+.final-text { font-family: var(--font-display); font-size: clamp(1.3rem, 4.6vw, 1.8rem); line-height: 1.7; color: rgba(255, 255, 255, .92); text-shadow: 0 1px 16px rgba(54, 16, 79, .5); }
+.final-meta { font-size: .88rem; color: #EBCFC5; letter-spacing: .01em; margin-bottom: 12px; }
+.final-btn { min-height: 62px; padding-inline: 36px; box-shadow: 0 0 0 1px rgba(201, 154, 139, .8) inset, 0 18px 40px -18px rgba(20, 4, 32, .7); transition: transform .4s var(--ease), box-shadow .4s var(--ease), background .3s; }
+.final-btn:hover { transform: translateY(-2px); background: #FFFFFF; box-shadow: 0 0 0 1px rgba(201, 154, 139, .9) inset, 0 0 0 6px rgba(216, 180, 232, .18), 0 22px 46px -16px rgba(216, 180, 232, .55); }
+.final-btn:active { transform: translateY(0) scale(.985); }
+/* wide screens: the words on the right, the fingerprint bottle on the left — side by side, never over the text */
+@media (min-width: 900px) {
+  .final { padding-block: 150px 120px; }
+  .final-inner { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, .85fr); align-items: center; gap: 48px; max-width: 1100px; }
+  .final-copy { align-items: flex-start; text-align: start; }
+  .final-art { order: 0; width: min(100%, 300px); opacity: .9; }
+  .final-ribbons { opacity: .55; }
+  .final-glow { left: 30%; }
+}
+/* entering the section: the bottle's lines draw themselves, the ribbons drift slowly (switched on by site.js) */
+@media (prefers-reduced-motion: no-preference) {
+  .final-anim .fa-line { stroke-dasharray: 1400; stroke-dashoffset: 1400; transition: stroke-dashoffset 2.8s cubic-bezier(.45, .05, .25, 1); }
+  .final-anim .fa-print { stroke-dasharray: 600; stroke-dashoffset: 600; transition-duration: 3.4s; transition-delay: .5s; }
+  .final-anim.is-in .fa-line { stroke-dashoffset: 0; }
+  .final-anim .final-glow { opacity: 0; transition: opacity 2.4s ease .3s; }
+  .final-anim.is-in .final-glow { opacity: 1; }
+  .final .rb { transform-box: view-box; animation: drift 16s ease-in-out infinite alternate; }
+  .final .rb2 { animation-duration: 21s; animation-delay: -6s; }
+  .final .rb3 { animation-duration: 26s; animation-delay: -11s; }
+}
+@keyframes drift { from { transform: translateX(-2.5%); } to { transform: translateX(2.5%); } }
 @keyframes draw { to { stroke-dashoffset: 0; } }
 
 /* ───────── filters (catalogue) ───────── */

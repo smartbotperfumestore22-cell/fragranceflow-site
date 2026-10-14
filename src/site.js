@@ -407,6 +407,17 @@ export function startSite({ loadQuiz }) {
     io.observe(sec);
   })();
 
+  /* ---------- homepage: the final call to action draws its fingerprint bottle once, as it comes into view ---------- */
+  (function () {
+    var f = document.querySelector('.final');
+    if (!f || !('IntersectionObserver' in window) || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    f.classList.add('final-anim');
+    var io = new IntersectionObserver(function (es) {
+      if (es.some(function (e) { return e.isIntersecting; })) { f.classList.add('is-in'); io.disconnect(); }
+    }, { threshold: 0.3 });
+    io.observe(f);
+  })();
+
   /* ---------- homepage: the three-moment journey appears once, as it scrolls into view ---------- */
   (function () {
     var j = document.querySelector('.journey');
