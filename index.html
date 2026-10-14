@@ -141,6 +141,40 @@
     <p class="journey-cta"><a class="textlink" href="#quiz">اكتشف بصمتك العطرية <svg class="arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a></p>
   </section>
 
+  <!-- 3. «بصمتك العطرية»: answers → signature → Top 3, shown with a real result of the existing engine (filled by site.js) -->
+  <section class="sig3" id="sample" aria-labelledby="sample-title">
+    <div class="wrap">
+      <header class="sig3-head">
+        <h2 id="sample-title">✨ <span class="h-accent">بصمتك</span> العطرية</h2>
+        <p>أكثر من مجرد أسماء عطور، غادي تكتشف وصف كامل لبصمتك العطرية والعطور اللي كتشبه لذوقك، حضورك واللحظة اللي باغيها.</p>
+      </header>
+      <ol class="sig3-flow">
+        <li class="sig3-step sig3-in">
+          <span class="sig3-num latin">01</span>
+          <h3>اختياراتك</h3>
+          <p class="sig3-sub">كتجاوب على <span class="q-count">7</span> أسئلة على ذوقك والمناسبات اللي كتفضل.</p>
+          <ul class="sig3-answers" id="sig3-answers" aria-label="مثال على الاختيارات"></ul>
+        </li>
+        <li class="sig3-step sig3-sig">
+          <span class="sig3-num latin">02</span>
+          <h3>بصمتك العطرية</h3>
+          <img class="sig3-visual" src="/images/signature-visual.webp" alt="" width="422" height="250" loading="lazy" decoding="async">
+          <p class="sig3-name" id="sig3-name"></p>
+          <ul class="sig3-tags" id="sig3-tags" aria-label="الطابع"></ul>
+          <p class="sig3-desc" id="sig3-desc"></p>
+        </li>
+        <li class="sig3-step sig3-out">
+          <span class="sig3-num latin">03</span>
+          <h3>العطور اللي كتشبه ليك</h3>
+          <p class="sig3-sub">3 عطور مرتبين حسب المطابقة مع بصمتك.</p>
+          <ul class="sig3-perfumes" id="sig3-perfumes"></ul>
+        </li>
+      </ol>
+      <p class="sig3-note" id="sig3-note" hidden>هادي نتيجة حقيقية من FragranceFlow لاختيارات مثال. النتيجة ديالك كتبنى من الأجوبة ديالك.</p>
+      <p class="journey-cta"><a class="textlink" href="#quiz">اكتشف بصمتك العطرية <svg class="arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a></p>
+    </div>
+  </section>
+
   <!-- 3. How it works: a real sequence, so numbered -->
   <section class="block how" id="how" aria-labelledby="how-title">
     <div class="wrap">
@@ -150,25 +184,6 @@
         <li><span class="step-mark" aria-hidden="true"><svg><use href="#fp"/></svg><span class="num latin">02</span></span><h3>ذوقك</h3><p>FragranceFlow كيربط اختياراتك بالعائلات، المناسبات والانطباعات.</p></li>
         <li><span class="step-mark" aria-hidden="true"><svg><use href="#fp"/></svg><span class="num latin">03</span></span><h3>بصمتك</h3><p>كنلقاو العطور اللي أقرب لذوقك.</p></li>
       </ol>
-    </div>
-  </section>
-
-  <!-- 4. What a result looks like (an example of the existing result, not a new feature) -->
-  <section class="block sample" id="sample" aria-labelledby="sample-title">
-    <div class="wrap sample-grid">
-      <div class="sample-intro">
-        <h2 class="sec-title" id="sample-title">هكا كتبان بصمتك</h2>
-        <p>من بعد الأسئلة، كتلقى بصمتك العطرية فالأول، ومن بعدها 3 عطور مرتبين حسب القرب لذوقك.</p>
-        <a class="textlink" href="#quiz">اكتشف بصمتك العطرية</a>
-      </div>
-      <figure class="sig-card" aria-label="مثال على بصمة عطرية">
-        <svg class="sig-fp" aria-hidden="true"><use href="#fp"/></svg>
-        <figcaption class="sig-example">مثال</figcaption>
-        <p class="sig-kicker">✨ بصمتك العطرية</p>
-        <p class="sig-name">الحضور الواثق</p>
-        <p class="sig-traits">خشبي · شرقي · دافئ · جذاب</p>
-        <blockquote class="sig-quote">«حضور دافئ وواثق، كيبان من أول رشة وكيبقى أثره من بعد.»</blockquote>
-      </figure>
     </div>
   </section>
 

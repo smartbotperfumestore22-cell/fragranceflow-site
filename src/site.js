@@ -348,6 +348,56 @@ export function startSite({ loadQuiz }) {
         h('a', { class: 'textlink', href: '#fragrances' }, 'رجع للعطور'))));
   }
 
+  /* ---------- homepage: «بصمتك العطرية» example, computed by the quiz's own engine and persona code ---------- */
+  // window.FF_SIGNATURE_EXAMPLE comes with the quiz code (src/widget/App.jsx): fixed example answers → real persona,
+  // real Top 3 and real match %. Nothing here is invented; if it cannot run, the section shows the steps only.
+  function renderSignatureExample() {
+    var ex = window.FF_SIGNATURE_EXAMPLE && window.FF_SIGNATURE_EXAMPLE();
+    if (!ex || !ex.persona || !ex.top3.length) return;
+    var ICONS = [ // occasion, season, character, impression (the order of ex.answers)
+      '<path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/>',
+      '<path d="M12 2v20M3.3 7l17.4 10M3.3 17L20.7 7M9 4l3 2 3-2M9 20l3-2 3 2"/>',
+      '<path d="M12 3c3.5 4.3 5.5 7.6 5.5 10.5a5.5 5.5 0 0 1-11 0C6.5 10.6 8.5 7.3 12 3z"/>',
+      '<path d="M6 4h12l3 5-9 11L3 9z"/><path d="M3 9h18M9 4l3 5 3-5M12 9v11"/>'
+    ];
+    var ans = document.getElementById('sig3-answers'); ans.textContent = '';
+    ex.answers.forEach(function (l, i) {
+      var ic = h('span', { class: 'sig3-ic', 'aria-hidden': 'true' });
+      ic.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">' + (ICONS[i] || '') + '</svg>';
+      ans.appendChild(h('li', {}, ic, h('span', { text: l })));
+    });
+    document.getElementById('sig3-name').textContent = ex.persona.ar + (ex.persona.icon ? ' ' + ex.persona.icon : '');
+    var tags = document.getElementById('sig3-tags'); tags.textContent = '';
+    (ex.persona.tags && ex.persona.tags.ar || []).forEach(function (t) { tags.appendChild(h('li', { text: t })); });
+    document.getElementById('sig3-desc').textContent = ex.persona.desc || '';
+    var list = document.getElementById('sig3-perfumes'); list.textContent = '';
+    ex.top3.forEach(function (p, i) {
+      var ring = h('span', { class: 'sig3-ring', 'aria-label': p.pct + '% مطابقة' });
+      ring.innerHTML = '<svg viewBox="0 0 44 44" aria-hidden="true"><circle cx="22" cy="22" r="19" class="t"/><circle cx="22" cy="22" r="19" class="v" pathLength="100" style="stroke-dasharray:' + p.pct + ' 100"/></svg>';
+      ring.appendChild(h('b', { class: 'latin', text: p.pct + '%' }));
+      ring.appendChild(h('small', { text: 'مطابقة' }));
+      list.appendChild(h('li', {},
+        h('a', { href: '#f-' + encodeURIComponent(p.id) },
+          ring,
+          h('img', { src: p.image, alt: '', loading: 'lazy', decoding: 'async', width: '172', height: '119' }),
+          h('span', { class: 'sig3-rank latin', text: '#' + (i + 1) }),
+          h('span', { class: 'sig3-pname latin', text: p.name }),
+          h('span', { class: 'sig3-brand latin', text: p.brand }))));
+    });
+    document.getElementById('sig3-note').hidden = false;
+    document.querySelector('.sig3').classList.add('is-ready');
+  }
+  (function () {
+    var sec = document.querySelector('.sig3'); if (!sec) return;
+    var run = function () { loadQuiz().then(renderSignatureExample, function () {}); };
+    if (!('IntersectionObserver' in window)) { run(); return; }
+    // the quiz code loads when the section comes near, not with the first paint
+    var io = new IntersectionObserver(function (es) {
+      if (es.some(function (e) { return e.isIntersecting; })) { io.disconnect(); run(); }
+    }, { rootMargin: '600px 0px' });
+    io.observe(sec);
+  })();
+
   /* ---------- homepage: the three-moment journey appears once, as it scrolls into view ---------- */
   (function () {
     var j = document.querySelector('.journey');

@@ -3481,101 +3481,10 @@ function ResultsPage({ res, pers, ans, lang, t, questions, reset, favPicked, pic
 }
 
 // ═══════════════════════════════════════════════════════════════
-//  WIDGET CONTENT
+//  PERSONA («بصمتك العطرية») — built from the answers only.
+//  Moved here unchanged from the quiz's answer handler so the homepage example can use the very same code.
 // ═══════════════════════════════════════════════════════════════
-function WidgetContent({ onClose, lang: langProp, initialStep="intro" }) {
-  const [step,       setStep]       = useState(initialStep);
-  const [qi,         setQi]         = useState(0);
-  const [ans,        setAns]        = useState({});
-  const [res,        setRes]        = useState({ main:[], similar:[] });
-  const [pers,       setPers]       = useState(null);
-  const [aKey,       setAKey]       = useState(0);
-  const [loadingIdx, setLoadingIdx] = useState(0);
-  const [productsReady, setProductsReady] = useState(!CONFIG.SHEETS_API_URL);
-  const lang = langProp || CONFIG.DEFAULT_LANGUAGE || "ar";
-
-  // ── حمل العطور من Sheets ──────────────────────────────────────
-  useEffect(() => {
-    if (!CONFIG.SHEETS_API_URL || window.__ffDP__) {
-      setProductsReady(true);
-      return;
-    }
-    loadProductsFromSheets().then(() => setProductsReady(true));
-  }, []);
-  useEffect(() => {
-  window.track && window.track("widget_open", {});
-}, []);
-  const t = TRANSLATIONS[lang];
-  const questions = buildQS(ans.sizeType, lang, ans.world);
-
-  function getBudgetOpts(q) {
-    const st = ans.sizeType || q?.sizeType || CONFIG.DEFAULT_SIZE || "full";
-    const validSt = (st === "decant" || st === "full") ? st : "full";
-    return calcDynamicBudget(validSt, lang, ans.world) || [];
-  }
-
-  function toggleBudgetSize() {
-    const current = ans.sizeType || CONFIG.DEFAULT_SIZE || "full";
-    const next = current === "full" ? "decant" : "full";
-    setAns(a=>({...a, sizeType: next, budget: null}));
-    setAKey(k=>k+1);
-  }
-
-  const answer = async (qId, val) => {
-    let na = {...ans, [qId]:val};
-    // a new fragrance world changes the budget ranges, so an earlier budget answer no longer applies
-    if (qId === "world" && val !== ans.world) na.budget = null;
-    // sizeType تلقائي حسب CONFIG
-    if (CONFIG.HAS_DECANT === false) na.sizeType = "full";
-    if (CONFIG.HAS_FULL   === false) na.sizeType = "decant";
-    // isGift من الـ toggle مش من السؤال
-    // sizeType من الـ budget toggle
-    setAns(na);
-    const updatedQS = buildQS(na.sizeType, lang, na.world);
-    if (qi+1 < updatedQS.length) {
-      setTimeout(()=>{setQi(q=>q+1); setAKey(k=>k+1);}, 200);
-      return;
-    }
-    setStep("loading");
-    setLoadingIdx(0);
-    // Cycle through loading messages every 700ms
-    const msgs = TRANSLATIONS[lang]?.loadingMsgs || [];
-    let idx = 0;
-    const interval = setInterval(() => {
-      idx = (idx + 1) % msgs.length;
-      setLoadingIdx(idx);
-    }, 900);
-    await new Promise(r=>setTimeout(r, msgs.length * 900 + 400));
-    clearInterval(interval);
-    // الثبات — ماشي خاصية ديال الزبون، خاصية ديال العطر
-    // نستعملو فقط كـ tiebreaker بين عطور متقاربين
-    // ما نفرضوش — نخلي الداتا ديال العطر تتكلم
-    // الاستنتاج: فقط إلا كاين context واضح
-    if (!na.longevity) {
-      const occ  = na.occasion  || "daily";
-      const imp  = na.impression|| "";
-      // فقط حالتين واضحتين
-      if (imp === "longlast") {
-        na.longevity = "strong";  // الزبون صراحةً طلب أثر طويل
-      } else if (occ === "travel") {
-        na.longevity = "medium";  // سفر = توازن (مش light ولا strong)
-      }
-      // باقي الحالات — ما نفرضوش، الثبات يتحدد من الداتا ديال العطر
-    }
-    const results = getResults(na);
-    results.main.forEach(p => {
-  window.track && window.track("result_shown", {
-    perfume: p.name,
-    character: na.character,
-    occasion: na.occasion,
-  });
-});
-    window.track && window.track("quiz_complete", {
-  gender: na.gender,
-  character: na.character,
-  occasion: na.occasion,
-  impression: na.impression,
-});
+function buildPersona(na) {
     const char = mapCharacter(na.character||"heavy");
     const occ = mapOccasion(na.occasion||"daily"); // fallback daily مش evening
     const pKey = `${na.character||char}-${occ}`;
@@ -3842,6 +3751,126 @@ function WidgetContent({ onClose, lang: langProp, initialStep="intro" }) {
       })(),
       desc_fr: lookedUpFallback?.desc_fr || "Votre goût reflète une personnalité distinctive et mémorable.",
     };
+    return enrichedPers;
+}
+
+// The homepage «بصمتك العطرية» section shows a real example: the same engine, the same persona code,
+// run on one fixed set of answers. Nothing is recorded (getResults does not track).
+const FF_EXAMPLE_ANSWERS = { gender:"unisex", occasion:"evening", season:"winter", character:"oriental", impression:"attractive", world:"any", budget:"any" };
+window.FF_SIGNATURE_EXAMPLE = function () {
+  if (!getProducts().length) return null;
+  const na = { ...FF_EXAMPLE_ANSWERS };
+  if (CONFIG.HAS_DECANT === false) na.sizeType = "full";
+  if (CONFIG.HAS_FULL   === false) na.sizeType = "decant";
+  // same longevity rule as the quiz (only for an explicit "longlast" or travel answer; neither applies here)
+  if (!na.longevity) { if (na.impression === "longlast") na.longevity = "strong"; else if (na.occasion === "travel") na.longevity = "medium"; }
+  const results = getResults(na);
+  const qs = buildQS(na.sizeType, "ar", na.world);
+  const label = (id) => { const q = qs.find(x => x.id === id); const o = q && (q.opts || []).find(x => x.v === na[id]); return o ? o.l : null; };
+  return {
+    answers: ["occasion", "season", "character", "impression"].map(label).filter(Boolean),
+    persona: buildPersona(na),
+    top3: results.main.slice(0, 3).map(p => ({ id: p.id, name: p.name, brand: p.brand, image: p.image, pct: p._pct })),
+  };
+};
+
+// ═══════════════════════════════════════════════════════════════
+//  WIDGET CONTENT
+// ═══════════════════════════════════════════════════════════════
+function WidgetContent({ onClose, lang: langProp, initialStep="intro" }) {
+  const [step,       setStep]       = useState(initialStep);
+  const [qi,         setQi]         = useState(0);
+  const [ans,        setAns]        = useState({});
+  const [res,        setRes]        = useState({ main:[], similar:[] });
+  const [pers,       setPers]       = useState(null);
+  const [aKey,       setAKey]       = useState(0);
+  const [loadingIdx, setLoadingIdx] = useState(0);
+  const [productsReady, setProductsReady] = useState(!CONFIG.SHEETS_API_URL);
+  const lang = langProp || CONFIG.DEFAULT_LANGUAGE || "ar";
+
+  // ── حمل العطور من Sheets ──────────────────────────────────────
+  useEffect(() => {
+    if (!CONFIG.SHEETS_API_URL || window.__ffDP__) {
+      setProductsReady(true);
+      return;
+    }
+    loadProductsFromSheets().then(() => setProductsReady(true));
+  }, []);
+  useEffect(() => {
+  window.track && window.track("widget_open", {});
+}, []);
+  const t = TRANSLATIONS[lang];
+  const questions = buildQS(ans.sizeType, lang, ans.world);
+
+  function getBudgetOpts(q) {
+    const st = ans.sizeType || q?.sizeType || CONFIG.DEFAULT_SIZE || "full";
+    const validSt = (st === "decant" || st === "full") ? st : "full";
+    return calcDynamicBudget(validSt, lang, ans.world) || [];
+  }
+
+  function toggleBudgetSize() {
+    const current = ans.sizeType || CONFIG.DEFAULT_SIZE || "full";
+    const next = current === "full" ? "decant" : "full";
+    setAns(a=>({...a, sizeType: next, budget: null}));
+    setAKey(k=>k+1);
+  }
+
+  const answer = async (qId, val) => {
+    let na = {...ans, [qId]:val};
+    // a new fragrance world changes the budget ranges, so an earlier budget answer no longer applies
+    if (qId === "world" && val !== ans.world) na.budget = null;
+    // sizeType تلقائي حسب CONFIG
+    if (CONFIG.HAS_DECANT === false) na.sizeType = "full";
+    if (CONFIG.HAS_FULL   === false) na.sizeType = "decant";
+    // isGift من الـ toggle مش من السؤال
+    // sizeType من الـ budget toggle
+    setAns(na);
+    const updatedQS = buildQS(na.sizeType, lang, na.world);
+    if (qi+1 < updatedQS.length) {
+      setTimeout(()=>{setQi(q=>q+1); setAKey(k=>k+1);}, 200);
+      return;
+    }
+    setStep("loading");
+    setLoadingIdx(0);
+    // Cycle through loading messages every 700ms
+    const msgs = TRANSLATIONS[lang]?.loadingMsgs || [];
+    let idx = 0;
+    const interval = setInterval(() => {
+      idx = (idx + 1) % msgs.length;
+      setLoadingIdx(idx);
+    }, 900);
+    await new Promise(r=>setTimeout(r, msgs.length * 900 + 400));
+    clearInterval(interval);
+    // الثبات — ماشي خاصية ديال الزبون، خاصية ديال العطر
+    // نستعملو فقط كـ tiebreaker بين عطور متقاربين
+    // ما نفرضوش — نخلي الداتا ديال العطر تتكلم
+    // الاستنتاج: فقط إلا كاين context واضح
+    if (!na.longevity) {
+      const occ  = na.occasion  || "daily";
+      const imp  = na.impression|| "";
+      // فقط حالتين واضحتين
+      if (imp === "longlast") {
+        na.longevity = "strong";  // الزبون صراحةً طلب أثر طويل
+      } else if (occ === "travel") {
+        na.longevity = "medium";  // سفر = توازن (مش light ولا strong)
+      }
+      // باقي الحالات — ما نفرضوش، الثبات يتحدد من الداتا ديال العطر
+    }
+    const results = getResults(na);
+    results.main.forEach(p => {
+  window.track && window.track("result_shown", {
+    perfume: p.name,
+    character: na.character,
+    occasion: na.occasion,
+  });
+});
+    window.track && window.track("quiz_complete", {
+  gender: na.gender,
+  character: na.character,
+  occasion: na.occasion,
+  impression: na.impression,
+});
+    const enrichedPers = buildPersona(na);
     setRes(results); setPers(enrichedPers);
     // UX rules حسب الـ pct
     const topPct = results.main[0]?._pct ?? 100;
