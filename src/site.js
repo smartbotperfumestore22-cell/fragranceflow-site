@@ -67,8 +67,9 @@ export function startSite({ loadQuiz }) {
   var WORLDS = {}; DB.forEach(function (p) { var w = String(p.world || '').trim().toLowerCase().replace(/[\s-]+/g, '_'); if (/^(designer|niche|ultra_niche|arabian)$/.test(w)) WORLDS[w] = 1; });
   var QCOUNT = 5 + (Object.keys(WORLDS).length >= 2 ? 1 : 0) + 1;
   Array.prototype.forEach.call(document.querySelectorAll('.q-count'), function (el) { el.textContent = QCOUNT; });
-  document.getElementById('st-n').textContent = DB.length;
-  document.getElementById('st-b').textContent = Object.keys(brands).length;
+  var stN = document.getElementById('st-n'), stB = document.getElementById('st-b');
+  if (stN) stN.textContent = DB.length;
+  if (stB) stB.textContent = Object.keys(brands).length;
   document.getElementById('fine').textContent = 'نسخة تجريبية بـ ' + DB.length + ' عطر. الأثمنة والتصنيفات تقريبية، والصور توضيحية حتى توصل صور المحلات الشريكة.';
 
   /* ---------- views (hash routes so the back button and shared links work) ---------- */

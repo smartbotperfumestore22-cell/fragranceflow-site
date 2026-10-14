@@ -274,22 +274,37 @@
 </main>
 
 <footer class="foot">
+  <!-- a few fingerprint lines that loosen into scent ribbons, very faint -->
+  <svg class="foot-art" viewBox="0 0 520 300" aria-hidden="true" focusable="false">
+    <g fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="1.2">
+      <path d="M120 300V200A14 14 0 0 1 148 200V300"/>
+      <path d="M104 300V200A30 30 0 0 1 164 200C164 236 200 250 250 232S360 170 520 196"/>
+      <path d="M88 300V200A46 46 0 0 1 180 200C180 252 226 270 280 250S390 196 520 220"/>
+      <path d="M72 300V200A62 62 0 0 1 196 200C196 268 252 290 310 268S420 222 520 244"/>
+      <path d="M56 300V200A78 78 0 0 1 212 200C212 160 260 128 330 140S450 130 520 96"/>
+      <path d="M40 300V200A94 94 0 0 1 228 200C228 146 280 100 350 108S470 88 520 52"/>
+    </g>
+  </svg>
   <div class="wrap">
-    <div>
-      <button type="button" class="logo" data-home="1" aria-label="FragranceFlow، الصفحة الرئيسية">
-        <svg class="mark" aria-hidden="true"><use href="#ff-mark"/></svg>
-        <span class="logo-text"><span class="logo-name">FragranceFlow</span></span>
-      </button>
-      <p class="tagline latin">Find the fragrance that feels like you.</p>
+    <div class="foot-main">
+      <div class="foot-brand">
+        <button type="button" class="logo" data-home="1" aria-label="FragranceFlow، الصفحة الرئيسية">
+          <svg class="mark" viewBox="0 0 40 52" aria-hidden="true"><rect x="13" y="2" width="14" height="7" rx="2" fill="#D8B4E8"/><rect x="16.5" y="9" width="7" height="5" fill="#C99A8B"/><rect x="4" y="16" width="32" height="32" rx="8" fill="none" stroke="#FAF7F2" stroke-width="2"/><path clip-path="url(#ff-bottle-clip)" fill="none" stroke="#D8B4E8" stroke-width="1.5" stroke-linecap="round" d="M17.8 47V34A2.2 2.2 0 0 1 22.2 34V47 M14.5 47V34A5.5 5.5 0 0 1 25.5 34V46.2 M11.2 47V34A8.8 8.8 0 0 1 28.8 34V45.4 M7.9 47V34A12.1 12.1 0 0 1 32.1 34V44.6 M4.6 47V34A15.4 15.4 0 0 1 35.4 34V43.8"/></svg>
+          <span class="logo-text"><span class="logo-name">FragranceFlow</span></span>
+        </button>
+        <p class="tagline latin">Find the fragrance that feels like you.</p>
+        <p class="foot-line">اكتشف العطر اللي كيشبه ليك.</p>
+        <a class="foot-cta" href="#quiz">اكتشف بصمتك العطرية <svg class="arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+      </div>
+      <nav class="foot-links" aria-label="روابط الموقع">
+        <div><h2 class="fh">اكتشف</h2><ul><li><a href="#fragrances">العطور</a></li><li><button type="button" data-go="explore">التصنيفات</button></li><li><a href="#quiz">اكتشف بصمتك العطرية</a></li></ul></div>
+        <div><h2 class="fh">FragranceFlow</h2><ul><li><a href="#about">حول FragranceFlow</a></li></ul></div>
+      </nav>
     </div>
-    <nav aria-label="روابط الموقع"><h2 class="fh">الموقع</h2><ul><li><a href="#quiz">اكتشف عطرك</a></li><li><a href="#fragrances">العطور</a></li><li><button type="button" data-go="explore">استكشف</button></li><li><a href="#about">على FragranceFlow</a></li></ul></nav>
-    <div><h2 class="fh">للمحلات</h2><ul><li>ولي شريك</li><li>الإشهار فالموقع</li><li>بوابة الشركاء</li></ul></div>
-    <dl class="stats">
-      <div><dt>عطر</dt><dd id="st-n"></dd></div>
-      <div><dt>ماركة</dt><dd id="st-b"></dd></div>
-      <div><dt>أسئلة</dt><dd class="q-count">7</dd></div>
-    </dl>
-    <p class="fine" id="fine"></p>
+    <div class="foot-bottom">
+      <p class="foot-copy">© 2026 <span class="latin">FRAGRANCEFLOW</span> — جميع الحقوق محفوظة</p>
+      <p class="fine" id="fine"></p>
+    </div>
   </div>
 </footer>
 
