@@ -99,12 +99,10 @@ export function startSite({ loadQuiz }) {
       else el.hidden = true;
     });
     Array.prototype.forEach.call(document.querySelectorAll('[data-partner-note]'), function (el) { el.hidden = !!links[el.getAttribute('data-partner-note')]; });
+    // the hero button opens the same contact as the last section
     var heroJoin = document.querySelector('.pt-join');
     if (heroJoin && !links.join) heroJoin.parentNode.hidden = true;
-    if (heroJoin) heroJoin.addEventListener('click', function (e) {
-      e.preventDefault(); // stays on #stores; just brings the last section into view
-      document.getElementById('pt-join').scrollIntoView({ behavior: 'smooth', block: 'start' });
-    });
+    else if (heroJoin) { heroJoin.href = links.join; if (/^https:/i.test(links.join)) { heroJoin.target = '_blank'; heroJoin.rel = 'noopener'; } }
   })();
   var qrDrawn = false;
   function renderPartners() {
