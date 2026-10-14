@@ -663,11 +663,26 @@ a { color: inherit; }
 #ff-widget-root .ffr-why li { font-size: .94rem; padding-inline-start: 24px; position: relative; }
 #ff-widget-root .ffr-why li::before { content: ""; position: absolute; inset-inline-start: 2px; top: .62em; width: 9px; height: 9px; border: 1px solid var(--purple); border-radius: 50%; }
 #ff-widget-root .ffr-why-text { margin-top: 12px !important; font-size: .94rem; color: var(--muted); line-height: 1.85; }
-#ff-widget-root .ffr-stores ul { list-style: none; padding: 0; display: flex; flex-direction: column; }
-#ff-widget-root .ffr-stores li { display: flex; align-items: center; gap: 12px; padding-block: 10px; border-top: 1px solid var(--line); flex-wrap: wrap; }
-#ff-widget-root .ffr-stores img { width: 44px; height: 44px; object-fit: cover; border-radius: 4px; }
-#ff-widget-root .ffr-store-name { font-weight: 600; flex: 1; min-width: 120px; }
-#ff-widget-root .ffr-store-price { font-variant-numeric: tabular-nums; color: var(--plum); font-weight: 600; }
+/* «فين تلقاه؟ · N متاجر»: a compact line that opens the list of stores inside the card (scales from 1 to many stores) */
+#ff-widget-root .ffr-stores { border: 1px solid var(--line); border-radius: 12px; background: var(--paper); }
+#ff-widget-root .ffr-stores.is-open { border-color: rgba(123, 63, 160, .35); }
+#ff-widget-root .ffr-stores-toggle { width: 100%; min-height: 52px; display: flex; align-items: center; gap: 8px; padding: 12px 16px; background: none; border: 0; border-radius: 12px; cursor: pointer; font: inherit; color: var(--ink); text-align: start; }
+#ff-widget-root .ffr-stores-toggle:hover { background: var(--mist); }
+#ff-widget-root .ffr-stores-title { font-weight: 600; font-size: 1rem; }
+#ff-widget-root .ffr-stores-count { color: var(--purple); font-size: .95rem; }
+#ff-widget-root .ffr-stores-chev { width: 20px; height: 20px; margin-inline-start: auto; color: var(--plum); transition: transform .3s var(--ease); flex: none; }
+#ff-widget-root .ffr-stores.is-open .ffr-stores-chev { transform: rotate(180deg); }
+#ff-widget-root .ffr-stores ul { list-style: none; padding: 0 16px 6px; display: flex; flex-direction: column; max-height: 420px; overflow-y: auto; }
+#ff-widget-root .ffr-stores li { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 6px 14px; padding-block: 14px; border-top: 1px solid var(--line); }
+#ff-widget-root .ffr-store-id { display: flex; flex-direction: column; min-width: 0; }
+#ff-widget-root .ffr-store-name { font-weight: 600; font-size: 1rem; color: var(--ink); overflow-wrap: anywhere; }
+#ff-widget-root a.ffr-store-name { color: var(--plum); text-decoration: underline; text-decoration-color: var(--rose); text-underline-offset: 5px; text-decoration-thickness: 1px; }
+#ff-widget-root a.ffr-store-name:hover { color: var(--purple); text-decoration-color: currentColor; }
+#ff-widget-root .ffr-store-city { font-size: .8rem; color: var(--muted); }
+#ff-widget-root .ffr-store-price { font-variant-numeric: tabular-nums; color: var(--plum); font-weight: 700; white-space: nowrap; }
+#ff-widget-root .ffr-store-wa { grid-column: 1 / -1; justify-self: start; display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 44px; padding: 8px 18px; border-radius: 999px; border: 1px solid rgba(75, 23, 111, .3); background: var(--paper); color: var(--plum); font-weight: 600; font-size: .92rem; text-decoration: none; transition: background .2s, border-color .2s; }
+#ff-widget-root .ffr-store-wa:hover { background: var(--mist); border-color: var(--plum); }
+@media (max-width: 559px) { #ff-widget-root .ffr-store-wa { justify-self: stretch; } }
 #ff-widget-root .ffr-actions { display: flex; align-items: center; justify-content: space-between; gap: 12px 20px; flex-wrap: wrap; margin-top: auto; }
 #ff-widget-root .ffr-price { font-size: 1rem; font-weight: 600; font-variant-numeric: tabular-nums; }
 #ff-widget-root .ffr-price small { font-weight: 400; color: var(--muted); }

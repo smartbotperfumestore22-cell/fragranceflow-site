@@ -39,18 +39,26 @@ function build(data) {
   for (const s of data.stores || []) {
     const id = str(s.store_id).toLowerCase();
     if (!id || isOff(s.active)) continue;
-    const wa = str(s.whatsapp).replace(/\D/g, "");
-    stores[id] = { name: str(s.name), city: str(s.city), whatsapp: wa.length >= 9 ? wa : "" };
+    // WhatsApp number: digits only; a Moroccan local number (06…, 07…) gets the country code 212
+    let wa = str(s.whatsapp).replace(/\D/g, "").replace(/^00/, "");
+    if (/^0[5-7]\d{8}$/.test(wa)) wa = "212" + wa.slice(1);
+    const link = (v) => (/^https:\/\//i.test(str(v)) ? str(v) : "");
+    stores[id] = { name: str(s.name), city: str(s.city), whatsapp: wa.length >= 9 ? wa : "",
+      website: link(s.website || s.website_url), instagram: link(s.instagram || s.instagram_url) };
   }
   const offers = {};
   for (const o of data.offers || []) {
     const sid = str(o.store_id).toLowerCase(), st = stores[sid], pid = str(o.perfume_id);
-    let url = str(o.url);
-    if (!st || !pid || isOff(o.in_stock)) continue;
-    // a store without a product page (Instagram / WhatsApp sellers): the buy button opens a WhatsApp chat
-    if (!/^https?:\/\//i.test(url)) url = st.whatsapp ? "https://wa.me/" + st.whatsapp : "";
-    if (!url) continue;
-    (offers[pid] = offers[pid] || []).push({ storeId: sid, name: st.name, city: st.city, price: num(o.price) || null, url, size: str(o.size) });
+    if (!st || !pid || isOff(o.in_stock)) continue;   // only offers in stock, from active stores
+    const productUrl = /^https?:\/\//i.test(str(o.url)) ? str(o.url) : "";
+    const whatsapp = st.whatsapp ? "https://wa.me/" + st.whatsapp : "";
+    // the store's name links to: the product page, else the store's website, else its Instagram
+    const page = productUrl || st.website || st.instagram;
+    // main link kept for older parts of the site: product page, else WhatsApp (as before)
+    const url = productUrl || whatsapp;
+    if (!page && !whatsapp) continue; // no way to reach the store
+    (offers[pid] = offers[pid] || []).push({ storeId: sid, name: st.name, city: st.city, price: num(o.price) || null, size: str(o.size),
+      url, page, whatsapp });
   }
   const seen = new Set(), out = [];
   (data.perfumes || []).forEach((p, i) => {

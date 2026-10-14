@@ -18,7 +18,9 @@ function withMessage(url, name) {
 
 // returns { db, store } — db is the catalogue to use, store is null in normal mode
 export function applyStoreMode(db) {
-  const all = db.map((p) => (p.stores && p.stores.length ? { ...p, stores: p.stores.map((s) => ({ ...s, url: withMessage(s.url, p.name) })) } : p));
+  const all = db.map((p) => (p.stores && p.stores.length
+    ? { ...p, stores: p.stores.map((s) => ({ ...s, url: withMessage(s.url, p.name), whatsapp: s.whatsapp ? withMessage(s.whatsapp, p.name) : "" })) }
+    : p));
   const id = storeIdFromUrl();
   if (!id) return { db: all, store: null };
   const mine = [];

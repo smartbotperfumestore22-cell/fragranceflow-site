@@ -2910,11 +2910,13 @@ function rvReasons(p, ans, lang) {
 
 // Stores only if the database has them (p.stores[] or p.url/p.store). Nothing is invented.
 function rvStores(p) {
-  if (Array.isArray(p.stores) && p.stores.length) return p.stores.filter(s => s && s.url);
-  if (p.url) return [{ name: p.store || "", price: p.price, url: p.url, image: p.image }];
+  // offers from the Sheet (Perfumes → Offers → Stores): in stock, active store; each with its page and/or WhatsApp
+  if (Array.isArray(p.stores) && p.stores.length) return p.stores.filter(s => s && (s.page || s.whatsapp || s.url))
+    .map(s => ({ ...s, page: s.page !== undefined ? s.page : (/^https:\/\/wa\.me\//.test(s.url || "") ? "" : s.url),
+                       whatsapp: s.whatsapp !== undefined ? s.whatsapp : (/^https:\/\/wa\.me\//.test(s.url || "") ? s.url : "") }));
+  if (p.url) return [{ name: p.store || "", price: p.price, page: p.url, whatsapp: "" }];
   return [];
 }
-
 // "You may also like": the engine's own res.similar first, then the next fragrances from the
 // same similarityScore() ranking and the same filters getResults() uses — no new algorithm.
 function rvMoreLikeThis(res, ans, n) {
@@ -2997,22 +2999,39 @@ function rvDistinct(p, peers, ans, lang) {
 
 function RVStores({ p, L, lang }) {
   const stores = rvStores(p);
+  const [open, setOpen] = useState(false);
   if (!stores.length) return null;
+  const fr = lang === "fr", n = stores.length;
+  const count = fr ? (n === 1 ? "1 magasin" : n + " magasins") : (n === 1 ? "متجر واحد" : n + " متاجر");
+  const listId = "ffr-stores-" + String(p.id).replace(/[^\w-]/g, "");
+  const track = (event, s) => window.track && window.track(event, { perfume: p.name, pid: p.id, price: s.price || p.price, store: s.name || "" });
   return (
-    <div className="ffr-stores">
-      <h4>{L.where}</h4>
-      <ul>
-        {stores.map((s, i) => (
-          <li key={i}>
-            {s.image && <img src={s.image} alt="" width="44" height="44" loading="lazy"/>}
-            <span className="ffr-store-name">{s.name || (lang === "fr" ? "Magasin partenaire" : "محل شريك")}</span>
-            {s.price ? <span className="ffr-store-price">{s.price} {L.price}</span> : null}
-            <a href={s.url} target="_blank" rel="noopener noreferrer" className="ffr-btn ffr-btn-ghost"
-              onClick={() => window.track && window.track(/^https:\/\/wa\.me\//.test(s.url || "") ? "whatsapp_click" : "buy_click", { perfume: p.name, price: s.price || p.price, store: s.name || "" })}>
-              {L.buy}
-            </a>
-          </li>
-        ))}
+    <div className={"ffr-stores" + (open ? " is-open" : "")}>
+      <button type="button" className="ffr-stores-toggle" aria-expanded={open} aria-controls={listId} onClick={() => setOpen(o => !o)}>
+        <span className="ffr-stores-title">{L.where}</span>
+        <span className="ffr-stores-count">· {count}</span>
+        <svg className="ffr-stores-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+      </button>
+      <ul id={listId} hidden={!open}>
+        {stores.map((s, i) => {
+          const name = s.name || (fr ? "Magasin partenaire" : "محل شريك");
+          return (
+            <li key={(s.storeId || "") + i}>
+              <div className="ffr-store-id">
+                {s.page
+                  ? <a className="ffr-store-name" href={s.page} target="_blank" rel="noopener noreferrer" onClick={() => track("buy_click", s)}>{name}</a>
+                  : <span className="ffr-store-name">{name}</span>}
+                {s.city ? <span className="ffr-store-city">{s.city}</span> : null}
+              </div>
+              {s.price ? <span className="ffr-store-price">{s.price} {L.price}</span> : null}
+              {s.whatsapp ? (
+                <a className="ffr-store-wa" href={s.whatsapp} target="_blank" rel="noopener noreferrer" onClick={() => track("whatsapp_click", s)}>
+                  {fr ? "💬 Commander sur WhatsApp" : "💬 اطلب عبر واتساب"}
+                </a>
+              ) : null}
+            </li>
+          );
+        })}
       </ul>
     </div>
   );
