@@ -74,7 +74,7 @@ export function startSite({ loadQuiz }) {
   if (stB) stB.textContent = Object.keys(brands).length;
   document.getElementById('fine').textContent = 'نسخة تجريبية بـ ' + DB.length + ' عطر. الأثمنة والتصنيفات تقريبية، والصور توضيحية حتى توصل صور المحلات الشريكة.';
 
-  /* ---------- footer: links that exist become links; the others say «قريباً» (see src/footer-links.js) ---------- */
+  /* ---------- footer: links that exist become links; the others stay plain text for now (see src/footer-links.js) ---------- */
   Array.prototype.forEach.call(document.querySelectorAll('.foot [data-link]'), function (li) {
     var url = String(FOOTER_LINKS[li.getAttribute('data-link')] || '').trim();
     var label = li.textContent;
@@ -84,7 +84,6 @@ export function startSite({ loadQuiz }) {
       li.appendChild(h('a', { href: url, target: ext ? '_blank' : null, rel: ext ? 'noopener' : null, text: label }));
     } else {
       li.appendChild(h('span', { class: 'soon', text: label }));
-      li.appendChild(h('small', { class: 'soon-tag', text: 'قريباً' }));
     }
   });
 

@@ -479,8 +479,7 @@ a { color: inherit; }
   background-image: linear-gradient(var(--rose), var(--rose)); background-repeat: no-repeat; background-position: 100% 92%; background-size: 0 1px; transition: color .25s, background-size .35s var(--ease); }
 .foot ul a:hover, .foot ul button:hover, .foot ul a:focus-visible, .foot ul button:focus-visible { color: var(--plum); background-size: 100% 1px; }
 /* items whose page or address is not ready yet */
-.foot .soon { display: inline-block; padding: 6px 0; color: var(--muted); }
-.foot .soon-tag { margin-inline-start: 8px; padding: 1px 8px; border-radius: 999px; background: var(--mist); color: var(--purple); font-family: var(--font-body); font-size: .68rem; font-style: normal; vertical-align: 1px; }
+.foot .soon { display: inline-block; padding: 6px 0; color: var(--ink); }
 .foot-social { flex-direction: row !important; flex-wrap: wrap; gap: 6px 22px !important; }
 .foot-social li { font-size: 1.05rem; }
 .foot-bottom { display: flex; flex-direction: column; gap: 8px; padding-top: 20px; border-top: 1px solid var(--line); }
