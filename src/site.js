@@ -1,6 +1,8 @@
 // Landing page, fragrance browsing, search, fragrance detail view, and opening the existing quiz.
 // The quiz itself (questions, scoring, recommendations) lives in src/widget/App.jsx and is not changed here.
 
+import { FOOTER_LINKS } from './footer-links.js';
+
 export function startSite({ loadQuiz }) {
   var DB = (window.__ffDP__ || []).filter(function (p) { return p.active !== false; });
   var STORE = window.__FF_STORE__ || null; // set when the visit came through a store link (?store=…)
@@ -71,6 +73,20 @@ export function startSite({ loadQuiz }) {
   if (stN) stN.textContent = DB.length;
   if (stB) stB.textContent = Object.keys(brands).length;
   document.getElementById('fine').textContent = 'نسخة تجريبية بـ ' + DB.length + ' عطر. الأثمنة والتصنيفات تقريبية، والصور توضيحية حتى توصل صور المحلات الشريكة.';
+
+  /* ---------- footer: links that exist become links; the others say «قريباً» (see src/footer-links.js) ---------- */
+  Array.prototype.forEach.call(document.querySelectorAll('.foot [data-link]'), function (li) {
+    var url = String(FOOTER_LINKS[li.getAttribute('data-link')] || '').trim();
+    var label = li.textContent;
+    li.textContent = '';
+    if (/^(https:\/\/|mailto:|tel:)/i.test(url)) {
+      var ext = /^https:/i.test(url);
+      li.appendChild(h('a', { href: url, target: ext ? '_blank' : null, rel: ext ? 'noopener' : null, text: label }));
+    } else {
+      li.appendChild(h('span', { class: 'soon', text: label }));
+      li.appendChild(h('small', { class: 'soon-tag', text: 'قريباً' }));
+    }
+  });
 
   /* ---------- views (hash routes so the back button and shared links work) ---------- */
   // #quiz → quiz page, #fragrances → catalogue, #about → about, #f-<id> → fragrance page, anything else → homepage

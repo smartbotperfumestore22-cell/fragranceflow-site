@@ -458,40 +458,44 @@ a { color: inherit; }
 .page-title { font-family: var(--font-display); font-weight: 700; font-size: clamp(2.4rem, 7vw, 3.6rem); line-height: 1.2; }
 @media (min-width: 900px) { .page { padding-block: 64px 104px; } }
 
-/* ───────── footer: a calm, dark close to the page ───────── */
-.foot { position: relative; overflow: hidden; isolation: isolate; background: #2A0B3F; color: rgba(250, 247, 242, .86); padding-block: 64px 28px; border-top: 1px solid rgba(201, 154, 139, .28); }
-.foot-art { position: absolute; z-index: -1; left: 0; bottom: 0; width: min(560px, 120vw); height: auto; color: var(--lavender); opacity: .1; pointer-events: none; }
-.foot .wrap { display: flex; flex-direction: column; gap: 40px; }
+/* ───────── footer: a calm, light close to the page ───────── */
+.foot { position: relative; overflow: hidden; isolation: isolate; background: #FFFFFF; color: var(--ink); padding-block: 64px 28px; }
+.foot-art { position: absolute; z-index: -1; left: 0; bottom: 0; width: min(560px, 120vw); height: auto; color: var(--lavender); opacity: .45; pointer-events: none; }
+.foot .wrap { display: flex; flex-direction: column; gap: 36px; }
 .foot-main { display: grid; gap: 40px; }
 .foot-brand { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; }
-.foot .logo { color: var(--ivory); }
-.foot .logo-name { color: #FFFFFF; font-size: 1.7rem; }
+.foot .logo-name { font-size: 1.7rem; }
 .foot .logo .mark { width: 28px; height: 36px; }
-.foot .tagline { margin-top: 4px; font-size: 1.25rem; font-style: italic; color: var(--lavender); }
-.foot-line { font-size: .95rem; color: rgba(250, 247, 242, .75); }
-.foot-cta { margin-top: 14px; display: inline-flex; align-items: center; gap: 10px; min-height: 44px; padding: 8px 20px; border: 1px solid rgba(201, 154, 139, .6); border-radius: 999px; color: var(--ivory); text-decoration: none; font-weight: 600; font-size: .92rem; transition: background .3s, border-color .3s, box-shadow .3s; }
-.foot-cta:hover { background: rgba(250, 247, 242, .08); border-color: var(--rose); box-shadow: 0 0 0 4px rgba(216, 180, 232, .08); }
+.foot .tagline { margin-top: 4px; font-size: 1.25rem; font-style: italic; color: var(--purple); }
+.foot-line { font-size: .95rem; color: var(--muted); }
+.foot-cta { margin-top: 14px; display: inline-flex; align-items: center; gap: 10px; min-height: 44px; padding: 8px 20px; border: 1px solid rgba(75, 23, 111, .3); border-radius: 999px; color: var(--plum); text-decoration: none; font-weight: 600; font-size: .92rem; transition: background .3s, border-color .3s, box-shadow .3s; }
+.foot-cta:hover { background: var(--mist); border-color: var(--plum); box-shadow: 0 0 0 4px rgba(216, 180, 232, .25); }
 .foot-cta .arrow { width: 16px; height: 16px; transform: scaleX(-1); transition: transform .35s var(--ease); }
 .foot-cta:hover .arrow { transform: scaleX(-1) translateX(4px); }
 .foot-links { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 28px; }
-.fh { font-family: var(--font-body); font-size: .8rem; font-weight: 600; letter-spacing: .04em; color: var(--lavender); margin-bottom: 14px; }
+.fh { font-family: var(--font-body); font-size: .8rem; font-weight: 600; letter-spacing: .04em; color: var(--purple); margin-bottom: 14px; }
 .foot ul { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 4px; font-size: .95rem; }
-.foot ul a, .foot ul button { display: inline-block; padding: 6px 0; background: none; border: 0; cursor: pointer; font: inherit; color: rgba(250, 247, 242, .86); text-decoration: none; text-align: start;
+.foot ul a, .foot ul button { display: inline-block; padding: 6px 0; background: none; border: 0; cursor: pointer; font: inherit; color: var(--ink); text-decoration: none; text-align: start;
   background-image: linear-gradient(var(--rose), var(--rose)); background-repeat: no-repeat; background-position: 100% 92%; background-size: 0 1px; transition: color .25s, background-size .35s var(--ease); }
-.foot ul a:hover, .foot ul button:hover, .foot ul a:focus-visible, .foot ul button:focus-visible { color: #FFFFFF; background-size: 100% 1px; }
-.foot :focus-visible { outline-color: var(--lavender); }
-.foot-bottom { display: flex; flex-direction: column; gap: 8px; padding-top: 20px; border-top: 1px solid rgba(250, 247, 242, .12); }
-.foot-copy { font-size: .82rem; color: rgba(250, 247, 242, .7); }
-.foot .fine { font-size: .74rem; color: rgba(250, 247, 242, .55); border: 0; padding: 0; }
-.foot .store-exit .textlink { color: var(--lavender); }
+.foot ul a:hover, .foot ul button:hover, .foot ul a:focus-visible, .foot ul button:focus-visible { color: var(--plum); background-size: 100% 1px; }
+/* items whose page or address is not ready yet */
+.foot .soon { display: inline-block; padding: 6px 0; color: var(--muted); }
+.foot .soon-tag { margin-inline-start: 8px; padding: 1px 8px; border-radius: 999px; background: var(--mist); color: var(--purple); font-family: var(--font-body); font-size: .68rem; font-style: normal; vertical-align: 1px; }
+.foot-social { flex-direction: row !important; flex-wrap: wrap; gap: 6px 22px !important; }
+.foot-social li { font-size: 1.05rem; }
+.foot-bottom { display: flex; flex-direction: column; gap: 8px; padding-top: 20px; border-top: 1px solid var(--line); }
+.foot-copy { font-size: .82rem; color: var(--muted); }
+.foot-legal { flex-direction: row !important; flex-wrap: wrap; gap: 4px 20px !important; font-size: .82rem !important; }
+.foot .fine { font-size: .74rem; color: var(--muted); border: 0; padding: 0; }
 @media (min-width: 900px) {
   .foot { padding-block: 88px 32px; }
   /* brand on the left, the links on the right (RTL: links come first in the row) */
-  .foot-main { grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); align-items: start; gap: 64px; }
-  .foot-links { order: -1; gap: 48px; }
+  .foot-main { grid-template-columns: minmax(0, .9fr) minmax(0, 1.1fr); align-items: start; gap: 64px; }
+  .foot-links { order: -1; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 40px; }
   .foot-brand { align-items: flex-end; }
-  .foot-bottom { flex-direction: row; justify-content: space-between; align-items: baseline; gap: 24px; }
-  .foot-art { width: 620px; opacity: .12; }
+  .foot-bottom { flex-direction: row; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 8px 24px; }
+  .foot .fine { flex-basis: 100%; }
+  .foot-art { width: 620px; }
 }
 
 /* ───────── fragrance detail view ───────── */

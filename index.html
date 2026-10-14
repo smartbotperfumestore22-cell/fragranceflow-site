@@ -274,7 +274,6 @@
 </main>
 
 <footer class="foot">
-  <!-- a few fingerprint lines that loosen into scent ribbons, very faint -->
   <svg class="foot-art" viewBox="0 0 520 300" aria-hidden="true" focusable="false">
     <g fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="1.2">
       <path d="M120 300V200A14 14 0 0 1 148 200V300"/>
@@ -289,7 +288,7 @@
     <div class="foot-main">
       <div class="foot-brand">
         <button type="button" class="logo" data-home="1" aria-label="FragranceFlow، الصفحة الرئيسية">
-          <svg class="mark" viewBox="0 0 40 52" aria-hidden="true"><rect x="13" y="2" width="14" height="7" rx="2" fill="#D8B4E8"/><rect x="16.5" y="9" width="7" height="5" fill="#C99A8B"/><rect x="4" y="16" width="32" height="32" rx="8" fill="none" stroke="#FAF7F2" stroke-width="2"/><path clip-path="url(#ff-bottle-clip)" fill="none" stroke="#D8B4E8" stroke-width="1.5" stroke-linecap="round" d="M17.8 47V34A2.2 2.2 0 0 1 22.2 34V47 M14.5 47V34A5.5 5.5 0 0 1 25.5 34V46.2 M11.2 47V34A8.8 8.8 0 0 1 28.8 34V45.4 M7.9 47V34A12.1 12.1 0 0 1 32.1 34V44.6 M4.6 47V34A15.4 15.4 0 0 1 35.4 34V43.8"/></svg>
+          <svg class="mark" aria-hidden="true"><use href="#ff-mark"/></svg>
           <span class="logo-text"><span class="logo-name">FragranceFlow</span></span>
         </button>
         <p class="tagline latin">Find the fragrance that feels like you.</p>
@@ -298,11 +297,17 @@
       </div>
       <nav class="foot-links" aria-label="روابط الموقع">
         <div><h2 class="fh">اكتشف</h2><ul><li><a href="#fragrances">العطور</a></li><li><button type="button" data-go="explore">التصنيفات</button></li><li><a href="#quiz">اكتشف بصمتك العطرية</a></li></ul></div>
-        <div><h2 class="fh">FragranceFlow</h2><ul><li><a href="#about">حول FragranceFlow</a></li></ul></div>
+        <div><h2 class="fh">FragranceFlow</h2><ul><li><a href="#about">حول FragranceFlow</a></li><li data-link="contact">تواصل معنا</li></ul></div>
+        <div><h2 class="fh">للمتاجر</h2><ul><li data-link="join">انضم إلى FragranceFlow</li></ul></div>
       </nav>
     </div>
+    <ul class="foot-social" aria-label="تابعنا">
+      <li data-link="instagram" class="latin">Instagram</li>
+      <li data-link="tiktok" class="latin">TikTok</li>
+    </ul>
     <div class="foot-bottom">
       <p class="foot-copy">© 2026 <span class="latin">FRAGRANCEFLOW</span> — جميع الحقوق محفوظة</p>
+      <ul class="foot-legal"><li data-link="privacy">سياسة الخصوصية</li><li data-link="terms">شروط الاستعمال</li></ul>
       <p class="fine" id="fine"></p>
     </div>
   </div>
