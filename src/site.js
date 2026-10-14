@@ -346,6 +346,31 @@ export function startSite({ loadQuiz }) {
 
   /* ---------- fragrance page ---------- */
   function layer(label, list) { return h('div', { class: 'layer' }, h('b', { text: label }), h('span', { class: 'latin', text: list.join(' · ') })); }
+  // «فين تلقاه؟» on the fragrance page: every store with the fragrance in stock (Offers), its own price, its page and WhatsApp
+  function fmtPrice(n) { return String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, ','); }
+  function storeOffers(p) {
+    return (p.stores || []).map(function (s) {
+      var wa = /^https:\/\/wa\.me\//.test(s.url || '');
+      return { id: s.storeId || '', name: s.name || 'محل شريك', city: s.city || '', price: s.price || 0,
+        page: s.page !== undefined ? s.page : (wa ? '' : s.url || ''), whatsapp: s.whatsapp !== undefined ? s.whatsapp : (wa ? s.url : '') };
+    }).filter(function (s) { return s.page || s.whatsapp; });
+  }
+  function storesBlock(p, offers) {
+    var ul = h('ul', { class: 'dstores-list' });
+    offers.forEach(function (s) {
+      var data = { perfume: p.name, pid: p.id, price: s.price || '', store: s.name };
+      var name = s.page
+        ? h('a', { class: 'dstore-name', href: s.page, target: '_blank', rel: 'noopener', onclick: function () { if (window.track) window.track('buy_click', data); } }, s.name)
+        : h('span', { class: 'dstore-name', text: s.name });
+      ul.appendChild(h('li', { class: 'dstore' },
+        h('div', { class: 'dstore-id' }, name, s.city ? h('span', { class: 'dstore-city', text: s.city }) : null),
+        s.price ? h('p', { class: 'dstore-price' }, h('b', { class: 'latin', text: fmtPrice(s.price) + ' DH' }), ' تقريباً') : null,
+        s.whatsapp ? h('a', { class: 'btn ghost dstore-wa', href: s.whatsapp, target: '_blank', rel: 'noopener',
+          onclick: function () { if (window.track) window.track('whatsapp_click', data); } }, '💬 اطلب عبر واتساب') : null));
+    });
+    return h('section', { class: 'dstores', 'aria-labelledby': 'dstores-title' },
+      h('h2', { id: 'dstores-title', text: 'فين تلقاه؟' }), ul);
+  }
   function renderPerfume(p) {
     if (window.track) window.track('perfume_view', { perfume: p.name, pid: p.id });
     show('detail'); window.scrollTo(0, 0);
@@ -354,6 +379,7 @@ export function startSite({ loadQuiz }) {
     var tags = h('div', { class: 'tags' }, h('span', { class: 'tag', text: GEN[p.gender[0]] }));
     p.character.forEach(function (c) { tags.appendChild(h('span', { class: 'tag', text: charLabel(c) })); });
     var occ = p.occasion.map(function (o) { return OCC[o] || o; }).join('، ');
+    var offers = storeOffers(p);
     stage.appendChild(h('section', { class: 'stage' },
       h('nav', { class: 'crumbs', 'aria-label': 'المسار' }, h('button', { type: 'button', class: 'textlink', onclick: function () { goHome(); } }, 'الرئيسية'), '/',
         h('a', { class: 'textlink', href: '#fragrances' }, 'العطور')),
@@ -362,12 +388,14 @@ export function startSite({ loadQuiz }) {
         h('div', { class: 'in' },
           h('div', { class: 'rc-head' },
             h('div', { style: 'min-width:0' }, h('h1', { class: 'latin', text: p.name }), h('p', { class: 'br latin', text: p.brand + ' · ' + p.concentration + ' · ' + p.size })),
-            h('div', { class: 'price' }, h('b', { text: String(p.price) }), h('span', { text: 'درهم تقريبا' }))),
+            offers.length || !p.price ? null : h('div', { class: 'price' }, h('b', { text: String(p.price) }), h('span', { text: 'درهم تقريبا' }))),
           tags,
           h('div', { class: 'layers' }, layer('المقدمة', p.notes.top), layer('القلب', p.notes.middle), layer('القاعدة', p.notes.base)),
           h('p', { class: 'shop' }, h('b', { text: 'مناسب: ' }), occ + '. ', h('b', { text: 'الفصل: ' }), seasons(p) + '.'),
-          p.url ? h('a', { class: 'btn', href: p.url, target: '_blank', rel: 'noopener', style: 'align-self:flex-start' }, 'شوف عند ' + (p.store || 'المحل'))
-                : h('p', { class: 'shop' }, h('b', { text: 'فين تلقاه: ' }), 'قريبا، رابط مباشر عند المحلات الشريكة.'))),
+          offers.length ? null
+            : p.url ? h('a', { class: 'btn', href: p.url, target: '_blank', rel: 'noopener', style: 'align-self:flex-start' }, 'شوف عند ' + (p.store || 'المحل'))
+            : h('p', { class: 'shop' }, h('b', { text: 'فين تلقاه: ' }), 'قريبا، رابط مباشر عند المحلات الشريكة.'))),
+      offers.length ? storesBlock(p, offers) : null,
       h('div', { class: 'actions' },
         h('a', { class: 'btn', href: '#quiz' }, 'اكتشف بصمتك العطرية'),
         h('a', { class: 'textlink', href: '#fragrances' }, 'رجع للعطور'))));

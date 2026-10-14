@@ -3023,7 +3023,6 @@ function RVStores({ p, L, lang }) {
                   : <span className="ffr-store-name">{name}</span>}
                 {s.city ? <span className="ffr-store-city">{s.city}</span> : null}
               </div>
-              {s.price ? <span className="ffr-store-price">{s.price} {L.price}</span> : null}
               {s.whatsapp ? (
                 <a className="ffr-store-wa" href={s.whatsapp} target="_blank" rel="noopener noreferrer" onClick={() => track("whatsapp_click", s)}>
                   {fr ? "💬 Commander sur WhatsApp" : "💬 اطلب عبر واتساب"}
@@ -3344,7 +3343,7 @@ function RVCard({ p, ans, lang, rank, used, peers }) {
         <RVStores p={p} L={L} lang={lang}/>
         <div className="ffr-actions">
           <a className={"ffr-btn" + (featured ? "" : " ffr-btn-ghost")} href={"#f-" + encodeURIComponent(p.id)}>{L.view}</a>
-          {p.price ? <span className="ffr-price">{p.price} {L.price} <small>{L.approx}</small></span> : null}
+          {/* no price on the results page: prices are on the fragrance page, store by store */}
         </div>
       </div>
     </article>

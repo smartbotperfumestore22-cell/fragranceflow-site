@@ -521,6 +521,20 @@ a { color: inherit; }
 .shop { font-size: .9rem; color: var(--muted); }
 .shop b { color: var(--plum); }
 .actions { display: flex; flex-wrap: wrap; gap: 14px; align-items: center; }
+/* «فين تلقاه؟» on the fragrance page: one row per store (works for 1 or 30 stores) */
+.dstores { display: flex; flex-direction: column; gap: 14px; }
+.dstores h2 { font-family: var(--font-display); font-weight: 700; font-size: 1.7rem; line-height: 1.4; color: var(--ink); }
+.dstores-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; }
+.dstore { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 10px 18px; padding: 18px 20px; background: var(--paper); border: 1px solid var(--line); border-radius: 12px; }
+.dstore-id { display: flex; flex-direction: column; min-width: 0; }
+.dstore-name { font-weight: 600; font-size: 1.08rem; color: var(--ink); overflow-wrap: anywhere; }
+a.dstore-name { color: var(--plum); text-decoration: underline; text-decoration-color: var(--rose); text-underline-offset: 5px; text-decoration-thickness: 1px; }
+a.dstore-name:hover { color: var(--purple); text-decoration-color: currentColor; }
+.dstore-city { font-size: .85rem; color: var(--muted); }
+.dstore-price { font-size: .9rem; color: var(--muted); white-space: nowrap; }
+.dstore-price b { font-family: var(--font-body); font-size: 1.15rem; font-weight: 700; color: var(--plum); font-variant-numeric: tabular-nums; }
+.dstore-wa { grid-column: 1 / -1; justify-self: start; min-height: 46px; }
+@media (max-width: 559px) { .dstore-wa { justify-self: stretch; } }
 @media (min-width: 760px) { .rc { grid-template-columns: 1fr 1.2fr; } .rc .ph img { height: 100%; aspect-ratio: auto; min-height: 360px; } .rc .in { padding: 36px; } }
 
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition: none !important; animation: none !important; } }
