@@ -84,7 +84,13 @@ export function startSite({ loadQuiz }) {
     if (location.hash && location.hash !== '#') history.pushState('', document.title, location.pathname + location.search);
     route();
     var el = target && document.getElementById(target);
-    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' }); else window.scrollTo(0, 0);
+    if (!el) { window.scrollTo(0, 0); return; }
+    el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    // the «بصمتك العطرية» example above fills in when its code arrives and pushes the page down: land again once it has
+    var sig = document.querySelector('.sig3');
+    if (sig && !sig.classList.contains('is-ready') && sig.compareDocumentPosition(el) & Node.DOCUMENT_POSITION_FOLLOWING) {
+      loadQuiz().then(function () { renderSignatureExample(); el.scrollIntoView({ block: 'start' }); }, function () {});
+    }
   }
   function route() {
     var hsh = location.hash;
@@ -221,54 +227,57 @@ export function startSite({ loadQuiz }) {
   more.addEventListener('click', function () { state.shown += PAGE; drawGrid(); });
   drawFilters(); drawGrid();
 
-  /* ---------- homepage: popular fragrances ---------- */
+  /* ---------- homepage «اكتشف عالم العطور»: fragrances worth a look ---------- */
+  // Same choice as before: when the Sheet has enough visitor activity, the most looked-for fragrances (pop score);
+  // otherwise topSeller first, then the short list of well-known names. Only real catalogue data is shown.
+  function featCard(p) {
+    var fam = p.character.slice(0, 2).map(charLabel).join(' · ');
+    return h('li', {}, h('a', { class: 'fcard', href: '#f-' + encodeURIComponent(p.id) },
+      h('span', { class: 'fcard-ph' }, h('img', { src: p.image, alt: 'صورة توضيحية لقرعة عطر ' + fam, loading: 'lazy', decoding: 'async', width: '172', height: '119' })),
+      h('span', { class: 'fcard-br latin', text: p.brand }),
+      h('span', { class: 'fcard-name latin', text: p.name }),
+      fam ? h('span', { class: 'fcard-fam', text: fam }) : null));
+  }
   (function () {
     var ranked = DB.filter(function (p) { return p.pop > 0; }).sort(function (a, b) { return b.pop - a.pop; });
     var pick;
     if (ranked.length >= 4) {
-      // real visitor activity: the title tells the truth; full rows only (3 or 6), never padded with unvisited perfumes
+      // real visitor activity: say so; full rows only (3 or 6), never padded with unvisited perfumes
       pick = ranked.slice(0, ranked.length >= 6 ? 6 : 3);
-      document.querySelector('#popular .eyebrow').textContent = 'حسب الزوار ف آخر 30 يوم';
-      document.getElementById('pop-title').textContent = 'العطور لي كيقلبو عليها بزاف';
+      document.getElementById('pop-note').textContent = 'الأكثر بحثاً عند الزوار ف آخر 30 يوم';
     } else {
       pick = DB.filter(function (p) { return p.topSeller; });
       POPULAR.forEach(function (n) { var p = DB.filter(function (x) { return x.name === n; })[0]; if (p && pick.indexOf(p) < 0) pick.push(p); });
       if (pick.length < 4) BROWSE.forEach(function (p) { if (pick.length < 6 && pick.indexOf(p) < 0) pick.push(p); });
     }
     var pg = document.getElementById('pop-grid');
-    pick.slice(0, 6).forEach(function (p) { pg.appendChild(card(p)); });
+    pick.slice(0, 6).forEach(function (p) { pg.appendChild(featCard(p)); });
   })();
 
-  /* ---------- homepage: explore-by cards (link into the filtered catalogue; hidden if a category has no fragrance) ---------- */
+  /* ---------- homepage «اكتشف عالم العطور»: fragrance families (open the catalogue with that family selected) ---------- */
   (function () {
-    var I = function (d) { return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + d + '</svg>'; };
-    var BOTTLE = '<rect x="7" y="9" width="10" height="12" rx="2"/><path d="M10 9V6h4v3M9 3h6"/>';
-    var CARDS = [
-      ['gender', 'women', 'للنساء', '', I(BOTTLE + '<path d="M12 13.5c-1.2 1.4-1.2 2.6 0 4 1.2-1.4 1.2-2.6 0-4z"/>')],
-      ['gender', 'men', 'للرجال', '', I('<rect x="6.5" y="8" width="11" height="13" rx="1"/><path d="M10 8V5h4v3M9.5 3h5"/>')],
-      ['gender', 'unisex', 'Unisex', 'للجوج', I('<rect x="3.5" y="10" width="7" height="11" rx="1.5"/><path d="M5.5 10V7.5h3V10"/><rect x="13.5" y="10" width="7" height="11" rx="1.5"/><path d="M15.5 10V7.5h3V10"/>')],
-      ['season', 'summer', 'الصيف', '', I('<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>')],
-      ['season', 'winter', 'الشتاء', '', I('<path d="M12 2v20M3.3 7l17.4 10M3.3 17L20.7 7M9 4l3 2 3-2M9 20l3-2 3 2"/>')],
-      ['occasion', 'evening', 'السهرات', '', I('<path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/>')],
-      ['occasion', 'daily', 'يومي', '', I('<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>')],
-      ['family', 'floral', 'زهري', 'Floral', I('<circle cx="12" cy="12" r="2.2"/><path d="M12 9.8c-2-3.2-.6-6 0-6.8.6.8 2 3.6 0 6.8zM12 14.2c2 3.2.6 6 0 6.8-.6-.8-2-3.6 0-6.8zM9.8 12c-3.2 2-6 .6-6.8 0 .8-.6 3.6-2 6.8 0zM14.2 12c3.2-2 6-.6 6.8 0-.8.6-3.6 2-6.8 0z"/>')],
-      ['family', 'fresh', 'منعش', 'Fresh', I('<path d="M12 3c3.5 4.3 5.5 7.6 5.5 10.5a5.5 5.5 0 0 1-11 0C6.5 10.6 8.5 7.3 12 3z"/><path d="M9.5 14.5a2.5 2.5 0 0 0 2.5 2.5"/>')],
-      ['family', 'woody', 'خشبي', 'Woody', I('<path d="M12 21v-6M12 15l-6-1 3-4H7l5-7 5 7h-2l3 4z"/>')]
+    var I = function (d) { return '<svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + d + '</svg>'; };
+    // family value (as in the data) · Arabic name · Latin name · drawing
+    var FAMS = [
+      ['floral', 'زهري', 'Floral', I('<circle cx="16" cy="16" r="2.6"/><path d="M16 13.4c-3-4.3-1-8.4 0-9.4 1 1 3 5.1 0 9.4zM16 18.6c3 4.3 1 8.4 0 9.4-1-1-3-5.1 0-9.4zM13.4 16c-4.3 3-8.4 1-9.4 0 1-1 5.1-3 9.4 0zM18.6 16c4.3-3 8.4-1 9.4 0-1 1-5.1 3-9.4 0z"/>')],
+      ['fresh', 'منعش', 'Fresh', I('<circle cx="16" cy="16" r="10"/><circle cx="16" cy="16" r="7.4"/><path d="M16 8.6v14.8M8.6 16h14.8M10.8 10.8l10.4 10.4M21.2 10.8 10.8 21.2"/>')],
+      ['fruity', 'فاكهي', 'Fruity', I('<path d="M16 9c-6-3-11 1-11 8s5 11 11 11 11-4 11-11-5-11-11-8z"/><path d="M16 9c0-3 1-5 3-6M16 9c-2-3-6-3-7-2"/>')],
+      ['woody', 'خشبي', 'Woody', I('<path d="M6 25 26 7"/><path d="M11 20c-4-1-6-4-6-7 3 0 6 2 6 7zM17 14c-1-4 0-7 3-9 1 3 0 7-3 9zM14 17c4 1 7 0 9-3-3-1-7 0-9 3z"/>')],
+      ['oriental', 'شرقي', 'Oriental', I('<path d="M16 4l2.6 7.4L26 14l-7.4 2.6L16 24l-2.6-7.4L6 14l7.4-2.6z"/><path d="M25 22l.9 2.1L28 25l-2.1.9L25 28l-.9-2.1L22 25l2.1-.9z"/>')],
+      ['clean', 'نظيف', 'Clean', I('<circle cx="13" cy="17" r="7"/><circle cx="22.5" cy="10" r="3.5"/><circle cx="23" cy="22" r="2.2"/><path d="M10 14.5a3.5 3.5 0 0 1 3-1.6"/>')],
+      ['sweet', 'دافئ', 'Warm', I('<path d="M21 6.5A10 10 0 1 0 25.5 21 8 8 0 0 1 21 6.5z"/>')],
+      ['aquatic', 'مائي', 'Aquatic', I('<path d="M16 4c4.5 5.5 7 9.6 7 13.2a7 7 0 0 1-14 0C9 13.6 11.5 9.5 16 4z"/><path d="M12.5 18.5a3.6 3.6 0 0 0 3.5 3.3"/>')]
     ];
-    function countFor(kind, v) {
-      return DB.filter(function (p) {
-        if (kind === 'gender') return p.gender.indexOf(v) > -1 || (v !== 'unisex' && p.gender.indexOf('unisex') > -1);
-        return FACETS[kind].test(p, v);
-      }).length;
-    }
     var box = document.getElementById('explore-cards');
-    CARDS.forEach(function (c) {
-      var n = countFor(c[0], c[1]); if (!n) return;
-      var icon = h('span', { class: 'xicon' }); icon.innerHTML = c[4];
-      box.appendChild(h('button', { type: 'button', class: 'xcard', 'data-cat': c[0] + ':' + c[1], 'aria-label': c[2] + '، ' + n + ' عطر' },
+    FAMS.forEach(function (f) {
+      var n = DB.filter(function (p) { return FACETS.family.test(p, f[0]); }).length;
+      if (!n) return; // never offer a family without fragrances
+      var icon = h('span', { class: 'dcat-ic' }); icon.innerHTML = f[3];
+      box.appendChild(h('li', {}, h('button', { type: 'button', class: 'dcat dcat-' + f[0], 'data-cat': 'family:' + f[0], 'aria-label': f[1] + '، ' + n + ' عطر' },
         icon,
-        h('span', { class: 'xname' }, c[2], c[3] ? h('small', { class: 'latin', text: c[3] }) : null),
-        h('span', { class: 'xcount', text: n + ' عطر' })));
+        h('span', { class: 'dcat-name', text: f[1] }),
+        h('span', { class: 'dcat-latin latin', text: f[2] }),
+        h('span', { class: 'dcat-count', text: n + ' عطر' }))));
     });
   })();
 

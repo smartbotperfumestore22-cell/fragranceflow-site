@@ -175,25 +175,23 @@
     </div>
   </section>
 
-  <!-- 5. Fragrances: real fragrances from the database, editorial layout -->
-  <section class="block" id="popular" aria-labelledby="pop-title">
+  <!-- 4. Discover: browse by fragrance family, then a few fragrances worth a look (filled by site.js from the catalogue) -->
+  <section class="disc" id="explore" aria-labelledby="explore-title">
     <div class="wrap">
-      <div class="sec-head">
-        <div><p class="eyebrow">مختارات من القاعدة</p><h2 class="sec-title" id="pop-title">عطور معروفة تقدر تبدا بيها</h2></div>
-        <a class="textlink" href="#fragrances">شوف كل العطور</a>
-      </div>
-      <div class="grid grid-pop" id="pop-grid"></div>
-    </div>
-  </section>
+      <header class="disc-head">
+        <h2 id="explore-title">🌸 اكتشف عالم العطور</h2>
+        <p>من العطور الزهرية والمنعشة، للعطور الدافئة والشرقية… اكتشف الروائح اللي كتوافق ذوقك.</p>
+      </header>
+      <ul class="disc-cats" id="explore-cards" aria-label="العائلات العطرية"></ul>
 
-  <!-- explore: shortcuts into the fragrance catalogue -->
-  <section class="block" id="explore" aria-labelledby="explore-title">
-    <div class="wrap">
-      <div class="sec-head">
-        <h2 class="sec-title" id="explore-title">استكشف حسب الذوق</h2>
-        <a class="textlink" href="#fragrances">كل العطور</a>
+      <div class="disc-feat" id="popular" aria-labelledby="pop-title">
+        <div class="disc-feat-head">
+          <h3 id="pop-title">عطور تستاهل تكتشفها</h3>
+          <p class="eyebrow" id="pop-note"></p>
+        </div>
+        <ul class="disc-grid" id="pop-grid"></ul>
       </div>
-      <div class="xcards" id="explore-cards"></div>
+      <p class="disc-cta"><a class="btn ghost" href="#fragrances">اكتشف جميع العطور <svg class="arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a></p>
     </div>
   </section>
 
