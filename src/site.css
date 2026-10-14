@@ -62,6 +62,9 @@ a { color: inherit; }
 .btn:hover .arrow { transform: scaleX(-1) translateX(5px); }
 .btn.lg { min-height: 60px; padding-inline: 34px; font-size: 1.06rem; box-shadow: 0 0 0 1px rgba(201, 154, 139, .55) inset, 0 16px 34px -14px rgba(75, 23, 111, .55); }
 .btn.lg:hover { box-shadow: 0 0 0 1px rgba(201, 154, 139, .8) inset, 0 20px 40px -14px rgba(75, 23, 111, .6); }
+/* hero call to action: a slight lift on hover, a soft press on tap */
+.hero .btn.lg:hover { transform: translateY(-1px); }
+.hero .btn.lg:active { transform: translateY(0) scale(.985); box-shadow: 0 0 0 1px rgba(201, 154, 139, .8) inset, 0 8px 20px -12px rgba(75, 23, 111, .55); }
 .btn.ghost { background: transparent; color: var(--plum); border-color: rgba(75, 23, 111, .35); }
 .btn.ghost:hover { background: var(--mist); border-color: var(--plum); }
 .btn.sm { min-height: 40px; padding: 6px 18px; font-size: .9rem; }
@@ -86,9 +89,6 @@ a { color: inherit; }
   .logo .mark { width: 22px; height: 29px; }
   .logo-name { font-size: 1.25rem; }
   .head-cta { min-height: 40px; padding-inline: 14px; font-size: .84rem; }
-  .perks { font-size: .84rem; gap: 8px 18px; }
-  .perks li { padding: 0; border: 0; gap: 6px; }
-  .perks svg { width: 17px; height: 17px; }
 }
 @media (max-width: 359px) { .logo-name { font-size: 1.1rem; } .head-cta { padding-inline: 10px; } }
 .burger { width: 44px; height: 44px; display: grid; place-items: center; border: 1px solid var(--line); border-radius: 50%; background: transparent; color: var(--ink); cursor: pointer; }
@@ -147,9 +147,15 @@ a { color: inherit; }
 /* phones: the bottle first, melting into the page */
 @media (max-width: 899px) {
   .hero { background: var(--ivory); }
-  .hero-art { height: min(96vw, 520px); -webkit-mask-image: linear-gradient(to bottom, #000 72%, transparent); mask-image: linear-gradient(to bottom, #000 72%, transparent); }
+  .hero-art { height: min(80vw, 440px); -webkit-mask-image: linear-gradient(to bottom, #000 72%, transparent); mask-image: linear-gradient(to bottom, #000 72%, transparent); }
   .hero-art img { object-position: 52% 40%; }
-  .hero-inner { margin-top: -56px; }
+  .hero-inner { margin-top: -48px; }
+  .hero h1 { font-size: clamp(2.1rem, 9.6vw, 3.4rem); }
+  .hero-copy { gap: 18px; }
+  .lead { font-size: 1.02rem; }
+  .perks { font-size: .82rem; gap: 8px 16px; }
+  .perks li { padding: 0; border: 0; gap: 6px; }
+  .perks svg { width: 17px; height: 17px; }
 }
 /* desktop: the bottle fills the right side, the words sit in the open space on the left */
 @media (min-width: 900px) {
