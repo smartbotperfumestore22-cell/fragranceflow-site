@@ -4,6 +4,8 @@
 //   join      → page or form for partner stores
 //   instagram / tiktok → profile addresses
 //   privacy / terms    → the two pages, once written
+//   portal    → Partner Portal address (the «دخول المتاجر» button on #stores), once it is ready
+// The «انضم إلى FragranceFlow» buttons on #stores use join, else contact.
 export const FOOTER_LINKS = {
   contact: "",
   join: "",
@@ -11,4 +13,5 @@ export const FOOTER_LINKS = {
   tiktok: "",
   privacy: "",
   terms: "",
+  portal: "",
 };

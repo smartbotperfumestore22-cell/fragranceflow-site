@@ -22,7 +22,7 @@ export function startSite({ loadQuiz }) {
   var PAGE = 8;
 
   var landing = document.getElementById('landing'), detail = document.getElementById('detail'), quizpage = document.getElementById('quizpage');
-  var catalog = document.getElementById('catalog'), about = document.getElementById('about');
+  var catalog = document.getElementById('catalog'), about = document.getElementById('about'), partners = document.getElementById('partners');
   // Popular fragrances on the homepage: when the Sheet has enough visitor activity, the build gives each
   // fragrance a "pop" score (views, searches, favourites, buy clicks over the last 30 days) and the most
   // looked-for ones are shown. Until then: perfumes flagged topSeller first, then this short list of well-known names.
@@ -87,11 +87,44 @@ export function startSite({ loadQuiz }) {
     }
   });
 
+  /* ---------- «FragranceFlow للمتاجر» (#stores): page for perfume shops ---------- */
+  // «انضم» and «دخول المتاجر» use the addresses in src/footer-links.js (join, else contact; portal).
+  // Without an address the button is not shown, so nothing on the page leads nowhere.
+  (function () {
+    var safe = function (u) { u = String(u || '').trim(); return /^(https:\/\/|mailto:|tel:)/i.test(u) ? u : ''; };
+    var links = { join: safe(FOOTER_LINKS.join) || safe(FOOTER_LINKS.contact), portal: safe(FOOTER_LINKS.portal) };
+    Array.prototype.forEach.call(document.querySelectorAll('[data-partner]'), function (el) {
+      var url = links[el.getAttribute('data-partner')], a = el.querySelector('a');
+      if (url) { a.href = url; if (/^https:/i.test(url)) { a.target = '_blank'; a.rel = 'noopener'; } }
+      else el.hidden = true;
+    });
+    Array.prototype.forEach.call(document.querySelectorAll('[data-partner-note]'), function (el) { el.hidden = !!links[el.getAttribute('data-partner-note')]; });
+    var heroJoin = document.querySelector('.pt-join');
+    if (heroJoin && !links.join) heroJoin.parentNode.hidden = true;
+    if (heroJoin) heroJoin.addEventListener('click', function (e) {
+      e.preventDefault(); // stays on #stores; just brings the last section into view
+      document.getElementById('pt-join').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+  })();
+  var qrDrawn = false;
+  function renderPartners() {
+    show('partners'); window.scrollTo(0, 0);
+    document.title = 'FragranceFlow للمتاجر';
+    if (qrDrawn) return;
+    qrDrawn = true;
+    // demonstration QR: it opens the FragranceFlow quiz (a real store gets its own link ?store=…)
+    import('qrcode').then(function (m) {
+      var QR = m.default || m;
+      QR.toCanvas(document.getElementById('pv-qr'), location.origin + location.pathname + '#quiz', { width: 320, margin: 1, color: { dark: '#24172C', light: '#FFFFFF' } }, function () {});
+    });
+  }
+
   /* ---------- views (hash routes so the back button and shared links work) ---------- */
   // #quiz → quiz page, #fragrances → catalogue, #about → about, #f-<id> → fragrance page, anything else → homepage
   function show(view) {
     landing.hidden = view !== 'landing'; quizpage.hidden = view !== 'quiz'; detail.hidden = view !== 'detail';
     catalog.hidden = view !== 'catalog'; about.hidden = view !== 'about';
+    if (partners) partners.hidden = view !== 'partners';
   }
   function go(hash) {
     if (location.hash === hash) route(); else location.hash = hash;
@@ -113,6 +146,7 @@ export function startSite({ loadQuiz }) {
     if (hsh === '#quiz') { openQuiz(); return; }
     if (hsh === '#qr') { renderQR(); return; }
     if (hsh === '#fragrances') { show('catalog'); window.scrollTo(0, 0); document.title = 'اكتشف العطور | FragranceFlow'; return; }
+    if (hsh === '#stores') { renderPartners(); return; }
     if (hsh === '#about') { show('about'); window.scrollTo(0, 0); document.title = 'About | FragranceFlow'; return; }
     if (hsh.indexOf('#f-') === 0) { var p = byId(decodeURIComponent(hsh.slice(3))); if (p) { renderPerfume(p); return; } }
     if (window.FF_CLOSE) window.FF_CLOSE();
