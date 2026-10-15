@@ -4041,7 +4041,7 @@ window.track && window.track("favorite_pick", {
                 ))}
               </div>
             )}
-            <div className={"ffq-opts n" + opts.length}>
+            <div className={"ffq-opts n" + opts.length + (q?.id === "budget" ? " is-list" : "")}>
               {opts.map((o,i)=>(
                 <button key={o.v} type="button" className={"ffq-opt" + (picked===`${aKey}:${o.v}` ? " is-picked" : "")}
                   style={{ animationDelay: `${i*0.04}s` }}

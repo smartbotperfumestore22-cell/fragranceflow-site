@@ -688,6 +688,9 @@ a.dstore-name:hover { color: var(--purple); text-decoration-color: currentColor;
   /* three answers: three tall cards, icon above the words */
   #ff-widget-root .ffq-opts.n3 { grid-template-columns: repeat(3, 1fr); }
   #ff-widget-root .ffq-opts.n3 .ffq-opt { flex-direction: column; align-items: flex-start; justify-content: space-between; min-height: 168px; padding: 22px; gap: 26px; }
+  /* price ranges read in order, one under the other */
+  #ff-widget-root .ffq-opts.is-list { grid-template-columns: 1fr; max-width: 560px; }
+  #ff-widget-root .ffq-opts.is-list .ffq-opt { flex-direction: row; align-items: center; justify-content: flex-start; min-height: 76px; padding: 14px 18px; gap: 16px; }
 }
 #ff-widget-root .ffq-opt { display: flex; align-items: center; gap: 16px; min-height: 82px; padding: 14px 18px; text-align: start; border: 1px solid var(--line); border-radius: 10px; background: var(--paper); color: var(--ink); cursor: pointer; font: inherit; animation: rise .5s var(--ease) both; transition: border-color .25s, box-shadow .3s, transform .3s var(--ease), background .25s; }
 #ff-widget-root .ffq-opt:hover { border-color: var(--lavender); box-shadow: var(--shadow-soft); transform: translateY(-2px); }
