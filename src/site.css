@@ -5,7 +5,7 @@
    Type: Cormorant Garamond (Latin display) + Amiri (Arabic display); Manrope + IBM Plex Sans Arabic for UI and text.
    Mobile-first: base rules are for phones, @media (min-width) adds tablet/desktop. */
 :root {
-  color-scheme: light;
+  color-scheme: only light;
   --ivory: #FAF7F2;        /* page */
   --paper: #FFFFFF;        /* cards */
   --plum: #4B176F;         /* deep purple: brand, primary actions */
