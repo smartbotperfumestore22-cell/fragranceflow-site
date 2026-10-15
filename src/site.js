@@ -419,7 +419,6 @@ export function startSite({ loadQuiz }) {
     var occ = p.occasion.map(function (o) { return OCC[o] || o; }).join('، ');
     var offers = storeOffers(p);
     stage.appendChild(h('section', { class: 'stage' },
-      hasResults() ? h('p', { class: 'to-results' }, h('a', { class: 'textlink', href: '#quiz' }, '→ رجع للنتائج ديالك')) : null,
       h('nav', { class: 'crumbs', 'aria-label': 'المسار' }, h('button', { type: 'button', class: 'textlink', onclick: function () { goHome(); } }, 'الرئيسية'), '/',
         h('a', { class: 'textlink', href: '#fragrances' }, 'العطور')),
       h('article', { class: 'rc' },
