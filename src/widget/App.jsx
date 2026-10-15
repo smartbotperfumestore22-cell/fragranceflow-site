@@ -3029,6 +3029,12 @@ function RVStores({ p, L, lang }) {
                   : <span className="ffr-store-name">{name}</span>}
                 {s.city ? <span className="ffr-store-city">{s.city}</span> : null}
               </div>
+              {s.price || s.size ? (
+                <span className="ffr-store-price">
+                  {s.price ? <b>{String(Math.round(s.price)).replace(/\B(?=(\d{3})+(?!\d))/g, ",")} DH</b> : null}
+                  {s.size ? <small>{s.size}</small> : null}
+                </span>
+              ) : null}
               {s.whatsapp ? (
                 <a className="ffr-store-wa" href={s.whatsapp} target="_blank" rel="noopener noreferrer" onClick={() => track("whatsapp_click", s)}>
                   {fr ? "💬 Commander sur WhatsApp" : "💬 اطلب عبر واتساب"}
