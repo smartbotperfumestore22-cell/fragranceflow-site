@@ -770,29 +770,57 @@ a.dstore-name:hover { color: var(--purple); text-decoration-color: currentColor;
 #ff-widget-root .ffr-header p, #ff-widget-root .ffr-disclaimer { max-width: 72ch; }
 #ff-widget-root .ffr-disclaimer { margin-inline: auto; font-size: .8rem; color: var(--muted); text-align: center; }
 
-/* Top 3: large horizontal cards stacked #1 → #2 → #3 (image ~38% on the right, information on the left) */
-#ff-widget-root .ffr-top3 { display: flex; flex-direction: column; gap: 28px; }
-#ff-widget-root .ffr-card { display: flex; flex-direction: column; border: 1px solid var(--line); border-radius: var(--radius-lg); overflow: clip; background: var(--paper); min-width: 0; transition: box-shadow .35s; }
-#ff-widget-root .ffr-card:hover { box-shadow: var(--shadow-soft); }
+/* 3a. the podium: the three fragrances side by side, in rank order (#1 on the right in Arabic), #1 set apart */
+#ff-widget-root .ffr-podium { list-style: none; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; align-items: end; }
+#ff-widget-root .ffr-podium-n2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+#ff-widget-root .ffr-podium li { min-width: 0; display: flex; }
+#ff-widget-root .ffr-pod { width: 100%; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 4px; padding: 12px 8px 10px; border: 1px solid var(--line); border-radius: var(--radius-lg); background: var(--paper); color: var(--ink); font: inherit; cursor: pointer; transition: border-color .2s, box-shadow .25s, transform .25s var(--ease); }
+#ff-widget-root .ffr-pod:hover { border-color: rgba(123, 63, 160, .45); box-shadow: var(--shadow-soft); }
+#ff-widget-root .ffr-pod:focus-visible { outline: 2px solid var(--purple); outline-offset: 3px; }
+#ff-widget-root .ffr-pod-rank { font-size: 1.25rem; line-height: 1; }
+#ff-widget-root .ffr-pod-img { display: block; width: 100%; aspect-ratio: 1 / 1; border-radius: 12px; overflow: hidden; background: var(--panel); margin: 6px 0 6px; }
+#ff-widget-root .ffr-pod-img img { width: 100%; height: 100%; object-fit: cover; display: block; }
+#ff-widget-root .ffr-pod-brand { font-size: .62rem; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); direction: ltr; unicode-bidi: isolate; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+#ff-widget-root .ffr-pod-name { font-family: var(--font-latin); font-weight: 600; font-size: 1.02rem; line-height: 1.15; direction: ltr; unicode-bidi: isolate; overflow-wrap: anywhere; min-height: 2.3em; display: flex; align-items: flex-start; justify-content: center; }
+#ff-widget-root .ffr-pod-pct { display: flex; flex-direction: column; align-items: center; margin-top: 4px; }
+#ff-widget-root .ffr-pod-pct b { font-family: var(--font-latin); font-weight: 600; font-size: 1.7rem; line-height: 1; color: var(--purple); direction: ltr; font-variant-numeric: tabular-nums; }
+#ff-widget-root .ffr-pod-pct small { font-size: .74rem; color: var(--muted); margin-top: 3px; }
+#ff-widget-root .ffr-pod-down { width: 18px; height: 18px; color: var(--rose); margin-top: 2px; }
+#ff-widget-root .ffr-podium .is-first .ffr-pod { border-color: var(--plum); box-shadow: 0 0 0 1px var(--plum), var(--shadow); padding-top: 16px; padding-bottom: 14px; background: linear-gradient(180deg, var(--mist), var(--paper) 55%); }
+#ff-widget-root .ffr-podium .is-first .ffr-pod-pct b { color: var(--plum); font-size: 2.1rem; }
+#ff-widget-root .ffr-podium .is-first .ffr-pod-rank { font-size: 1.55rem; }
+@media (min-width: 700px) {
+  #ff-widget-root .ffr-podium { gap: 20px; max-width: 720px; margin-inline: auto !important; width: 100%; }
+  #ff-widget-root .ffr-pod { padding: 18px 16px 14px; gap: 6px; }
+  #ff-widget-root .ffr-pod-brand { font-size: .7rem; }
+  #ff-widget-root .ffr-pod-name { font-size: 1.35rem; }
+  #ff-widget-root .ffr-pod-pct b { font-size: 2.2rem; }
+  #ff-widget-root .ffr-podium .is-first .ffr-pod { padding-top: 26px; padding-bottom: 20px; }
+  #ff-widget-root .ffr-podium .is-first .ffr-pod-pct b { font-size: 2.8rem; }
+}
+@media (prefers-reduced-motion: no-preference) { #ff-widget-root .ffr-pod:hover { transform: translateY(-2px); } }
+
+/* 3b. one card per fragrance, stacked #1 → #2 → #3: a compact head (thumbnail, name, match), then why / imagine / where */
+#ff-widget-root .ffr-top3 { display: flex; flex-direction: column; gap: 22px; }
+#ff-widget-root .ffr-card { display: flex; flex-direction: column; border: 1px solid var(--line); border-radius: var(--radius-lg); overflow: clip; background: var(--paper); min-width: 0; scroll-margin-top: 12px; }
+#ff-widget-root .ffr-card:focus { outline: none; }
+#ff-widget-root .ffr-card:focus-visible { outline: 2px solid var(--purple); outline-offset: 3px; }
 #ff-widget-root .ffr-featured { border-color: rgba(75, 23, 111, .55); box-shadow: 0 0 0 1px rgba(75, 23, 111, .55), var(--shadow); }
-#ff-widget-root .ffr-featured:hover { box-shadow: 0 0 0 1px rgba(75, 23, 111, .55), var(--shadow); }
-#ff-widget-root .ffr-media { position: relative; background: var(--panel); aspect-ratio: 4 / 3; max-width: 100%; overflow: hidden; }
-#ff-widget-root .ffr-media img { width: 100%; height: 100%; object-fit: cover; display: block; }
-#ff-widget-root .ffr-rank { position: absolute; top: 14px; inset-inline-start: 14px; min-width: 52px; text-align: center; background: rgba(250, 247, 242, .94); color: var(--plum); font-family: var(--font-latin); font-weight: 600; font-size: 1.35rem; line-height: 1; padding: 9px 12px; border-radius: 999px; direction: ltr; }
-#ff-widget-root .ffr-featured .ffr-rank { background: var(--plum); color: #FFF; font-size: 1.7rem; padding: 10px 16px; box-shadow: 0 0 0 1px rgba(201, 154, 139, .7) inset; }
-#ff-widget-root .ffr-body { padding: 22px 20px 24px; display: flex; flex-direction: column; gap: 18px; flex: 1; min-width: 0; }
+#ff-widget-root .ffr-body { padding: 20px 18px 22px; display: flex; flex-direction: column; gap: 18px; flex: 1; min-width: 0; }
 #ff-widget-root .ffr-kicker { font-size: .85rem; font-weight: 600; color: var(--rose-ink); display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
 #ff-widget-root .ffr-featured .ffr-kicker { color: var(--plum); }
 #ff-widget-root .ffr-featured .ffr-kicker::before { content: ""; width: 26px; height: 1px; background: var(--rose); }
 #ff-widget-root .ffr-sponsored { font-size: .7rem; font-weight: 600; color: var(--muted); border: 1px solid var(--line); padding: 1px 8px; border-radius: 999px; }
-#ff-widget-root .ffr-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; }
-#ff-widget-root .ffr-names { min-width: 0; }
+#ff-widget-root .ffr-head { display: flex; justify-content: space-between; align-items: center; gap: 14px; }
+#ff-widget-root .ffr-thumb { flex: none; width: 64px; height: 64px; border-radius: 12px; overflow: hidden; background: var(--panel); }
+#ff-widget-root .ffr-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+#ff-widget-root .ffr-names { min-width: 0; flex: 1; }
 #ff-widget-root .ffr-brand { display: block; font-size: .72rem; letter-spacing: .18em; text-transform: uppercase; color: var(--muted); direction: ltr; text-align: start; unicode-bidi: isolate; }
-#ff-widget-root .ffr-name { font-family: var(--font-latin); font-weight: 500; font-size: 1.9rem; line-height: 1.1; margin-top: 6px !important; direction: ltr; text-align: start; unicode-bidi: isolate; overflow-wrap: anywhere; }
-#ff-widget-root .ffr-featured .ffr-name { font-size: clamp(2.2rem, 7vw, 2.9rem); }
+#ff-widget-root .ffr-name { font-family: var(--font-latin); font-weight: 500; font-size: 1.6rem; line-height: 1.1; margin-top: 4px !important; direction: ltr; text-align: start; unicode-bidi: isolate; overflow-wrap: anywhere; }
+#ff-widget-root .ffr-featured .ffr-name { font-size: 1.85rem; }
 #ff-widget-root .ffr-match { flex-shrink: 0; text-align: center; display: flex; flex-direction: column; align-items: center; direction: ltr; }
-#ff-widget-root .ffr-match b { font-family: var(--font-latin); font-weight: 500; font-size: 2.2rem; line-height: 1; color: var(--purple); font-variant-numeric: tabular-nums; }
-#ff-widget-root .ffr-featured .ffr-match b { font-size: 2.9rem; color: var(--plum); }
+#ff-widget-root .ffr-match b { font-family: var(--font-latin); font-weight: 500; font-size: 1.8rem; line-height: 1; color: var(--purple); font-variant-numeric: tabular-nums; }
+#ff-widget-root .ffr-featured .ffr-match b { font-size: 2.1rem; color: var(--plum); }
 #ff-widget-root .ffr-match span { font-size: .7rem; letter-spacing: .16em; text-transform: uppercase; color: var(--muted); margin-top: 6px; }
 #ff-widget-root .ffr-facts { display: grid; border-block: 1px solid var(--line); }
 #ff-widget-root .ffr-facts div { display: grid; grid-template-columns: 96px 1fr; gap: 10px; padding-block: 8px; font-size: .94rem; }
@@ -836,14 +864,13 @@ a.dstore-name:hover { color: var(--purple); text-decoration-color: currentColor;
 #ff-widget-root .ffr-featured .ffr-btn { box-shadow: 0 0 0 1px rgba(201, 154, 139, .6) inset; }
 #ff-widget-root .ffr-top3 .ffr-actions .ffr-btn { flex: 1 1 100%; }
 @media (min-width: 900px) {
-  #ff-widget-root .ffr-top3 { gap: 36px; }
-  #ff-widget-root .ffr-top3 .ffr-card { display: grid; grid-template-columns: 38% minmax(0, 1fr); align-items: start; }
-  #ff-widget-root .ffr-top3 .ffr-media { aspect-ratio: 1 / 1; position: sticky; top: calc(96px + env(safe-area-inset-top, 0px)); }
-  #ff-widget-root .ffr-top3 .ffr-body { padding: 34px 44px 38px; gap: 22px; }
-  #ff-widget-root .ffr-top3 .ffr-body > * { max-width: 760px; }
+  #ff-widget-root .ffr-top3 { gap: 28px; }
+  #ff-widget-root .ffr-top3 .ffr-body { padding: 30px 40px 34px; gap: 22px; }
+  #ff-widget-root .ffr-top3 .ffr-body > * { max-width: 820px; }
   #ff-widget-root .ffr-top3 .ffr-actions .ffr-btn { flex: 0 0 auto; min-width: 220px; }
-  #ff-widget-root .ffr-top3 .ffr-featured .ffr-media { aspect-ratio: 4 / 5; }
-  #ff-widget-root .ffr-top3 .ffr-featured .ffr-body { padding: 44px 52px 46px; }
+  #ff-widget-root .ffr-thumb { width: 84px; height: 84px; }
+  #ff-widget-root .ffr-name { font-size: 1.9rem; }
+  #ff-widget-root .ffr-featured .ffr-name { font-size: 2.3rem; }
 }
 #ff-widget-root .ffr-top3 .ffr-facts div { grid-template-columns: 104px 1fr; }
 /* the quiz's inner wrapper scrolls (overflow:auto) in the popup widget; on the results page it must not,

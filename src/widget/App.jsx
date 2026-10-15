@@ -3304,8 +3304,8 @@ function RVSensory({ p, ans, lang, used }) {
   const s = rvSensory(p, ans, lang, used);
   if (!s.stages.length && !s.single && !s.atmosphere) return null;
   return (
-    <section className="ffr-sense" aria-label={lang === "fr" ? "L'expérience du parfum" : "تجربة الرائحة"}>
-      <h4>{lang === "fr" ? "🌸 L'expérience du parfum" : "🌸 تجربة الرائحة"}</h4>
+    <section className="ffr-sense" aria-label={lang === "fr" ? "Imaginez le parfum" : "تخيّل الرائحة"}>
+      <h4>{lang === "fr" ? "🌸 Imaginez le parfum" : "🌸 تخيّل الرائحة"}</h4>
       {s.stages.length > 0 && (
         <ol className="ffr-timeline">
           {s.stages.map((st, i) => <li key={i}><span className="ffr-stage">{st.label}</span><p>{st.text}</p></li>)}
@@ -3323,18 +3323,14 @@ function RVCard({ p, ans, lang, rank, used, peers }) {
   const reasons = rvDistinct(p, peers || [], ans, lang);
   const why = generateWhyChosen(p, ans, p.slotType || "best", lang);
   return (
-    <article className={"ffr-card" + (featured ? " ffr-featured" : "")} aria-label={"#" + rank + " " + p.name}>
-      <div className="ffr-media">
-        <img src={p.image} alt={p.name + " – " + p.brand} loading={featured ? "eager" : "lazy"}
-          onError={e => { e.currentTarget.style.visibility = "hidden"; }}/>
-        <span className="ffr-rank">#{rank}</span>
-      </div>
+    <article className={"ffr-card" + (featured ? " ffr-featured" : "")} id={"ffr-card-" + rank} tabIndex={-1} aria-label={"#" + rank + " " + p.name}>
       <div className="ffr-body">
         <p className="ffr-kicker">
           {(L.rankLine && L.rankLine[rank - 1]) || (featured ? L.featured : L.alt)}
           {p.sponsored ? <span className="ffr-sponsored">{L.sponsored}</span> : null}
         </p>
         <div className="ffr-head">
+          <span className="ffr-thumb"><img src={p.image} alt="" loading="lazy" onError={e => { e.currentTarget.style.visibility = "hidden"; }}/></span>
           <div className="ffr-names">
             <p className="ffr-brand">{p.brand}</p>
             <h3 className="ffr-name">{p.name}</h3>
@@ -3464,7 +3460,34 @@ function ResultsPage({ res, pers, ans, lang, t, questions, reset, favPicked, pic
         <p className="ffr-note">{lang === "fr" ? "Résultats limités — ajustez certains critères pour plus d'options." : "النتائج محدودة — جرب تعدل بعض الشروط باش تظهر اقتراحات أكثر."}</p>
       )}
 
-      {/* Top 3 stacked #1 → #2 → #3; each card is horizontal on wide screens (image right, info left) */}
+      {/* 3a. the three fragrances side by side, in order (#1 first = on the right in Arabic) — tap one to jump to its card */}
+      {res.main.length > 1 && (
+        <ol className={"ffr-podium ffr-podium-n" + res.main.length} aria-label={L.top3}>
+          {res.main.map((p, i) => (
+            <li key={p.id} className={i === 0 ? "is-first" : undefined}>
+              <button type="button" className="ffr-pod" aria-label={"#" + (i + 1) + " " + p.brand + " " + p.name + (p._pct !== undefined ? " · " + p._pct + "% " + L.matchShort : "")}
+                onClick={() => {
+                  const el = document.getElementById("ffr-card-" + (i + 1));
+                  if (!el) return;
+                  const reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+                  el.scrollIntoView({ behavior: reduce ? "auto" : "smooth", block: "start" });
+                  el.focus({ preventScroll: true });
+                }}>
+                <span className="ffr-pod-rank">{["🥇", "🥈", "🥉"][i] || "#" + (i + 1)}</span>
+                <span className="ffr-pod-img">
+                  <img src={p.image} alt="" loading={i === 0 ? "eager" : "lazy"} onError={e => { e.currentTarget.style.visibility = "hidden"; }}/>
+                </span>
+                <span className="ffr-pod-brand">{p.brand}</span>
+                <span className="ffr-pod-name">{p.name}</span>
+                {p._pct !== undefined && <span className="ffr-pod-pct"><b>{p._pct}%</b><small>{L.matchShort}</small></span>}
+                <svg className="ffr-pod-down" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+              </button>
+            </li>
+          ))}
+        </ol>
+      )}
+
+      {/* 3b. one card per fragrance, #1 → #2 → #3: why, imagine the scent, where to find it */}
       <div className={"ffr-top3 ffr-top3-n" + res.main.length}>
         {res.main.map((p, i) => <RVCard key={p.id} p={p} ans={ans} lang={lang} rank={i + 1} used={used} peers={res.main.filter(x => x.id !== p.id)}/>)}
       </div>
