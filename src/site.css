@@ -745,6 +745,16 @@ a.dstore-name:hover { color: var(--purple); text-decoration-color: currentColor;
 #ff-widget-root .ffr-sig .ffr-share-note, #ff-widget-root .ffr-sig .ffr-share-making { color: rgba(250, 247, 242, .75); }
 #ff-widget-root .ffr-sig .ffr-share-msg { color: #E9C9BE; }
 
+/* the bridge: signature → fragrances */
+#ff-widget-root .ffr-bridge { display: flex; flex-direction: column; align-items: center; gap: 8px; text-align: center; margin: 4px auto -8px !important; max-width: 46ch; font-family: var(--font-display); font-size: clamp(1.2rem, 3.6vw, 1.45rem); line-height: 1.7; color: var(--plum); }
+#ff-widget-root .ffr-bridge svg { width: 26px; height: 26px; color: var(--rose); }
+/* feedback: present but quiet; sharing stays the clear action of the signature */
+#ff-widget-root .ffr-sig .ffr-feedback { font-size: .85rem; }
+#ff-widget-root .ffr-sig .ffr-feedback button { min-width: 42px; min-height: 36px; font-size: .92rem; }
+#ff-widget-root .ffr-sig .ffr-share-toggle { min-height: 50px; padding-inline: 26px; font-size: 1rem; box-shadow: 0 10px 24px -14px rgba(20, 4, 32, .7); }
+/* match: an affinity score, read as «92% توافق» */
+#ff-widget-root .ffr-match span { letter-spacing: 0 !important; text-transform: none !important; font-size: .78rem !important; }
+
 /* 2. the fragrances for you, and the visitor's choices (shown once) */
 #ff-widget-root .ffr-header { display: flex; flex-direction: column; gap: 8px; padding-top: 8px; }
 #ff-widget-root .ffr-header h2 { font-family: var(--font-display); font-weight: 700; font-size: clamp(2rem, 6vw, 2.8rem); line-height: 1.25; }

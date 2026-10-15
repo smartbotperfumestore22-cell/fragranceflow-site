@@ -2859,6 +2859,9 @@ const RV_LABELS = {
     sub:"بناءً على اختياراتك، هادو أفضل العطور اللي لقيناها ليك.",
     featured:"أفضل اختيار ليك", alt:"اختيار قوي",
     match:"Match", why:"علاش اخترناه ليك؟",
+    matchShort:"توافق", matchHint:"درجة التوافق بين اختياراتك وهاد العطر",
+    rankLine:["🥇 أقرب اختيار لبصمتك", "🥈 كيشبه بزاف لذوقك", "🥉 اختيار قريب من ذوقك"],
+    bridge:"وبناءً على بصمتك العطرية، هادو العطور اللي لقيناهم الأقرب لذوقك.",
     rows:{ gender:"لمن", family:"العائلة", vibe:"الطابع", occasion:"المناسبة", season:"الفصل", alsoOcc:"مناسبات أخرى", alsoSeason:"فصول أخرى" },
     profileSub:"بناءً على اختياراتك", profileNote:"اخترنا لك عطور قريبة من اختياراتك.", top3:"أفضل 3 عطور ليك",
     view:"شوف العطر", where:"فين تلقاه؟", buy:"شوف المنتج", price:"درهم",
@@ -2876,6 +2879,9 @@ const RV_LABELS = {
     sub:"D'après vos réponses, voici les meilleurs parfums que nous avons trouvés pour vous.",
     featured:"Votre meilleur choix", alt:"Autre excellent choix",
     match:"Match", why:"Pourquoi ce choix ?",
+    matchShort:"Affinité", matchHint:"Degré d'affinité entre vos choix et ce parfum",
+    rankLine:["🥇 Le plus proche de votre signature", "🥈 Très proche de vos goûts", "🥉 Un choix proche de vos goûts"],
+    bridge:"D'après votre signature olfactive, voici les parfums les plus proches de vos goûts.",
     rows:{ gender:"Pour", family:"Famille", vibe:"Caractère", occasion:"Occasion", season:"Saison", alsoOcc:"Autres occasions", alsoSeason:"Autres saisons" },
     profileSub:"D'après vos réponses", profileNote:"Nous avons choisi des parfums proches de vos réponses.", top3:"Vos 3 meilleurs parfums",
     view:"Voir le parfum", where:"Où le trouver ?", buy:"Voir le produit", price:"DH",
@@ -3319,7 +3325,7 @@ function RVCard({ p, ans, lang, rank, used, peers }) {
       </div>
       <div className="ffr-body">
         <p className="ffr-kicker">
-          {featured ? L.featured : L.alt}
+          {(L.rankLine && L.rankLine[rank - 1]) || (featured ? L.featured : L.alt)}
           {p.sponsored ? <span className="ffr-sponsored">{L.sponsored}</span> : null}
         </p>
         <div className="ffr-head">
@@ -3328,7 +3334,7 @@ function RVCard({ p, ans, lang, rank, used, peers }) {
             <h3 className="ffr-name">{p.name}</h3>
           </div>
           {p._pct !== undefined && (
-            <p className="ffr-match"><b>{p._pct}%</b><span>{L.match}</span></p>
+            <p className="ffr-match" title={L.matchHint}><b>{p._pct}%</b><span>{L.matchShort}</span></p>
           )}
         </div>
         <RVFacts p={p} L={L} ans={ans}/>
@@ -3429,6 +3435,11 @@ function ResultsPage({ res, pers, ans, lang, t, questions, reset, favPicked, pic
           <ShareResult name={persName} latin={lang === "fr" ? "" : pers.fr} icon={pers.icon} desc={persDesc} lang={lang}/>
         </aside>
       )}
+
+      {/* the link between the signature and the fragrances */}
+      {pers && ans.isGift !== "gift" ? (
+        <p className="ffr-bridge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M12 3c-4 4 4 8 0 14"/><path d="m8 14 4 4 4-4"/></svg><span>{L.bridge}</span></p>
+      ) : null}
 
       {/* 2. the fragrances, with the visitor's choices shown once */}
       <header className="ffr-header">
