@@ -139,8 +139,12 @@ export function startSite({ loadQuiz }) {
       loadQuiz().then(function () { renderSignatureExample(); el.scrollIntoView({ block: 'start' }); }, function () {});
     }
   }
+  // the quiz results stay in memory while the visitor looks at a fragrance; remember where they were on that page
+  function hasResults() { return !!document.querySelector('#ff-widget-root .ffr'); }
+  var resultsY = 0;
   function route() {
     var hsh = location.hash;
+    if (!quizpage.hidden && hasResults() && hsh !== '#quiz') resultsY = window.scrollY;
     if (hsh === '#quiz') { openQuiz(); return; }
     if (hsh === '#qr') { renderQR(); return; }
     if (hsh === '#fragrances') { show('catalog'); window.scrollTo(0, 0); document.title = 'اكتشف العطور | FragranceFlow'; return; }
@@ -188,7 +192,8 @@ export function startSite({ loadQuiz }) {
   /* ---------- the existing quiz, loaded on first use ---------- */
   var quizOpen = false;
   function openQuiz() {
-    show('quiz'); window.scrollTo(0, 0);
+    var back = hasResults() && resultsY;
+    show('quiz'); window.scrollTo(0, back ? resultsY : 0);
     if (STORE && !document.getElementById('store-quiz-note')) {
       var root = document.getElementById('ff-widget-root');
       root.parentNode.insertBefore(h('aside', { class: 'store-quiz-note', id: 'store-quiz-note' },
@@ -414,6 +419,7 @@ export function startSite({ loadQuiz }) {
     var occ = p.occasion.map(function (o) { return OCC[o] || o; }).join('، ');
     var offers = storeOffers(p);
     stage.appendChild(h('section', { class: 'stage' },
+      hasResults() ? h('p', { class: 'to-results' }, h('a', { class: 'textlink', href: '#quiz' }, '→ رجع للنتائج ديالك')) : null,
       h('nav', { class: 'crumbs', 'aria-label': 'المسار' }, h('button', { type: 'button', class: 'textlink', onclick: function () { goHome(); } }, 'الرئيسية'), '/',
         h('a', { class: 'textlink', href: '#fragrances' }, 'العطور')),
       h('article', { class: 'rc' },
@@ -429,9 +435,14 @@ export function startSite({ loadQuiz }) {
             : p.url ? h('a', { class: 'btn', href: p.url, target: '_blank', rel: 'noopener', style: 'align-self:flex-start' }, 'شوف عند ' + (p.store || 'المحل'))
             : h('p', { class: 'shop' }, h('b', { text: 'فين تلقاه: ' }), 'قريبا، رابط مباشر عند المحلات الشريكة.'))),
       offers.length ? storesBlock(p, offers) : null,
-      h('div', { class: 'actions' },
-        h('a', { class: 'btn', href: '#quiz' }, 'اكتشف بصمتك العطرية'),
-        h('a', { class: 'textlink', href: '#fragrances' }, 'رجع للعطور'))));
+      hasResults()
+        // came from the quiz results: the way back to the other suggestions comes first
+        ? h('div', { class: 'actions' },
+            h('a', { class: 'btn', href: '#quiz' }, h('span', { class: 'back-arrow', 'aria-hidden': 'true', text: '→' }), 'رجع للنتائج ديالك'),
+            h('a', { class: 'textlink', href: '#fragrances' }, 'شوف كل العطور'))
+        : h('div', { class: 'actions' },
+            h('a', { class: 'btn', href: '#quiz' }, 'اكتشف بصمتك العطرية'),
+            h('a', { class: 'textlink', href: '#fragrances' }, 'رجع للعطور'))));
   }
 
   /* ---------- homepage: «بصمتك العطرية» example, computed by the quiz's own engine and persona code ---------- */

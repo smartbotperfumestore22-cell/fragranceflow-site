@@ -612,6 +612,8 @@ a { color: inherit; }
 .detail { padding-block: 28px 64px; }
 .dbox { max-width: 960px; margin-inline: auto; }
 .stage { display: flex; flex-direction: column; gap: 22px; }
+.to-results { font-size: .95rem; }
+.back-arrow { font-size: 1.1rem; line-height: 1; }
 .crumbs { display: flex; gap: 8px; align-items: center; font-size: .88rem; color: var(--muted); }
 .rc { display: grid; border: 1px solid var(--line); border-radius: var(--radius-lg); overflow: hidden; background: var(--paper); min-width: 0; box-shadow: var(--shadow-soft); }
 .rc .ph { position: relative; background: var(--panel); }
