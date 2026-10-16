@@ -21,7 +21,7 @@ const isOff = (v) => ["false", "0", "no", "non", "لا"].includes(str(v).toLower
 const num = (v) => { const n = Number(String(v ?? "").replace(/[^\d.]/g, "")); return Number.isFinite(n) && n > 0 ? n : 0; };
 
 let WARN = [], POP = null, STORES = null;
-// Offers → format: "full", "decant" or "both" (Arabic / French words accepted). Empty = not said (nothing shown); null = not understood.
+// Offers → size_type: "full", "decant" or "both" (Arabic / French words accepted). Empty = not said (nothing shown); null = not understood.
 function offerFormat(v) {
   const t = str(v).toLowerCase();
   if (!t) return [];
@@ -67,9 +67,10 @@ function build(data) {
     // main link kept for older parts of the site: product page, else WhatsApp (as before)
     const url = productUrl || whatsapp;
     if (!page && !whatsapp) continue; // no way to reach the store
-    // what the store sells for this fragrance (Offers → format): full bottle, decant, or both
-    const fmt = offerFormat(o.format ?? o.type ?? o.size_type);
-    if (fmt === null) warn.push(`Offers: format "${str(o.format ?? o.type)}" for ${pid} / ${sid} not understood (use full, decant or both)`);
+    // what the store sells for this fragrance (Offers → size_type): full bottle, decant, or both
+    const fmtRaw = [o.size_type, o.format, o.type].map(str).find(Boolean) || "";
+    const fmt = offerFormat(fmtRaw);
+    if (fmt === null) warn.push(`Offers: size_type "${fmtRaw}" for ${pid} / ${sid} not understood (use full, decant or both)`);
     const list = (offers[pid] = offers[pid] || []);
     const same = list.find((x) => x.storeId === sid);
     if (same) { // the same store on two rows (e.g. one full, one decant): one store, both formats

@@ -2,7 +2,7 @@
  * FragranceFlow — Google Sheet ↔ website
  *
  * One script, bound to the FragranceFlow Sheet (tabs: Perfumes, Stores, Offers, Events).
- *   Offers → column "format": full (قنينة كاملة), decant (ديكونط) or both (بجوج) — shown in «فين تلقاه؟».
+ *   Offers → column "size_type": full (قنينة كاملة), decant (ديكونط) or both (بجوج) — shown in «فين تلقاه؟».
  *   • ?action=catalog   → the website reads Perfumes / Stores / Offers when it is built
  *   • ?action=analytics → the website records an event in the Events tab
  *     (never send a parameter named "sid" or "c": Apps Script reserves them and answers 400)
@@ -138,8 +138,8 @@ function problems_() {
     if (!storeIds[String(o.store_id).trim()]) out.push('Offers سطر ' + row + ': store_id ما كاينش ف Stores');
     if (!ids[String(o.perfume_id).trim()]) out.push('Offers سطر ' + row + ': perfume_id ما كاينش ف Perfumes');
     if (o.url && !/^https?:\/\//i.test(String(o.url))) out.push('Offers سطر ' + row + ': url خاصو يبدا بـ https://');
-    var fmt = String(o.format || '').trim().toLowerCase();
-    if (fmt && !/full|decant|décant|both|كامل|قنينة|قارورة|ديك|بجوج|جوج/.test(fmt)) out.push('Offers سطر ' + row + ': format خاصو يكون full ولا decant ولا both');
+    var fmt = String(o.size_type || o.format || '').trim().toLowerCase();
+    if (fmt && !/full|decant|décant|both|كامل|قنينة|قارورة|ديك|بجوج|جوج/.test(fmt)) out.push('Offers سطر ' + row + ': size_type خاصو يكون full ولا decant ولا both');
   });
   return out;
 }

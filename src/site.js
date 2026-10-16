@@ -401,7 +401,7 @@ export function startSite({ loadQuiz }) {
         : h('span', { class: 'dstore-name', text: s.name });
       ul.appendChild(h('li', { class: 'dstore' },
         h('div', { class: 'dstore-id' }, name, s.city ? h('span', { class: 'dstore-city', text: s.city }) : null),
-        // what this store has: full bottle and/or decant (Offers → format); prices are not shown
+        // what this store has: full bottle and/or decant (Offers → size_type); prices are not shown
         s.formats.length ? h.apply(null, ['p', { class: 'dstore-formats', 'aria-label': 'متوفر' }].concat(s.formats.map(function (f) {
           return h('span', { class: 'dstore-fmt dstore-fmt-' + f, text: f === 'decant' ? 'ديكونط' : 'قنينة كاملة' });
         }))) : null,

@@ -3029,7 +3029,7 @@ function RVStores({ p, L, lang }) {
                   : <span className="ffr-store-name">{name}</span>}
                 {s.city ? <span className="ffr-store-city">{s.city}</span> : null}
               </div>
-              {/* what this store has: full bottle and/or decant (Offers → format); no price on the results page */}
+              {/* what this store has: full bottle and/or decant (Offers → size_type); no price on the results page */}
               {(s.formats || []).length ? (
                 <span className="ffr-store-formats" aria-label={fr ? "Disponible en" : "متوفر"}>
                   {s.formats.map(f => <span key={f} className={"ffr-fmt ffr-fmt-" + f}>{f === "decant" ? (fr ? "Décante" : "ديكونط") : (fr ? "Flacon complet" : "قنينة كاملة")}</span>)}
