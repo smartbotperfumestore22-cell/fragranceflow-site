@@ -470,15 +470,13 @@ export function startSite({ loadQuiz }) {
     document.getElementById('sig3-desc').textContent = ex.persona.desc || '';
     var list = document.getElementById('sig3-perfumes'); list.textContent = '';
     ex.top3.forEach(function (p, i) {
-      var ring = h('span', { class: 'sig3-ring', 'aria-label': p.pct + '% مطابقة' });
-      ring.innerHTML = '<svg viewBox="0 0 44 44" aria-hidden="true"><circle cx="22" cy="22" r="19" class="t"/><circle cx="22" cy="22" r="19" class="v" pathLength="100" style="stroke-dasharray:' + p.pct + ' 100"/></svg>';
-      ring.appendChild(h('b', { class: 'latin', text: p.pct + '%' }));
-      ring.appendChild(h('small', { text: 'مطابقة' }));
+      // the rank, not a percentage: the example shows the order, like the real results
+      var ring = h('span', { class: 'sig3-ring', 'aria-hidden': 'true', text: ['🥇', '🥈', '🥉'][i] || '' });
       list.appendChild(h('li', {},
         h('a', { href: '#f-' + encodeURIComponent(p.id) },
           ring,
           h('img', { src: p.image, alt: '', loading: 'lazy', decoding: 'async', width: '172', height: '119' }),
-          h('span', { class: 'sig3-rank latin', text: '#' + (i + 1) }),
+          h('span', { class: 'sig3-rank', text: ['✨ الأكثر مطابقة لذوقك', 'اختيار قريب من ذوقك', 'اختيار آخر يستاهل التجربة'][i] || '#' + (i + 1) }),
           h('span', { class: 'sig3-pname latin', text: p.name }),
           h('span', { class: 'sig3-brand latin', text: p.brand }))));
     });

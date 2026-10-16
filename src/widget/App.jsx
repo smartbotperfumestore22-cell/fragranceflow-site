@@ -2640,16 +2640,11 @@ function PCard({ p, ans, isSmall=false, lang="ar" }) {
               #{p.slotType==="best" ? 1 : p.slotType==="mid" ? 2 : 3}
             </span>
             <span style={{ fontSize: p.slotType==="best" ? 12 : 11 }}>
-              {p.slotType==="best" ? (lang==="fr" ? "Meilleur choix" : "أفضل تطابق")
-                : p.slotType==="mid" ? (lang==="fr" ? "Deuxième choix" : "الاختيار الثاني")
-                : (lang==="fr" ? "Troisième choix" : "الاختيار الثالث")}
+              {p.slotType==="best" ? (lang==="fr" ? "✨ Le plus proche de vos goûts" : "✨ الأكثر مطابقة لذوقك")
+                : p.slotType==="mid" ? (lang==="fr" ? "Un choix proche de vos goûts" : "اختيار قريب من ذوقك")
+                : (lang==="fr" ? "Un autre choix à essayer" : "اختيار آخر يستاهل التجربة")}
             </span>
           </span>
-          {p._pct !== undefined && (
-            <span style={{ fontSize: p.slotType==="best" ? 15 : 13, fontWeight:800, direction:"ltr" }}>
-              {p._pct}% <span style={{ fontSize:10, fontWeight:600, opacity:.85 }}>{lang==="fr" ? "match" : "تطابق"}</span>
-            </span>
-          )}
         </div>
       )}
 
@@ -2736,9 +2731,8 @@ function PCard({ p, ans, isSmall=false, lang="ar" }) {
 
         {/* Match Score — خفيف للـ 3 عطور */}
         {ans && p.slotType && (()=>{
-          const {pct, criteria} = calcMatchScore(p, ans);
+          const {criteria} = calcMatchScore(p, ans);
           const isBest = p.slotType==="best";
-          const color  = pct>=80 ? "#2E8B5E" : pct>=60 ? "#5B2A86" : "#E05555";
           return (
             <div style={{ marginBottom:10 }}>
               {/* Badge صغير للـ 3 */}
@@ -2749,9 +2743,6 @@ function PCard({ p, ans, isSmall=false, lang="ar" }) {
                 border:`1px solid ${isBest ? "rgba(92,184,138,0.25)" : "rgba(91,42,134,0.12)"}`,
                 marginBottom: isBest ? 8 : 0,
               }}>
-                <span style={{ fontSize:10, fontWeight:900, color }}>
-                  {pct}%
-                </span>
                 <span style={{ fontSize:9, color:"rgba(91,42,134,0.7)", fontWeight:600 }}>
                   {lang==="fr" ? "correspond à vos critères" : "مطابق لذوقك"}
                 </span>
@@ -2860,7 +2851,7 @@ const RV_LABELS = {
     featured:"أفضل اختيار ليك", alt:"اختيار قوي",
     match:"Match", why:"علاش اخترناه ليك؟",
     matchShort:"توافق", matchHint:"درجة التوافق بين اختياراتك وهاد العطر",
-    rankLine:["🥇 أقرب اختيار لبصمتك", "🥈 كيشبه بزاف لذوقك", "🥉 اختيار قريب من ذوقك"],
+    rankLine:["✨ الأكثر مطابقة لذوقك", "اختيار قريب من ذوقك", "اختيار آخر يستاهل التجربة"],
     bridge:"وبناءً على بصمتك العطرية، هادو العطور اللي لقيناهم الأقرب لذوقك.",
     rows:{ gender:"لمن", family:"العائلة", vibe:"الطابع", occasion:"المناسبة", season:"الفصل", alsoOcc:"مناسبات أخرى", alsoSeason:"فصول أخرى" },
     profileSub:"بناءً على اختياراتك", profileNote:"اخترنا لك عطور قريبة من اختياراتك.", top3:"أفضل 3 عطور ليك",
@@ -2880,7 +2871,7 @@ const RV_LABELS = {
     featured:"Votre meilleur choix", alt:"Autre excellent choix",
     match:"Match", why:"Pourquoi ce choix ?",
     matchShort:"Affinité", matchHint:"Degré d'affinité entre vos choix et ce parfum",
-    rankLine:["🥇 Le plus proche de votre signature", "🥈 Très proche de vos goûts", "🥉 Un choix proche de vos goûts"],
+    rankLine:["✨ Le plus proche de vos goûts", "Un choix proche de vos goûts", "Un autre choix à essayer"],
     bridge:"D'après votre signature olfactive, voici les parfums les plus proches de vos goûts.",
     rows:{ gender:"Pour", family:"Famille", vibe:"Caractère", occasion:"Occasion", season:"Saison", alsoOcc:"Autres occasions", alsoSeason:"Autres saisons" },
     profileSub:"D'après vos réponses", profileNote:"Nous avons choisi des parfums proches de vos réponses.", top3:"Vos 3 meilleurs parfums",
@@ -2977,7 +2968,7 @@ function rvDistinct(p, peers, ans, lang) {
   const L = rvL(lang), fr = lang === "fr";
   const out = [];
   const isTop = p.slotType === "best";
-  if (isTop && p._pct !== undefined) out.push(fr ? `Le plus proche de vos réponses (${p._pct}%)` : `الأقرب لاختياراتك بنسبة ${p._pct}%`);
+  if (isTop) out.push(fr ? "Le plus proche de vos réponses" : "الأقرب لاختياراتك");
   // a family no other result has
   const peerFams = new Set(peers.flatMap(x => x.character || []));
   const ownFam = (p.character || []).find(c => !peerFams.has(c) && L.family[c]);
@@ -2999,7 +2990,7 @@ function rvDistinct(p, peers, ans, lang) {
   if (p.price && peers.length && peers.every(x => x.price && x.price > p.price))
     out.push(fr ? `Le plus abordable des trois (≈ ${p.price} ${L.price})` : `الأقل ثمناً بين الثلاثة (≈ ${p.price} ${L.price})`);
   if (!out.length && n > 0) out.push(fr ? `${n} notes proches de vos goûts` : `فيه ${n} نوتات قريبة من الذوق ديالك`);
-  if (!out.length && p._pct !== undefined) out.push(fr ? `Proche de vos réponses (${p._pct}%)` : `قريب من اختياراتك بنسبة ${p._pct}%`);
+  if (!out.length) out.push(fr ? "Proche de vos réponses" : "قريب من اختياراتك");
   return out.slice(0, 3);
 }
 
@@ -3335,9 +3326,6 @@ function RVCard({ p, ans, lang, rank, used, peers }) {
             <p className="ffr-brand">{p.brand}</p>
             <h3 className="ffr-name">{p.name}</h3>
           </div>
-          {p._pct !== undefined && (
-            <p className="ffr-match" title={L.matchHint}><b>{p._pct}%</b><span>{L.matchShort}</span></p>
-          )}
         </div>
         <RVFacts p={p} L={L} ans={ans}/>
         {reasons.length > 0 && (
@@ -3465,7 +3453,7 @@ function ResultsPage({ res, pers, ans, lang, t, questions, reset, favPicked, pic
         <ol className={"ffr-podium ffr-podium-n" + res.main.length} aria-label={L.top3}>
           {res.main.map((p, i) => (
             <li key={p.id} className={i === 0 ? "is-first" : undefined}>
-              <button type="button" className="ffr-pod" aria-label={"#" + (i + 1) + " " + p.brand + " " + p.name + (p._pct !== undefined ? " · " + p._pct + "% " + L.matchShort : "")}
+              <button type="button" className="ffr-pod" aria-label={"#" + (i + 1) + " " + p.brand + " " + p.name + (L.rankLine && L.rankLine[i] ? " · " + L.rankLine[i] : "")}
                 onClick={() => {
                   const el = document.getElementById("ffr-card-" + (i + 1));
                   if (!el) return;
@@ -3479,7 +3467,7 @@ function ResultsPage({ res, pers, ans, lang, t, questions, reset, favPicked, pic
                 </span>
                 <span className="ffr-pod-brand">{p.brand}</span>
                 <span className="ffr-pod-name">{p.name}</span>
-                {p._pct !== undefined && <span className="ffr-pod-pct"><b>{p._pct}%</b><small>{L.matchShort}</small></span>}
+                {L.rankLine && L.rankLine[i] ? <span className="ffr-pod-label">{L.rankLine[i]}</span> : null}
                 <svg className="ffr-pod-down" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
               </button>
             </li>

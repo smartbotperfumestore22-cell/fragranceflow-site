@@ -311,8 +311,7 @@ a { color: inherit; }
 .sig3-ring circle { fill: none; stroke-width: 2.6; }
 .sig3-ring .t { stroke: #EFE3F3; }
 .sig3-ring .v { stroke: var(--purple); stroke-linecap: round; }
-.sig3-ring b { position: relative; font-family: var(--font-body); font-size: .95rem; font-weight: 700; color: var(--ink); direction: ltr; }
-.sig3-ring small { position: relative; font-size: .6rem; color: var(--muted); margin-top: 2px; }
+.sig3-ring { font-size: 1.6rem; }
 .sig3-rank { font-size: .8rem; color: var(--rose-ink); font-family: var(--font-body); font-weight: 600; }
 .sig3-pname { font-size: 1.05rem; line-height: 1.15; text-align: center; overflow-wrap: anywhere; }
 .sig3-brand { font-family: var(--font-body); font-size: .6rem; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); text-align: center; }
@@ -784,21 +783,19 @@ a.dstore-name:hover { color: var(--purple); text-decoration-color: currentColor;
 #ff-widget-root .ffr-pod-img img { width: 100%; height: 100%; object-fit: cover; display: block; }
 #ff-widget-root .ffr-pod-brand { font-size: .62rem; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); direction: ltr; unicode-bidi: isolate; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 #ff-widget-root .ffr-pod-name { font-family: var(--font-latin); font-weight: 600; font-size: 1.02rem; line-height: 1.15; direction: ltr; unicode-bidi: isolate; overflow-wrap: anywhere; min-height: 2.3em; display: flex; align-items: flex-start; justify-content: center; }
-#ff-widget-root .ffr-pod-pct { display: flex; flex-direction: column; align-items: center; margin-top: 4px; }
-#ff-widget-root .ffr-pod-pct b { font-family: var(--font-latin); font-weight: 600; font-size: 1.7rem; line-height: 1; color: var(--purple); direction: ltr; font-variant-numeric: tabular-nums; }
-#ff-widget-root .ffr-pod-pct small { font-size: .74rem; color: var(--muted); margin-top: 3px; }
+#ff-widget-root .ffr-pod-label { margin-top: 4px; font-size: .74rem; font-weight: 600; line-height: 1.45; color: var(--rose-ink); }
 #ff-widget-root .ffr-pod-down { width: 18px; height: 18px; color: var(--rose); margin-top: 2px; }
 #ff-widget-root .ffr-podium .is-first .ffr-pod { border-color: var(--plum); box-shadow: 0 0 0 1px var(--plum), var(--shadow); padding-top: 16px; padding-bottom: 14px; background: linear-gradient(180deg, var(--mist), var(--paper) 55%); }
-#ff-widget-root .ffr-podium .is-first .ffr-pod-pct b { color: var(--plum); font-size: 2.1rem; }
+#ff-widget-root .ffr-podium .is-first .ffr-pod-label { color: var(--plum); font-size: .8rem; }
 #ff-widget-root .ffr-podium .is-first .ffr-pod-rank { font-size: 1.55rem; }
 @media (min-width: 700px) {
   #ff-widget-root .ffr-podium { gap: 20px; max-width: 720px; margin-inline: auto !important; width: 100%; }
   #ff-widget-root .ffr-pod { padding: 18px 16px 14px; gap: 6px; }
   #ff-widget-root .ffr-pod-brand { font-size: .7rem; }
   #ff-widget-root .ffr-pod-name { font-size: 1.35rem; }
-  #ff-widget-root .ffr-pod-pct b { font-size: 2.2rem; }
+  #ff-widget-root .ffr-pod-label { font-size: .86rem; }
   #ff-widget-root .ffr-podium .is-first .ffr-pod { padding-top: 26px; padding-bottom: 20px; }
-  #ff-widget-root .ffr-podium .is-first .ffr-pod-pct b { font-size: 2.8rem; }
+  #ff-widget-root .ffr-podium .is-first .ffr-pod-label { font-size: .92rem; }
 }
 @media (prefers-reduced-motion: no-preference) { #ff-widget-root .ffr-pod:hover { transform: translateY(-2px); } }
 
