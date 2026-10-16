@@ -589,7 +589,7 @@ function calcMatchScore(p, ans) {
   // يعني ما يقدرش يكون أعلى من الـ slot pct
   // لكن يقدر ينزل إلا المعايير ناقصة
   // الـ pct المعروض = _pct مباشرة من الـ scoring الحقيقي
-  const pct = p._pct !== undefined ? p._pct : Math.min(rawPct, 100);
+  const pct = p._match !== undefined ? p._match : p._pct !== undefined ? p._pct : Math.min(rawPct, 100);
 
   return { pct, criteria };
 }
@@ -1880,6 +1880,188 @@ function similarityScore(p1, p2) {
   }
   return score;
 }
+// ═══════════════════════════════════════════════════════════════
+//  MATCH % («توافق») — what the visitor reads on each result.
+//  How many of the visitor's own answers this fragrance meets, weighted:
+//  family 35 · occasion 25 · impression 20 · gender 10 · season 5 · notes 5.
+//  Questions not answered are left out of the total. Capped at 98%, no minimum.
+//  It explains a result; it never chooses or orders them (scoreP + getResults do that).
+//  The occasion and notes parts reuse scoreP's own rules (copied below unchanged), on their own scale.
+// ═══════════════════════════════════════════════════════════════
+function scorePOccasionPart(p, ans) {
+  let s = 0;
+  // ── OCCASION — وزن 25 ────────────────────────────────
+  const occ = mapOccasion(ans.occasion);
+  const isEveningUser = ans.occasion==="evening" || ans.occasion==="dates";
+  const prodIsEveningOnly = (p.occasion||[]).every(o=>o==="evening"||o==="dates");
+  const prodIsDailyOnly   = (p.occasion||[]).every(o=>o==="daily");
+  const prodIsAllDay      = (p.occasion||[]).includes("allday") || (p.occasion||[]).length > 1;
+
+  if ((p.occasion||[]).includes(occ) || (p.occasion||[]).includes(ans.occasion)) {
+    s += 20;
+    if (isEveningUser && prodIsEveningOnly) s += 5;
+ } else if (isEveningUser && prodIsDailyOnly) {
+    // penalty حسب الـ flexibility
+    const flexP = getFlexibility(p.character);
+    if (flexP === 3) s -= 8;       // منعش/نظيف → penalty خفيف
+    else if (flexP === 2) s -= 16; // متوسط
+    else s -= 28;                  // heavy/oriental → penalty قوي
+  } else if (!isEveningUser && prodIsEveningOnly) {
+    // زبون يبغي يومي + عطر سهرات فقط — penalty
+    s -= 18;
+  } else if (prodIsAllDay) {
+    // مناسب لكل المناسبات — نص البونوس
+    s += 8;
+  } else {
+    s -= 3;
+  }
+  return s;
+}
+function scorePNotesPart(p, ans) {
+  let s = 0;
+  const char = mapCharacter(ans.character);
+  const season = mapSeason(ans.season);
+  // ── TIER 5: NOTES MATCHING + PENALTY ───────────────────
+  const prefs = NOTES_PREFS[char]||[];
+  const allNotes = [...(p.notes?.top||[]),...(p.notes?.middle||[]),...(p.notes?.base||[])];
+
+  // Bonus — نوتات تطابق العائلة
+  const matchCount = allNotes.filter(n=>prefs.some(pn=>n.toLowerCase().includes(pn.toLowerCase()))).length;
+  s += Math.min(matchCount*0.5, 2);
+
+  // ── NOTES BONUS/PENALTY ±10 ────────────────────────────
+  // إلا الزبون اختار fresh — النوتات الثقيلة كتعارض ذوقه
+  const freshAntiNotes  = ["Vanilla","Sandalwood","Tobacco","Leather","Oud","Incense","Amber","Resin","Patchouli","Caramel","Ginger","Spice","Cinnamon","Cardamom","Pepper","Tonka","Honey","Wood"];
+  const freshProNotes   = ["Bergamot","Lemon","Citrus","Grapefruit","Sea Notes","Aquatic","Mint","Green Notes","Neroli","Lime","Orange"];
+  const heavyProNotes   = ["Oud","Amber","Leather","Tobacco","Incense","Saffron","Resin","Musk","Sandalwood","Patchouli"];
+  const floralProNotes  = ["Rose","Jasmine","Iris","Lily","Peony","Violet","Ylang","Magnolia","Gardenia"];
+
+  // Notes scoring حسب الـ subtags
+  const userChar = ans.character;
+if (userChar === "aquatic") {
+  const aquaMatch = allNotes.filter(n=>["Sea Notes","Aquatic","Marine","Ozone","Water","Calone"].some(an=>n.toLowerCase().includes(an.toLowerCase()))).length;
+  s += Math.min(aquaMatch * 3, 12);
+  const heavyMatch = allNotes.filter(n=>["Oud","Leather","Tobacco","Incense"].some(an=>n.toLowerCase().includes(an.toLowerCase()))).length;
+  s -= Math.min(heavyMatch * 4, 16);
+}
+else if (userChar === "musky") {
+  const muskyMatch = allNotes.filter(n=>["White Musk","Musk","Ambroxan","Cashmeran","Musks"].some(an=>n.toLowerCase().includes(an.toLowerCase()))).length;
+  s += Math.min(muskyMatch * 3, 12);
+  const heavyAnti = ["Oud","Leather","Tobacco","Incense"];
+  const heavyMatch = allNotes.filter(n=>heavyAnti.some(an=>n.toLowerCase().includes(an.toLowerCase()))).length;
+  s -= Math.min(heavyMatch * 3, 12);
+}
+else if (userChar === "fresh") {
+    // منعش وحمضي → يبحث عن Citrus + Fresh notes
+    const citrусMatch = allNotes.filter(n=>freshProNotes.some(fn=>n.toLowerCase().includes(fn.toLowerCase()))).length;
+    s += Math.min(citrусMatch * 3, 12);
+    const heavyMatch = allNotes.filter(n=>freshAntiNotes.some(an=>n.toLowerCase().includes(an.toLowerCase()))).length;
+    s -= Math.min(heavyMatch * 4, 20);
+  }
+  else if (userChar === "clean") {
+    // نظيف ومسكي → يبحث عن Musk + Clean notes
+    const cleanNotes = ["Musk","White Musk","Soap","Clean","Powder","Iris","Neroli","Cotton","Aldehyde","Ambroxan","Cashmeran"];
+    const cleanMatch = allNotes.filter(n=>cleanNotes.some(cn=>n.toLowerCase().includes(cn.toLowerCase()))).length;
+    s += Math.min(cleanMatch * 3, 12);
+    // Penalty للنوتات الثقيلة جداً
+    const heavyAnti = ["Oud","Leather","Tobacco","Incense"];
+    const heavyMatch = allNotes.filter(n=>heavyAnti.some(an=>n.toLowerCase().includes(an.toLowerCase()))).length;
+    s -= Math.min(heavyMatch * 3, 12);
+    // Penalty للحلاوة الثقيلة — مسكي نظيف ≠ حلو بالفانيلا
+    const sweetAnti = ["Vanilla","Caramel","Tonka","Praline","Sugar","Chocolate","Cacao"];
+    const sweetMatch = allNotes.filter(n=>sweetAnti.some(sn=>n.toLowerCase().includes(sn.toLowerCase()))).length;
+    s -= Math.min(sweetMatch * 4, 16);
+  }
+  else if (userChar === "oriental") {
+    // شرقي وعميق → Oud + Amber + Incense + Resins
+    const orientalNotes = ["Oud","Amber","Incense","Saffron","Resins","Benzoin","Frankincense","Myrrh"];
+    const orMatch = allNotes.filter(n=>orientalNotes.some(on=>n.toLowerCase().includes(on.toLowerCase()))).length;
+    s += Math.min(orMatch * 4, 16);
+    // penalty للحلاوة الخفيفة (مش oriental حقيقي)
+    const sweetLight = ["Caramel","Sugar","Marshmallow","Praline"];
+    const slMatch = allNotes.filter(n=>sweetLight.some(sl=>n.toLowerCase().includes(sl.toLowerCase()))).length;
+    s -= Math.min(slMatch * 2, 8);
+    // penalty للنوتات المنعشة
+    const freshPenalty = ["Citrus","Grapefruit","Aquatic","Sea","Marine"];
+    const fpMatch = allNotes.filter(n=>freshPenalty.some(fp=>n.toLowerCase().includes(fp.toLowerCase()))).length;
+    s -= Math.min(fpMatch * 3, 9);
+  }
+  else if (userChar === "sweet") {
+    // حلو ودافئ → Vanilla + Caramel + Tonka + Sugar
+    const sweetNotes = ["Vanilla","Caramel","Tonka","Honey","Sugar","Praline","Toffee","Chocolate","Marshmallow","Cacao"];
+    const sweetMatch = allNotes.filter(n=>sweetNotes.some(sn=>n.toLowerCase().includes(sn.toLowerCase()))).length;
+    s += Math.min(sweetMatch * 4, 16);
+    // penalty للبخور والعود الثقيل (حلو ≠ شرقي)
+    const heavyScentAnti = ["Incense","Frankincense","Myrrh","Oud"];
+    const haMatch = allNotes.filter(n=>heavyScentAnti.some(ha=>n.toLowerCase().includes(ha.toLowerCase()))).length;
+    s -= Math.min(haMatch * 3, 9);
+  }
+  else if (userChar === "floral") {
+    const floralMatch = allNotes.filter(n=>floralProNotes.some(fn=>n.toLowerCase().includes(fn.toLowerCase()))).length;
+    s += Math.min(floralMatch * 3, 12);
+  }
+    // إلا الزبون اختار floral + صيف/ربيع → penalty للعطور اللي فيها Oud/Oriental ثقيل
+  if (userChar === "floral" && (season === "summer" || season === "spring")) {
+    const heavyBaseNotes = ["Oud","Leather","Tobacco","Incense","Resin","Patchouli","Benzoin","Amber"];
+    const baseNotes = p.notes?.base || [];
+    const heavyBaseCount = baseNotes.filter(n=>heavyBaseNotes.some(h=>n.toLowerCase().includes(h.toLowerCase()))).length;
+    if (heavyBaseCount >= 2) s -= Math.min(heavyBaseCount * 6, 18);
+  }
+   
+  else if (char === "heavy" || userChar === "heavy") {
+    const richMatch = allNotes.filter(n=>heavyProNotes.some(hn=>n.toLowerCase().includes(hn.toLowerCase()))).length;
+    s += Math.min(richMatch * 2, 8);
+  }
+  return s;
+}
+const MATCH_NOTES_CAP = { aquatic:12, musky:12, fresh:12, clean:12, oriental:16, sweet:16, floral:12, heavy:8 };
+function calcMatchPct(p, ans) {
+  const clamp01 = (x) => Math.max(0, Math.min(1, x));
+  let got = 0, max = 0;
+  const add = (w, pts) => { got += pts; max += w; };
+  const pc = p.character || [], po = p.occasion || [], ps = p.season || [];
+  if (ans.character) {
+    // family: same family 35 · same group (fresh side / deep side) 17.5 · opposite 0
+    const freshG = ["fresh","clean","citrus","musky","fruity","aquatic"], heavyG = ["heavy","oriental","sweet","woody","leather"];
+    let fam = 0;
+    if (charMatches(pc, ans.character)) fam = 35;
+    else {
+      const uc = mapCharacter(ans.character);
+      const uF = freshG.includes(ans.character) || freshG.includes(uc), uH = heavyG.includes(ans.character) || heavyG.includes(uc);
+      if ((uF && pc.some(c => freshG.includes(c))) || (uH && pc.some(c => heavyG.includes(c)))) fam = 17.5;
+    }
+    add(35, fam);
+    // notes: scoreP's notes rules for the chosen family, on their own scale
+    const nMax = 2 + (MATCH_NOTES_CAP[ans.character] || 0);
+    add(5, clamp01(scorePNotesPart(p, ans) / nMax) * 5);
+  }
+  if (ans.occasion) {
+    // occasion: scoreP's occasion rules (20 when it fits, +5 when made for the evening the visitor chose)
+    const evening = ans.occasion === "evening" || ans.occasion === "dates";
+    add(25, clamp01(scorePOccasionPart(p, ans) / (evening ? 25 : 20)) * 25);
+  }
+  if (ans.impression) {
+    // impression: gives it 20 · gives a close one 10 · otherwise 0
+    const imps = p.impression || autoImpressions(pc, po);
+    const sim = IMPRESSION_SIMILARITY[ans.impression] || {};
+    add(20, imps.includes(ans.impression) ? 20 : imps.some(i => (sim[i] || 0) >= 7) ? 10 : 0);
+  }
+  if (ans.gender) {
+    const g = p.gender || [];
+    add(10, g.includes(ans.gender) ? 10 : g.includes("unisex") ? 5 : 0);
+  }
+  if (ans.season) {
+    const all = ps.includes("allseasons");
+    const warm = ps.some(x => x === "summer" || x === "spring"), cold = ps.some(x => ["winter","autumn","fall"].includes(x));
+    let v = 0;
+    if (ans.season === "allseasons") v = all || (warm && cold) ? 5 : 2.5;
+    else if (ans.season === "summer") v = all || warm ? 5 : ps.some(x => x === "autumn" || x === "fall") ? 2.5 : 0;
+    else if (ans.season === "winter") v = all || cold ? 5 : ps.includes("spring") ? 2.5 : 0;
+    add(5, v);
+  }
+  return max ? Math.min(98, Math.round(got / max * 100)) : undefined;
+}
+
 function getResults(ans) {
   const scored = getProducts()
     .filter(p => p.active !== false) // ← حذف العطور غير المتوفرة
@@ -1939,7 +2121,9 @@ const slot1 = scored[0];
     ...p,
     slotType: i===0 ? "best" : i===1 ? "mid" : "third",
     _pct: adjustedPcts[i],
-  })).filter(p => p._pct >= 75); // عرض فقط العطور ≥ 75%
+  })).filter(p => p._pct >= 75) // عرض فقط العطور ≥ 75%
+    // the % the visitor reads («توافق»): computed from their answers only; _pct stays internal (filter, notes)
+    .map(p => ({ ...p, _match: calcMatchPct(p, ans) }));
 
   const mainIds = main.map(p=>p.id);
   const usedIds = new Set(mainIds); // نتتبع كل IDs مستخدمة
@@ -2645,9 +2829,9 @@ function PCard({ p, ans, isSmall=false, lang="ar" }) {
                 : (lang==="fr" ? "Troisième choix" : "الاختيار الثالث")}
             </span>
           </span>
-          {p._pct !== undefined && (
+          {(p._match ?? p._pct) !== undefined && (
             <span style={{ fontSize: p.slotType==="best" ? 15 : 13, fontWeight:800, direction:"ltr" }}>
-              {p._pct}% <span style={{ fontSize:10, fontWeight:600, opacity:.85 }}>{lang==="fr" ? "match" : "تطابق"}</span>
+              {p._match ?? p._pct}% <span style={{ fontSize:10, fontWeight:600, opacity:.85 }}>{lang==="fr" ? "match" : "تطابق"}</span>
             </span>
           )}
         </div>
@@ -2977,7 +3161,8 @@ function rvDistinct(p, peers, ans, lang) {
   const L = rvL(lang), fr = lang === "fr";
   const out = [];
   const isTop = p.slotType === "best";
-  if (isTop && p._pct !== undefined) out.push(fr ? `Le plus proche de vos réponses (${p._pct}%)` : `الأقرب لاختياراتك بنسبة ${p._pct}%`);
+  const shownPct = p._match !== undefined ? p._match : p._pct;
+  if (isTop && shownPct !== undefined) out.push(fr ? `Le plus proche de vos réponses (${shownPct}%)` : `الأقرب لاختياراتك بنسبة ${shownPct}%`);
   // a family no other result has
   const peerFams = new Set(peers.flatMap(x => x.character || []));
   const ownFam = (p.character || []).find(c => !peerFams.has(c) && L.family[c]);
@@ -2999,7 +3184,7 @@ function rvDistinct(p, peers, ans, lang) {
   if (p.price && peers.length && peers.every(x => x.price && x.price > p.price))
     out.push(fr ? `Le plus abordable des trois (≈ ${p.price} ${L.price})` : `الأقل ثمناً بين الثلاثة (≈ ${p.price} ${L.price})`);
   if (!out.length && n > 0) out.push(fr ? `${n} notes proches de vos goûts` : `فيه ${n} نوتات قريبة من الذوق ديالك`);
-  if (!out.length && p._pct !== undefined) out.push(fr ? `Proche de vos réponses (${p._pct}%)` : `قريب من اختياراتك بنسبة ${p._pct}%`);
+  if (!out.length && shownPct !== undefined) out.push(fr ? `Proche de vos réponses (${shownPct}%)` : `قريب من اختياراتك بنسبة ${shownPct}%`);
   return out.slice(0, 3);
 }
 
@@ -3335,8 +3520,8 @@ function RVCard({ p, ans, lang, rank, used, peers }) {
             <p className="ffr-brand">{p.brand}</p>
             <h3 className="ffr-name">{p.name}</h3>
           </div>
-          {p._pct !== undefined && (
-            <p className="ffr-match" title={L.matchHint}><b>{p._pct}%</b><span>{L.matchShort}</span></p>
+          {(p._match ?? p._pct) !== undefined && (
+            <p className="ffr-match" title={L.matchHint}><b>{p._match ?? p._pct}%</b><span>{L.matchShort}</span></p>
           )}
         </div>
         <RVFacts p={p} L={L} ans={ans}/>
@@ -3465,7 +3650,7 @@ function ResultsPage({ res, pers, ans, lang, t, questions, reset, favPicked, pic
         <ol className={"ffr-podium ffr-podium-n" + res.main.length} aria-label={L.top3}>
           {res.main.map((p, i) => (
             <li key={p.id} className={i === 0 ? "is-first" : undefined}>
-              <button type="button" className="ffr-pod" aria-label={"#" + (i + 1) + " " + p.brand + " " + p.name + (p._pct !== undefined ? " · " + p._pct + "% " + L.matchShort : "")}
+              <button type="button" className="ffr-pod" aria-label={"#" + (i + 1) + " " + p.brand + " " + p.name + ((p._match ?? p._pct) !== undefined ? " · " + (p._match ?? p._pct) + "% " + L.matchShort : "")}
                 onClick={() => {
                   const el = document.getElementById("ffr-card-" + (i + 1));
                   if (!el) return;
@@ -3479,7 +3664,7 @@ function ResultsPage({ res, pers, ans, lang, t, questions, reset, favPicked, pic
                 </span>
                 <span className="ffr-pod-brand">{p.brand}</span>
                 <span className="ffr-pod-name">{p.name}</span>
-                {p._pct !== undefined && <span className="ffr-pod-pct"><b>{p._pct}%</b><small>{L.matchShort}</small></span>}
+                {(p._match ?? p._pct) !== undefined && <span className="ffr-pod-pct"><b>{p._match ?? p._pct}%</b><small>{L.matchShort}</small></span>}
                 <svg className="ffr-pod-down" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
               </button>
             </li>
@@ -3828,7 +4013,7 @@ window.FF_SIGNATURE_EXAMPLE = function () {
   return {
     answers: ["occasion", "season", "character", "impression"].map(label).filter(Boolean),
     persona: buildPersona(na),
-    top3: results.main.slice(0, 3).map(p => ({ id: p.id, name: p.name, brand: p.brand, image: p.image, pct: p._pct })),
+    top3: results.main.slice(0, 3).map(p => ({ id: p.id, name: p.name, brand: p.brand, image: p.image, pct: p._match ?? p._pct })),
   };
 };
 
