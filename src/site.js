@@ -388,7 +388,7 @@ export function startSite({ loadQuiz }) {
   function storeOffers(p) {
     return (p.stores || []).map(function (s) {
       var wa = /^https:\/\/wa\.me\//.test(s.url || '');
-      return { id: s.storeId || '', name: s.name || 'محل شريك', city: s.city || '', price: s.price || 0, size: s.size || '',
+      return { id: s.storeId || '', name: s.name || 'محل شريك', city: s.city || '', price: s.price || 0, size: s.size || '', formats: s.formats || [],
         page: s.page !== undefined ? s.page : (wa ? '' : s.url || ''), whatsapp: s.whatsapp !== undefined ? s.whatsapp : (wa ? s.url : '') };
     }).filter(function (s) { return s.page || s.whatsapp; });
   }
@@ -401,8 +401,10 @@ export function startSite({ loadQuiz }) {
         : h('span', { class: 'dstore-name', text: s.name });
       ul.appendChild(h('li', { class: 'dstore' },
         h('div', { class: 'dstore-id' }, name, s.city ? h('span', { class: 'dstore-city', text: s.city }) : null),
-        s.price || s.size ? h('p', { class: 'dstore-price' }, s.price ? h('b', { class: 'latin', text: fmtPrice(s.price) + ' DH' }) : null,
-          s.size ? h('small', { class: 'dstore-size latin', text: s.size }) : null) : null,
+        // what this store has: full bottle and/or decant (Offers → format); prices are not shown
+        s.formats.length ? h.apply(null, ['p', { class: 'dstore-formats', 'aria-label': 'متوفر' }].concat(s.formats.map(function (f) {
+          return h('span', { class: 'dstore-fmt dstore-fmt-' + f, text: f === 'decant' ? 'ديكونط' : 'قنينة كاملة' });
+        }))) : null,
         s.whatsapp ? h('a', { class: 'btn ghost dstore-wa', href: s.whatsapp, target: '_blank', rel: 'noopener',
           onclick: function () { if (window.track) window.track('whatsapp_click', data); } }, '💬 اطلب عبر واتساب') : null));
     });

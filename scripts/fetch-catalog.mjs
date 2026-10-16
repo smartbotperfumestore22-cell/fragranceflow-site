@@ -21,6 +21,16 @@ const isOff = (v) => ["false", "0", "no", "non", "لا"].includes(str(v).toLower
 const num = (v) => { const n = Number(String(v ?? "").replace(/[^\d.]/g, "")); return Number.isFinite(n) && n > 0 ? n : 0; };
 
 let WARN = [], POP = null, STORES = null;
+// Offers → format: "full", "decant" or "both" (Arabic / French words accepted). Empty = not said (nothing shown); null = not understood.
+function offerFormat(v) {
+  const t = str(v).toLowerCase();
+  if (!t) return [];
+  if (/both|deux|بجوج|جوج|الإثنين|الاثنين|كلاهما/.test(t)) return ["full", "decant"];
+  const out = [];
+  if (/full|flacon|bouteille|bottle|كامل|قنينة|قارورة|زجاجة/.test(t)) out.push("full");
+  if (/d[ée]cant|ديك|ديكونط|ديكانت/.test(t)) out.push("decant");
+  return out.length ? out : null;
+}
 function keep(value, why) {
   writeFileSync(OUT, JSON.stringify(value, null, 1) + "\n");
   console.log("[catalog] " + why);
@@ -57,9 +67,20 @@ function build(data) {
     // main link kept for older parts of the site: product page, else WhatsApp (as before)
     const url = productUrl || whatsapp;
     if (!page && !whatsapp) continue; // no way to reach the store
-    (offers[pid] = offers[pid] || []).push({ storeId: sid, name: st.name, city: st.city, price: num(o.price) || null, size: str(o.size),
-      url, page, whatsapp });
+    // what the store sells for this fragrance (Offers → format): full bottle, decant, or both
+    const fmt = offerFormat(o.format ?? o.type ?? o.size_type);
+    if (fmt === null) warn.push(`Offers: format "${str(o.format ?? o.type)}" for ${pid} / ${sid} not understood (use full, decant or both)`);
+    const list = (offers[pid] = offers[pid] || []);
+    const same = list.find((x) => x.storeId === sid);
+    if (same) { // the same store on two rows (e.g. one full, one decant): one store, both formats
+      (fmt || []).forEach((f) => { if (!same.formats.includes(f)) same.formats.push(f); });
+      if (!same.page && page) same.page = page;
+      continue;
+    }
+    list.push({ storeId: sid, name: st.name, city: st.city, price: num(o.price) || null, size: str(o.size),
+      url, page, whatsapp, formats: fmt || [] });
   }
+  for (const pid in offers) offers[pid].forEach((x) => x.formats.sort((a, b) => (a === "full" ? -1 : b === "full" ? 1 : 0)));
   const seen = new Set(), out = [];
   (data.perfumes || []).forEach((p, i) => {
     const row = i + 2, id = str(p.perfume_id), name = str(p.name), brand = str(p.brand), gender = str(p.gender).toLowerCase();
