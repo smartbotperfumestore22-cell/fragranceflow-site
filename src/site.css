@@ -961,3 +961,24 @@ a.dstore-name:hover { color: var(--purple); text-decoration-color: currentColor;
 @media (max-width: 559px) {
   #ff-widget-root .ffr-store-formats, .dstore-formats { grid-column: 1 / -1; justify-content: flex-start; }
 }
+
+/* homepage → for perfume shops: a quiet band after the final call to action, before the footer */
+.biz-cta { background: var(--ivory); border-bottom: 1px solid var(--line); padding-block: 36px; }
+.biz-cta-inner { display: flex; align-items: center; gap: 16px 20px; flex-wrap: wrap; }
+.biz-cta-ic { flex: none; width: 52px; height: 52px; border-radius: 50%; display: grid; place-items: center; color: var(--plum); background: #FFFFFF; border: 1px solid rgba(201, 154, 139, .7); }
+.biz-cta-ic svg { width: 26px; height: 26px; }
+.biz-cta-copy { flex: 1 1 260px; min-width: 0; }
+.biz-cta-copy h2 { font-family: var(--font-display); font-weight: 700; font-size: clamp(1.35rem, 3.6vw, 1.7rem); line-height: 1.3; color: var(--ink); }
+.biz-cta-copy p { margin-top: 2px; color: var(--muted); font-size: 1rem; }
+.biz-cta-link { display: inline-flex; align-items: center; gap: 8px; min-height: 48px; padding: 10px 22px; border-radius: 999px; border: 1px solid var(--plum); color: var(--plum); background: #FFFFFF; font-weight: 600; text-decoration: none; white-space: nowrap; transition: background .2s, color .2s; }
+.biz-cta-link .latin { font-family: var(--font-latin); font-size: 1.12em; font-weight: 600; }
+.biz-cta-link:hover { background: var(--plum); color: #FFFFFF; }
+.biz-cta-link:focus-visible { outline: 2px solid var(--purple); outline-offset: 3px; }
+.biz-cta-link .arrow { transition: transform .35s var(--ease); }
+@media (prefers-reduced-motion: no-preference) { .biz-cta-link:hover .arrow { transform: scaleX(-1) translateX(4px); } }
+@media (max-width: 559px) {
+  .biz-cta { padding-block: 30px; }
+  .biz-cta-copy { flex: 1 1 0; }
+  .biz-cta-ic { width: 46px; height: 46px; }
+  .biz-cta-link { flex: 1 1 100%; justify-content: center; }
+}
