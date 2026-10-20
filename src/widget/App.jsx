@@ -2642,7 +2642,7 @@ function PCard({ p, ans, isSmall=false, lang="ar" }) {
             <span style={{ fontSize: p.slotType==="best" ? 12 : 11 }}>
               {p.slotType==="best" ? (lang==="fr" ? "✨ Le plus proche de vos goûts" : "✨ الأكثر مطابقة لذوقك")
                 : p.slotType==="mid" ? (lang==="fr" ? "Un choix proche de vos goûts" : "اختيار قريب من ذوقك")
-                : (lang==="fr" ? "Un autre choix à essayer" : "اختيار آخر يستاهل التجربة")}
+                : (lang==="fr" ? "Un autre choix proche de vos goûts" : "اختيار آخر قريب من ذوقك")}
             </span>
           </span>
         </div>
@@ -2851,10 +2851,10 @@ const RV_LABELS = {
     featured:"أفضل اختيار ليك", alt:"اختيار قوي",
     match:"Match", why:"علاش اخترناه ليك؟",
     matchShort:"توافق", matchHint:"درجة التوافق بين اختياراتك وهاد العطر",
-    rankLine:["✨ الأكثر مطابقة لذوقك", "اختيار قريب من ذوقك", "اختيار آخر يستاهل التجربة"],
+    rankLine:["✨ الأكثر مطابقة لذوقك", "اختيار قريب من ذوقك", "اختيار آخر قريب من ذوقك"],
     bridge:"وبناءً على بصمتك العطرية، هادو العطور اللي لقيناهم الأقرب لذوقك.",
     rows:{ gender:"لمن", family:"العائلة", vibe:"الطابع", occasion:"المناسبة", season:"الفصل", alsoOcc:"مناسبات أخرى", alsoSeason:"فصول أخرى" },
-    profileSub:"بناءً على اختياراتك", profileNote:"اخترنا لك عطور قريبة من اختياراتك.", top3:"أفضل 3 عطور ليك",
+    profileSub:"بناءً على اختياراتك", profileNote:"اخترنا لك العطور الأقرب لذوقك.", top3:"أفضل 3 عطور ليك",
     view:"شوف العطر", where:"فين تلقاه؟", buy:"شوف المنتج", price:"درهم",
     approx:"تقريباً", more:"يمكن يعجبوك حتى هادو", retry:"دير الاختبار من جديد", all:"اكتشف جميع العطور",
     sponsored:"Sponsorisé",
@@ -2871,10 +2871,10 @@ const RV_LABELS = {
     featured:"Votre meilleur choix", alt:"Autre excellent choix",
     match:"Match", why:"Pourquoi ce choix ?",
     matchShort:"Affinité", matchHint:"Degré d'affinité entre vos choix et ce parfum",
-    rankLine:["✨ Le plus proche de vos goûts", "Un choix proche de vos goûts", "Un autre choix à essayer"],
+    rankLine:["✨ Le plus proche de vos goûts", "Un choix proche de vos goûts", "Un autre choix proche de vos goûts"],
     bridge:"D'après votre signature olfactive, voici les parfums les plus proches de vos goûts.",
     rows:{ gender:"Pour", family:"Famille", vibe:"Caractère", occasion:"Occasion", season:"Saison", alsoOcc:"Autres occasions", alsoSeason:"Autres saisons" },
-    profileSub:"D'après vos réponses", profileNote:"Nous avons choisi des parfums proches de vos réponses.", top3:"Vos 3 meilleurs parfums",
+    profileSub:"D'après vos réponses", profileNote:"Nous avons choisi les parfums les plus proches de vos goûts.", top3:"Vos 3 meilleurs parfums",
     view:"Voir le parfum", where:"Où le trouver ?", buy:"Voir le produit", price:"DH",
     approx:"environ", more:"Vous pourriez aussi aimer", retry:"Refaire le quiz", all:"Découvrir tous les parfums",
     sponsored:"Sponsorisé",

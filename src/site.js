@@ -476,7 +476,7 @@ export function startSite({ loadQuiz }) {
         h('a', { href: '#f-' + encodeURIComponent(p.id) },
           ring,
           h('img', { src: p.image, alt: '', loading: 'lazy', decoding: 'async', width: '172', height: '119' }),
-          h('span', { class: 'sig3-rank', text: ['✨ الأكثر مطابقة لذوقك', 'اختيار قريب من ذوقك', 'اختيار آخر يستاهل التجربة'][i] || '#' + (i + 1) }),
+          h('span', { class: 'sig3-rank', text: ['✨ الأكثر مطابقة لذوقك', 'اختيار قريب من ذوقك', 'اختيار آخر قريب من ذوقك'][i] || '#' + (i + 1) }),
           h('span', { class: 'sig3-pname latin', text: p.name }),
           h('span', { class: 'sig3-brand latin', text: p.brand }))));
     });
