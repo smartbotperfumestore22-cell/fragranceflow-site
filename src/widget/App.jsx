@@ -594,6 +594,26 @@ function calcMatchScore(p, ans) {
   return { pct, criteria };
 }
 
+// A note name matches a key only as a whole word: "Rose" is not "Tuberose", "Rosemary" or "Rosewood",
+// "Apple" is not "Pineapple". "Cedar" also covers "Cedarwood".
+function noteIs(note, key) {
+  const k = String(key).toLowerCase().replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  return new RegExp("(^|[^a-z])" + k + (key === "Cedar" ? "(wood)?" : "") + "([^a-z]|$)").test(String(note).toLowerCase());
+}
+// Arabic names for the notes of each family (NOTES_PREFS), used to say which of the visitor's notes a fragrance has
+const NOTE_AR = {
+  "Vanilla":"الفانيلا","Amber":"العنبر","Oud":"العود","Musk":"المسك","Sandalwood":"الصندل","Tobacco":"التبغ","Patchouli":"الباتشولي","Incense":"البخور",
+  "Bergamot":"البرغموت","Lemon":"الليمون","Citrus":"الحمضيات","Grapefruit":"الجريب فروت","Green Notes":"النوتات الخضراء","Lavender":"اللافندر","Rosemary":"إكليل الجبل","Mint":"النعناع",
+  "Peach":"الخوخ","Berry":"التوت","Apple":"التفاح","Raspberry":"التوت الأحمر","Cherry":"الكرز","Pineapple":"الأناناس","Mango":"المانجو","Blackberry":"العليق","Strawberry":"الفراولة","Pear":"الإجاص",
+  "Soap":"الصابون","Powder":"البودرة","Aldehyde":"الألدهيدات","Cotton":"القطن","Powdery":"البودرة","Clean":"النظافة",
+  "White Musk":"المسك الأبيض","Ambroxan":"الأمبروكسان","Cashmeran":"الكشميران","Woody Notes":"النوتات الخشبية","Musks":"المسك",
+  "Rose":"الورد","Jasmine":"الياسمين","Iris":"الأيريس","Violet":"البنفسج","Lily":"الزنبق","Hedione":"الهيديون","Peony":"الفاوانيا","Magnolia":"الماغنوليا",
+  "Sea Notes":"النوتات البحرية","Aquatic":"النوتات المائية","Marine":"النوتات البحرية","Ozone":"الأوزون","Water":"النوتات المائية","Calone":"الكالون","Sea Water":"ماء البحر",
+  "Saffron":"الزعفران","Resin":"الراتنج","Benzoin":"البنزوين","Frankincense":"اللبان","Myrrh":"المر",
+  "Caramel":"الكراميل","Tonka":"التونكا","Honey":"العسل","Sugar":"السكر","Praline":"البرالين","Toffee":"التوفي","Chocolate":"الشوكولاتة","Cacao":"الكاكاو",
+  "Cedar":"الأرز","Vetiver":"الفيتيفير","Guaiac Wood":"خشب الغاياك","Agarwood":"العود",
+};
+
 function generateWhyChosen(p, ans, slotType="best", lang="ar") {
   const isAr = lang !== "fr";
 
@@ -737,7 +757,7 @@ function generateWhyChosen(p, ans, slotType="best", lang="ar") {
         const pCharLocal = (p.character||[])[0] || "";
         const isFreshLocal = ["fresh","clean","aquatic","fruity","musky"].includes(pCharLocal);
         const expressive = allN.map(n => {
-          const key = Object.keys(NOTE_EXPR_LOCAL).find(k=>n.toLowerCase().includes(k.toLowerCase()));
+          const key = Object.keys(NOTE_EXPR_LOCAL).find(k=>noteIs(n, k));
           if (!key) return null;
           if (isFreshLocal && ["Cedar","Amber","Sandalwood","Vetiver","Patchouli","Leather","Tobacco","Incense","Oud"].includes(key)) return null;
           return NOTE_EXPR_LOCAL[key];
@@ -789,11 +809,18 @@ function generateWhyChosen(p, ans, slotType="best", lang="ar") {
   "Raspberry":"التوت","Lemon":"الليمون","Lavender":"اللافندر",
 };
 const isFreshLocal = ["fresh","clean","aquatic","fruity","musky"].includes(pChar);
-const key = Object.keys(NOTE_SHORT_LOCAL).find(k=>n.toLowerCase().includes(k.toLowerCase()));
+const key = Object.keys(NOTE_SHORT_LOCAL).find(k=>noteIs(n, k));
 if (!key) return null;
 if (isFreshLocal && ["Cedar","Amber","Sandalwood","Vetiver","Patchouli","Leather","Tobacco","Incense","Oud"].includes(key)) return null;
 return NOTE_SHORT_LOCAL[key];
         }).filter(Boolean).filter((v,i,a)=>a.indexOf(v)===i).slice(0,3);
+        // notes that belong to the family the visitor chose (NOTES_PREFS): these explain «قريب من ذوقك»
+        const prefKeys = NOTES_PREFS[mapCharacter(ans.character)] || [];
+        const prefNotes = allN.map(n => {
+          const k = prefKeys.find(pk => noteIs(n, pk));
+          return k ? (NOTE_AR[k] || null) : null;
+        }).filter(Boolean).filter((v,i,a)=>a.indexOf(v)===i).slice(0,3);
+        if (prefNotes.length) namedNotes.splice(0, namedNotes.length, ...prefNotes);
 
         const charLabel = {
           fresh:"الانتعاش والخفة", citrus:"الحمضية والانتعاش",
