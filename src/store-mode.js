@@ -10,28 +10,36 @@ export function storeIdFromUrl() {
   } catch (e) { return ""; }
 }
 
-// WhatsApp links get a ready message naming the perfume
-function withMessage(url, name) {
+// WhatsApp links get a ready message naming the perfume. Through a store link, the message speaks of
+// the store's own quiz (the visitor never left the store's experience).
+function withMessage(url, name, inStore) {
   if (!/^https:\/\/wa\.me\/\d+$/.test(url)) return url;
-  return url + "?text=" + encodeURIComponent(`السلام عليكم، شفت ${name} ف FragranceFlow. واش متوفر عندكم؟`);
+  const text = inStore
+    ? `السلام عليكم، دوزت اختبار العطور ديالكم وطلع ليا ${name}. واش متوفر عندكم؟`
+    : `السلام عليكم، شفت ${name} ف FragranceFlow. واش متوفر عندكم؟`;
+  return url + "?text=" + encodeURIComponent(text);
 }
 
 // returns { db, store } — db is the catalogue to use, store is null in normal mode
 export function applyStoreMode(db) {
-  const all = db.map((p) => (p.stores && p.stores.length
-    ? { ...p, stores: p.stores.map((s) => ({ ...s, url: withMessage(s.url, p.name), whatsapp: s.whatsapp ? withMessage(s.whatsapp, p.name) : "" })) }
-    : p));
   const id = storeIdFromUrl();
+  const inStore = !!id && db.some((p) => (p.stores || []).some((s) => s.storeId === id));
+  const all = db.map((p) => (p.stores && p.stores.length
+    ? { ...p, stores: p.stores.map((s) => ({ ...s, url: withMessage(s.url, p.name, inStore), whatsapp: s.whatsapp ? withMessage(s.whatsapp, p.name, inStore) : "" })) }
+    : p));
   if (!id) return { db: all, store: null };
   const mine = [];
   let store = null;
   for (const p of all) {
     const offer = (p.stores || []).find((s) => s.storeId === id);
     if (!offer) continue;
-    store = store || { id, name: offer.name, city: offer.city };
+    store = store || { id, name: offer.name, city: offer.city, website: offer.storeWebsite || "", instagram: offer.storeInstagram || "",
+      logo: offer.storeLogo || "", color: offer.storeColor || "",
+      whatsapp: /^https:\/\/wa\.me\/\d+/.test(offer.whatsapp || "") ? offer.whatsapp.split("?")[0] : "" };
     // the store's own price and link; "where to buy" lists only this store
     mine.push({ ...p, price: offer.price || p.price, stores: [offer] });
   }
   if (!mine.length) return { db: all, store: null };
+  store.count = mine.filter((p) => p.active !== false).length;
   return { db: mine, store };
 }

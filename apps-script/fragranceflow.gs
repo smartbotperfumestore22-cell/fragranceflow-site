@@ -3,6 +3,7 @@
  *
  * One script, bound to the FragranceFlow Sheet (tabs: Perfumes, Stores, Offers, Events).
  *   Offers → column "size_type": full (قنينة كاملة), decant (ديكونط) or both (بجوج) — shown in «فين تلقاه؟».
+ *   Stores → optional columns "logo_url" (https image) and "color" (#rrggbb): the store link shows them.
  *   • ?action=catalog   → the website reads Perfumes / Stores / Offers when it is built
  *   • ?action=analytics → the website records an event in the Events tab
  *     (never send a parameter named "sid" or "c": Apps Script reserves them and answers 400)

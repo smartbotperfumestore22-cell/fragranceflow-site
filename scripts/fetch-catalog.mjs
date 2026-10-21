@@ -52,9 +52,14 @@ function build(data) {
     // WhatsApp number: digits only; a Moroccan local number (06…, 07…) gets the country code 212
     let wa = str(s.whatsapp).replace(/\D/g, "").replace(/^00/, "");
     if (/^0[5-7]\d{8}$/.test(wa)) wa = "212" + wa.slice(1);
+    // Google Sheets drops the leading 0 of a number typed as 0654091373 → 654091373: same Moroccan mobile number
+    else if (/^[5-7]\d{8}$/.test(wa)) wa = "212" + wa;
     const link = (v) => (/^https:\/\//i.test(str(v)) ? str(v) : "");
+    // optional branding for the store link: logo (https image) and one accent colour (#rrggbb)
+    const color = /^#?[0-9a-f]{6}$/i.test(str(s.color)) ? "#" + str(s.color).replace(/^#/, "").toLowerCase() : "";
     stores[id] = { name: str(s.name), city: str(s.city), whatsapp: wa.length >= 9 ? wa : "",
-      website: link(s.website || s.website_url), instagram: link(s.instagram || s.instagram_url) };
+      website: link(s.website || s.website_url), instagram: link(s.instagram || s.instagram_url),
+      logo: link(s.logo_url || s.logo), color };
   }
   const offers = {};
   for (const o of data.offers || []) {
@@ -79,7 +84,9 @@ function build(data) {
       continue;
     }
     list.push({ storeId: sid, name: st.name, city: st.city, price: num(o.price) || null, size: str(o.size),
-      url, page, whatsapp, formats: fmt || [] });
+      url, page, whatsapp, formats: fmt || [],
+      // the store's own details, for the store link (header, footer)
+      storeWebsite: st.website, storeInstagram: st.instagram, storeLogo: st.logo, storeColor: st.color });
   }
   for (const pid in offers) offers[pid].forEach((x) => x.formats.sort((a, b) => (a === "full" ? -1 : b === "full" ? 1 : 0)));
   const seen = new Set(), out = [];

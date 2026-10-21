@@ -49,16 +49,60 @@ export function startSite({ loadQuiz }) {
   function byId(id) { for (var i = 0; i < DB.length; i++) if (String(DB[i].id) === id) return DB[i]; return null; }
   function seasons(p) { return p.season.indexOf('allseasons') > -1 ? 'كل الفصول' : p.season.map(function (s) { return SEA[s] || s; }).join('، '); }
 
-  /* ---------- store link: banner on every page, with a way back to the full, neutral site ---------- */
+  /* ---------- store link (?store=…): the whole visit becomes the store's own experience ----------
+     The store's name (and logo / colour when the Stores tab has them) replaces the FragranceFlow lockup,
+     the general menu, search, «for stores» pages and FragranceFlow sections are hidden, the footer shows
+     the store's contacts, and FragranceFlow stays as a quiet «بدعم من FragranceFlow». Engine unchanged. */
+  // the store's seal: its logo when there is one, else its initials on its colour (or the FragranceFlow plum)
+  function storeSeal(cls) {
+    var seal = h('span', { class: 'store-seal' + (cls ? ' ' + cls : ''), 'aria-hidden': 'true' });
+    if (STORE.logo) seal.appendChild(h('img', { src: STORE.logo, alt: '', loading: 'eager', decoding: 'async' }));
+    else seal.textContent = (STORE.name || '?').trim().split(/\s+/).slice(0, 2).map(function (w) { return w.charAt(0); }).join('').toUpperCase();
+    return seal;
+  }
   if (STORE) {
     document.body.classList.add('in-store');
-    var bar = h('div', { class: 'store-bar', role: 'note' },
-      h('p', {}, h('span', { text: 'كتشوف العطور المتوفرة عند ' }), h('b', { text: STORE.name + (STORE.city ? ' – ' + STORE.city : '') })));
-    var headEl = document.querySelector('header.head');
-    headEl.parentNode.insertBefore(bar, headEl.nextSibling);
-    // the way back to the full, neutral site stays available, but quietly, at the foot of every page
-    var foot = document.querySelector('footer.foot .wrap');
-    if (foot) foot.appendChild(h('p', { class: 'store-exit' }, h('a', { class: 'textlink', href: location.pathname, text: 'استكشف المزيد من العطور على FragranceFlow' })));
+    if (STORE.color) {
+      // text on the store colour: white or ink, whichever reads better
+      var c = STORE.color.replace('#', ''), r = parseInt(c.substr(0, 2), 16), g = parseInt(c.substr(2, 2), 16), b = parseInt(c.substr(4, 2), 16);
+      var lum = (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255;
+      document.documentElement.style.setProperty('--store-accent', STORE.color);
+      document.documentElement.style.setProperty('--store-on-accent', lum > 0.6 ? '#24172C' : '#FFFFFF');
+    }
+    // header: the store's lockup instead of FragranceFlow's
+    var logoBtn = document.getElementById('logo');
+    if (logoBtn) {
+      logoBtn.textContent = '';
+      logoBtn.setAttribute('aria-label', STORE.name + '، الصفحة الرئيسية');
+      logoBtn.classList.add('store-lock');
+      logoBtn.appendChild(storeSeal());
+      logoBtn.appendChild(h('span', { class: 'store-lock-text' }, h('span', { class: 'store-lock-name', text: STORE.name }),
+        STORE.city ? h('span', { class: 'store-lock-city', text: STORE.city }) : null));
+    }
+    var headCta = document.querySelector('.head-cta');
+    if (headCta) headCta.firstChild.textContent = 'اكتشف عطرك ';
+    // home: the hero speaks for the store
+    var heroBrand = document.querySelector('.hero-brand'), heroTitle = document.getElementById('hero-title'), heroLead = document.querySelector('.hero .lead');
+    if (heroBrand) { heroBrand.textContent = STORE.name; heroBrand.classList.remove('latin'); }
+    if (heroTitle) { heroTitle.textContent = ''; heroTitle.appendChild(document.createTextNode('لقى عطرك')); heroTitle.appendChild(h('br')); heroTitle.appendChild(h('span', { class: 'h-accent', text: 'عند ' + STORE.name })); }
+    if (heroLead) heroLead.textContent = 'جاوب على شوية أسئلة، ونقترحو عليك 3 عطور كتشبه لذوقك من ' + STORE.count + ' عطر متوفر عندنا.';
+    var heroCta = document.querySelector('.hero .cta-row .btn');
+    if (heroCta) heroCta.firstChild.textContent = '✨ اكتشف عطرك ';
+    var exTitle = document.getElementById('explore-title');
+    if (exTitle) exTitle.textContent = '🌸 العطور المتوفرة عند ' + STORE.name;
+    // footer: the store's contacts; FragranceFlow only as a quiet credit
+    var footWrap = document.querySelector('footer.foot .wrap');
+    if (footWrap) {
+      var contacts = h('div', { class: 'store-foot-links' });
+      if (STORE.whatsapp) contacts.appendChild(h('a', { class: 'btn store-foot-wa', href: STORE.whatsapp + '?text=' + encodeURIComponent('السلام عليكم، جيت من اختبار العطور ديالكم.'), target: '_blank', rel: 'noopener' }, '💬 تواصل معنا فالواتساب'));
+      if (STORE.instagram) contacts.appendChild(h('a', { class: 'textlink', href: STORE.instagram, target: '_blank', rel: 'noopener', text: 'Instagram' }));
+      if (STORE.website) contacts.appendChild(h('a', { class: 'textlink', href: STORE.website, target: '_blank', rel: 'noopener', text: 'الموقع ديالنا' }));
+      footWrap.insertBefore(h('div', { class: 'store-foot' },
+        h('div', { class: 'store-foot-id' }, storeSeal('store-seal-lg'),
+          h('div', {}, h('p', { class: 'store-foot-name', text: STORE.name }), STORE.city ? h('p', { class: 'store-foot-city', text: STORE.city }) : null)),
+        contacts,
+        h('p', { class: 'store-credit' }, 'بدعم من ', h('span', { class: 'latin', text: 'FragranceFlow' }))), footWrap.firstChild);
+    }
   }
 
   /* ---------- counts ---------- */
@@ -147,13 +191,14 @@ export function startSite({ loadQuiz }) {
     if (!quizpage.hidden && hasResults() && hsh !== '#quiz') resultsY = window.scrollY;
     if (hsh === '#quiz') { openQuiz(); return; }
     if (hsh === '#qr') { renderQR(); return; }
-    if (hsh === '#fragrances') { show('catalog'); window.scrollTo(0, 0); document.title = 'اكتشف العطور | FragranceFlow'; return; }
-    if (hsh === '#stores') { renderPartners(); return; }
-    if (hsh === '#about') { show('about'); window.scrollTo(0, 0); document.title = 'About | FragranceFlow'; return; }
+    if (hsh === '#fragrances') { show('catalog'); window.scrollTo(0, 0); document.title = STORE ? 'العطور | ' + STORE.name : 'اكتشف العطور | FragranceFlow'; return; }
+    // through a store link, the pages for perfume shops and about FragranceFlow are not part of the visit
+    if (hsh === '#stores' && !STORE) { renderPartners(); return; }
+    if (hsh === '#about' && !STORE) { show('about'); window.scrollTo(0, 0); document.title = 'About | FragranceFlow'; return; }
     if (hsh.indexOf('#f-') === 0) { var p = byId(decodeURIComponent(hsh.slice(3))); if (p) { renderPerfume(p); return; } }
     if (window.FF_CLOSE) window.FF_CLOSE();
     quizOpen = false;
-    show('landing'); document.title = BASE_TITLE;
+    show('landing'); document.title = STORE ? STORE.name + ' · اكتشف عطرك' : BASE_TITLE;
   }
   window.addEventListener('hashchange', route);
   window.FF_ON_CLOSE = function () { goHome(); };
@@ -197,10 +242,11 @@ export function startSite({ loadQuiz }) {
     if (STORE && !document.getElementById('store-quiz-note')) {
       var root = document.getElementById('ff-widget-root');
       root.parentNode.insertBefore(h('aside', { class: 'store-quiz-note', id: 'store-quiz-note' },
-        h('p', { class: 'store-quiz-title', text: 'اختبار العطور مع ' + STORE.name }),
-        h('p', { text: 'جاوب على بعض الأسئلة، ونلقاو ليك العطور الأنسب من المجموعة المتوفرة عندهم.' })), root);
+        storeSeal('store-seal-lg'),
+        h('p', { class: 'store-quiz-title', text: 'اختبار العطور ديال ' + STORE.name }),
+        h('p', { text: 'جاوب على الأسئلة، ونقترحو عليك العطور الأقرب لذوقك من ' + STORE.count + ' عطر متوفر عندنا.' })), root);
     }
-    document.title = 'اكتشف بصمتك العطرية | FragranceFlow';
+    document.title = STORE ? 'اكتشف عطرك | ' + STORE.name : 'اكتشف بصمتك العطرية | FragranceFlow';
     if (quizOpen) return;
     quizOpen = true;
     if (window.FF_OPEN) { window.FF_OPEN(); return; }

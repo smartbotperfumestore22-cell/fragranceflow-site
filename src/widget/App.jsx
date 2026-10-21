@@ -3335,6 +3335,30 @@ function RVSensory({ p, ans, lang, used }) {
   );
 }
 
+// Through a store link (?store=…) the card speaks for that one store: «available here» and a direct way to order,
+// instead of the «فين تلقاه؟» list (which would list only this store anyway).
+function RVStoreActions({ p, lang }) {
+  const store = window.__FF_STORE__;
+  const all = rvStores(p);
+  const s = all.find(x => x.storeId === store.id) || all[0];
+  if (!s) return null;
+  const fr = lang === "fr";
+  const track = (event) => window.track && window.track(event, { perfume: p.name, pid: p.id, price: s.price || p.price, store: s.name || store.name });
+  const fmt = (s.formats || []).map(f => f === "decant" ? (fr ? "Décante" : "ديكونط") : (fr ? "Flacon complet" : "قنينة كاملة"));
+  return (
+    <div className="ffr-instore">
+      <p className="ffr-instore-badge">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg>
+        <span>{fr ? "Disponible chez " : "متوفر عند "}<b>{store.name}</b>{fmt.length ? <small> · {fmt.join(" · ")}</small> : null}</span>
+      </p>
+      <div className="ffr-instore-actions">
+        {s.whatsapp ? <a className="ffr-btn ffr-instore-wa" href={s.whatsapp} target="_blank" rel="noopener noreferrer" onClick={() => track("whatsapp_click")}>{fr ? "💬 Commander sur WhatsApp" : "💬 اطلبو فالواتساب"}</a> : null}
+        {s.page ? <a className="ffr-btn ffr-btn-ghost" href={s.page} target="_blank" rel="noopener noreferrer" onClick={() => track("buy_click")}>{fr ? "Voir sur notre site" : "شوفو فالموقع ديالنا"}</a> : null}
+      </div>
+    </div>
+  );
+}
+
 function RVCard({ p, ans, lang, rank, used, peers }) {
   const L = rvL(lang);
   const featured = rank === 1;
@@ -3363,9 +3387,9 @@ function RVCard({ p, ans, lang, rank, used, peers }) {
           </div>
         )}
         <RVSensory p={p} ans={ans} lang={lang} used={used}/>
-        <RVStores p={p} L={L} lang={lang}/>
+        {window.__FF_STORE__ ? <RVStoreActions p={p} lang={lang}/> : <RVStores p={p} L={L} lang={lang}/>}
         <div className="ffr-actions">
-          <a className={"ffr-btn" + (featured ? "" : " ffr-btn-ghost")} href={"#f-" + encodeURIComponent(p.id)}>{L.view}</a>
+          <a className={"ffr-btn" + (featured && !window.__FF_STORE__ ? "" : " ffr-btn-ghost")} href={"#f-" + encodeURIComponent(p.id)}>{L.view}</a>
           {/* no price on the results page: prices are on the fragrance page, store by store */}
         </div>
       </div>
