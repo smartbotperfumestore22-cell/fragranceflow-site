@@ -2220,6 +2220,8 @@ const ICONS = {
   ),
 };
 
+// Visual quiz: questions answered with picture cards (UI only — values unchanged)
+const QUIZ_IMG_Q = { gender:"q1", occasion:"q2", season:"q3", character:"q4", impression:"q5" };
 const ICON_MAP = {
   men:"men", women:"women", unisex:"unisex",
   summer:"summer", winter:"winter", allseasons:"summer",
@@ -4121,22 +4123,24 @@ window.track && window.track("favorite_pick", {
                 ))}
               </div>
             )}
-            <div className={"ffq-opts n" + opts.length + (q?.id === "budget" ? " is-list" : "")}>
-              {opts.map((o,i)=>(
-                <button key={o.v} type="button" className={"ffq-opt" + (picked===`${aKey}:${o.v}` ? " is-picked" : "")}
+            <div className={"ffq-opts n" + opts.length + (q?.id === "budget" ? " is-list" : "") + (QUIZ_IMG_Q[q?.id] ? " is-visual vq-" + q.id : "")}>
+              {opts.map((o,i)=>{ const img = QUIZ_IMG_Q[q?.id] ? `/images/quiz/${QUIZ_IMG_Q[q.id]}-${o.v}.webp` : null; return (
+                <button key={o.v} type="button" aria-pressed={picked===`${aKey}:${o.v}`} className={"ffq-opt" + (img ? " has-img" : "") + (picked===`${aKey}:${o.v}` ? " is-picked" : "")}
                   style={{ animationDelay: `${i*0.04}s` }}
                   onClick={()=>{
                     setPicked(`${aKey}:${o.v}`); answer(q.id, o.v);
                     // bring the next question into view when the visitor had scrolled down to answer
                     setTimeout(()=>{ const top = document.querySelector(".ff-page"); if (top && top.getBoundingClientRect().top < 0) top.scrollIntoView({ behavior: "smooth", block: "start" }); }, 230);
                   }}>
-                  <span className="ffq-icon" aria-hidden="true">{ICONS[ICON_MAP[o.v]] || <span className="ffq-emoji">{o.i}</span>}</span>
+                  {img ? <span className="ffq-media" aria-hidden="true"><img src={img} alt="" loading={i < 4 ? "eager" : "lazy"} decoding="async" draggable="false"/></span>
+                       : <span className="ffq-icon" aria-hidden="true">{ICONS[ICON_MAP[o.v]] || <span className="ffq-emoji">{o.i}</span>}</span>}
                   <span className="ffq-text">
                     <span className="ffq-label">{o.l}</span>
                     {(o.d || o.detail) ? <span className="ffq-desc">{o.d}{o.detail ? ` — ${o.detail}` : ""}</span> : null}
                   </span>
+                  {img ? <span className="ffq-check" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span> : null}
                 </button>
-              ))}
+              ); })}
             </div>
             {q?.id==="sizeType" && <p className="ffq-hint">{t.decantHint}</p>}
           </div>
