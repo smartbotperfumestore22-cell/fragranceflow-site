@@ -989,15 +989,13 @@ a.dstore-name:hover { color: var(--purple); text-decoration-color: currentColor;
 /* header: the store's lockup; FragranceFlow's menu, search and «for stores» link are not part of the visit */
 .in-store .menu, .in-store .search, .in-store .burger { display: none !important; }
 .in-store .head .wrap { flex-wrap: nowrap; justify-content: space-between; }
-.in-store .head-cta { margin-inline-start: auto; }
+.in-store .head-cta { display: none !important; }
 .store-lock { direction: rtl; text-align: right; gap: 12px; min-width: 0; }
 .store-lock-text { display: flex; flex-direction: column; min-width: 0; line-height: 1.25; }
 .store-lock-name { font-family: var(--font-display); font-weight: 700; font-size: 1.3rem; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .store-lock-city { font-size: .78rem; color: var(--muted); text-transform: capitalize; }
 @media (max-width: 380px) { .store-lock-name { font-size: 1.1rem; } .in-store .store-lock .store-seal { width: 34px; height: 34px; font-size: .9rem; } }
 /* home: only what serves this store's customers */
-.in-store .journey, .in-store .sig3, .in-store .biz-cta { display: none !important; }
-.in-store .hero-brand { display: none; }
 /* quiz intro: the store's seal and its words */
 #quizpage .store-quiz-note { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 22px 20px 20px; }
 #quizpage .store-quiz-note .store-seal { margin-bottom: 6px; }
@@ -1005,15 +1003,11 @@ a.dstore-name:hover { color: var(--purple); text-decoration-color: currentColor;
 /* footer: the store's contacts first; FragranceFlow as a quiet credit */
 .in-store .foot-main, .in-store .foot-social, .in-store .foot-legal, .in-store .fine, .in-store .foot-copy, .in-store .store-exit { display: none !important; }
 .in-store .foot-bottom { border-top: 0; padding-top: 0; margin-top: 0; }
-.store-foot { display: flex; flex-direction: column; align-items: center; gap: 18px; text-align: center; padding-block: 8px 4px; }
-.store-foot-id { display: flex; align-items: center; gap: 14px; }
-.store-foot-id > div { text-align: right; }
-.store-foot-name { font-family: var(--font-display); font-weight: 700; font-size: 1.5rem; color: var(--ink); line-height: 1.3; }
-.store-foot-city { font-size: .9rem; color: var(--muted); text-transform: capitalize; }
-.store-foot-links { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 12px 22px; }
-.store-foot-wa { min-height: 48px; background: var(--store-accent) !important; border-color: var(--store-accent) !important; color: var(--store-on-accent) !important; }
-.store-credit { font-size: .8rem; color: var(--muted); }
+.store-foot { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 10px 22px; text-align: center; padding-block: 4px; font-size: .95rem; }
+.store-credit { flex-basis: 100%; font-size: .8rem; color: var(--muted); }
 .store-credit .latin { font-family: var(--font-latin); font-size: 1.05em; color: var(--plum); }
+.in-store .foot { padding-block: 28px 20px; }
+.in-store .foot-art { display: none; }
 /* results: «available here» and a direct way to order */
 #ff-widget-root .ffr-instore { display: flex; flex-direction: column; gap: 12px; padding: 14px 16px; border: 1px solid rgba(123, 63, 160, .25); border-radius: 12px; background: var(--paper); }
 #ff-widget-root .ffr-instore-badge { display: flex; align-items: flex-start; gap: 8px; font-size: .95rem; color: var(--ink); }
@@ -1024,3 +1018,5 @@ a.dstore-name:hover { color: var(--purple); text-decoration-color: currentColor;
 #ff-widget-root .ffr-instore-actions .ffr-btn { flex: 1 1 200px; }
 #ff-widget-root .ffr-instore-wa { background: var(--store-accent); border-color: var(--store-accent); color: var(--store-on-accent); }
 #ff-widget-root .ffr-instore-wa:hover { background: var(--store-accent); border-color: var(--store-accent); filter: brightness(.92); }
+/* the quiz's «back to home» has no destination through a store link: the store's quiz is the whole visit */
+.in-store .ff-page-back { visibility: hidden; }

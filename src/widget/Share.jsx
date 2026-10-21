@@ -110,8 +110,10 @@ async function storyCard(T, persona, lang) {
   g.strokeStyle = "#C99A8B"; g.lineWidth = 1.5; g.strokeRect(74, 74, W - 148, H - 148);
   g.textAlign = "center"; g.textBaseline = "middle";
 
-  g.fillStyle = "#4B176F"; g.font = `600 80px ${LATIN}`;
-  g.fillText("FragranceFlow", W / 2, 230);
+  // shared from a store link: the card carries the store's name (FragranceFlow stays as a small credit at the foot)
+  const store = window.__FF_STORE__;
+  g.fillStyle = "#4B176F"; g.font = store ? `700 84px ${DISPLAY}` : `600 80px ${LATIN}`;
+  g.fillText(store ? store.name : "FragranceFlow", W / 2, 230);
   g.fillStyle = "#A87666"; g.font = `600 44px ${BODY}`;
   g.fillText(T.cardKicker, W / 2, 380);
 
@@ -141,7 +143,7 @@ async function storyCard(T, persona, lang) {
   g.fillStyle = "#FAF7F2"; g.font = `600 48px ${BODY}`;
   g.fillText(T.cardCta, W / 2, 1624);
   g.fillStyle = "#6C6072"; g.font = `500 38px ${BODY}`;
-  g.fillText(window.location.host, W / 2, 1765);
+  g.fillText(store ? window.location.host + "  ·  FragranceFlow" : window.location.host, W / 2, 1765);
   return new Promise((res) => c.toBlob((b) => res(b), "image/png"));
 }
 

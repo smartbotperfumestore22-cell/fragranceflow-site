@@ -3484,7 +3484,7 @@ function ResultsPage({ res, pers, ans, lang, t, questions, reset, favPicked, pic
 
       {/* 2. the fragrances, with the visitor's choices shown once */}
       <header className="ffr-header">
-        <h2 id="ffr-title">{L.title}</h2>
+        <h2 id="ffr-title">{window.__FF_STORE__ ? (lang === "fr" ? "Notre sélection pour vous chez " : "اخترنا ليك من ") + window.__FF_STORE__.name : L.title}</h2>
         <p>{L.profileSub}</p>
         {summary.length > 0 && (
           <ul className="ffr-profile" aria-label={L.profileSub}>{summary.map(s => <li key={s}>{s}</li>)}</ul>
@@ -3566,7 +3566,7 @@ function ResultsPage({ res, pers, ans, lang, t, questions, reset, favPicked, pic
 
       <div className="ffr-end">
         <button type="button" className="ffr-btn" onClick={reset}>{L.retry}</button>
-        <a className="ffr-btn ffr-btn-ghost" href="#fragrances">{L.all}</a>
+        {window.__FF_STORE__ ? null : <a className="ffr-btn ffr-btn-ghost" href="#fragrances">{L.all}</a>}
       </div>
       <p className="ffr-disclaimer">
         {lang === "fr"
@@ -4235,7 +4235,9 @@ window.track && window.track("favorite_pick", {
         <div className="ffl" role="status" aria-live="polite">
           <FFPrint className="ffl-print"/>
           <p className="ffl-msg" key={loadingIdx}>{(t.loadingMsgs || [])[loadingIdx] || t.loading}</p>
-          <p className="ffl-sub">{lang==="fr" ? `Analyse de ${getProducts().length} parfums` : `كنقارنو اختياراتك مع ${getProducts().length} عطر`}</p>
+          <p className="ffl-sub">{window.__FF_STORE__
+            ? (lang==="fr" ? `Nous choisissons parmi les parfums de ${window.__FF_STORE__.name}…` : `كنختارو ليك من العطور ديال ${window.__FF_STORE__.name}…`)
+            : (lang==="fr" ? `Analyse de ${getProducts().length} parfums` : `كنقارنو اختياراتك مع ${getProducts().length} عطر`)}</p>
         </div>
       )}
 

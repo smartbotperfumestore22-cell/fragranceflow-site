@@ -81,27 +81,15 @@ export function startSite({ loadQuiz }) {
     }
     var headCta = document.querySelector('.head-cta');
     if (headCta) headCta.firstChild.textContent = 'اكتشف عطرك ';
-    // home: the hero speaks for the store
-    var heroBrand = document.querySelector('.hero-brand'), heroTitle = document.getElementById('hero-title'), heroLead = document.querySelector('.hero .lead');
-    if (heroBrand) { heroBrand.textContent = STORE.name; heroBrand.classList.remove('latin'); }
-    if (heroTitle) { heroTitle.textContent = ''; heroTitle.appendChild(document.createTextNode('لقى عطرك')); heroTitle.appendChild(h('br')); heroTitle.appendChild(h('span', { class: 'h-accent', text: 'عند ' + STORE.name })); }
-    if (heroLead) heroLead.textContent = 'جاوب على شوية أسئلة، ونقترحو عليك 3 عطور كتشبه لذوقك من ' + STORE.count + ' عطر متوفر عندنا.';
-    var heroCta = document.querySelector('.hero .cta-row .btn');
-    if (heroCta) heroCta.firstChild.textContent = '✨ اكتشف عطرك ';
-    var exTitle = document.getElementById('explore-title');
-    if (exTitle) exTitle.textContent = '🌸 العطور المتوفرة عند ' + STORE.name;
-    // footer: the store's contacts; FragranceFlow only as a quiet credit
+    // footer: one quiet line — the store's own contacts, and FragranceFlow as a credit
     var footWrap = document.querySelector('footer.foot .wrap');
     if (footWrap) {
-      var contacts = h('div', { class: 'store-foot-links' });
-      if (STORE.whatsapp) contacts.appendChild(h('a', { class: 'btn store-foot-wa', href: STORE.whatsapp + '?text=' + encodeURIComponent('السلام عليكم، جيت من اختبار العطور ديالكم.'), target: '_blank', rel: 'noopener' }, '💬 تواصل معنا فالواتساب'));
-      if (STORE.instagram) contacts.appendChild(h('a', { class: 'textlink', href: STORE.instagram, target: '_blank', rel: 'noopener', text: 'Instagram' }));
-      if (STORE.website) contacts.appendChild(h('a', { class: 'textlink', href: STORE.website, target: '_blank', rel: 'noopener', text: 'الموقع ديالنا' }));
-      footWrap.insertBefore(h('div', { class: 'store-foot' },
-        h('div', { class: 'store-foot-id' }, storeSeal('store-seal-lg'),
-          h('div', {}, h('p', { class: 'store-foot-name', text: STORE.name }), STORE.city ? h('p', { class: 'store-foot-city', text: STORE.city }) : null)),
-        contacts,
-        h('p', { class: 'store-credit' }, 'بدعم من ', h('span', { class: 'latin', text: 'FragranceFlow' }))), footWrap.firstChild);
+      var line = h('div', { class: 'store-foot' });
+      if (STORE.whatsapp) line.appendChild(h('a', { class: 'textlink', href: STORE.whatsapp + '?text=' + encodeURIComponent('السلام عليكم، جيت من اختبار العطور ديالكم.'), target: '_blank', rel: 'noopener', text: '💬 واتساب ' + STORE.name }));
+      if (STORE.instagram) line.appendChild(h('a', { class: 'textlink', href: STORE.instagram, target: '_blank', rel: 'noopener', text: 'Instagram' }));
+      if (STORE.website) line.appendChild(h('a', { class: 'textlink', href: STORE.website, target: '_blank', rel: 'noopener', text: 'الموقع' }));
+      line.appendChild(h('p', { class: 'store-credit' }, 'بدعم من ', h('span', { class: 'latin', text: 'FragranceFlow' })));
+      footWrap.insertBefore(line, footWrap.firstChild);
     }
   }
 
@@ -191,6 +179,9 @@ export function startSite({ loadQuiz }) {
     if (!quizpage.hidden && hasResults() && hsh !== '#quiz') resultsY = window.scrollY;
     if (hsh === '#quiz') { openQuiz(); return; }
     if (hsh === '#qr') { renderQR(); return; }
+    // through a store link the visit is the store's quiz: home, catalogue and other pages lead into it
+    // (a fragrance opened from the results, #f-…, stays available)
+    if (STORE && hsh.indexOf('#f-') !== 0) { location.replace(location.pathname + location.search + '#quiz'); return; }
     if (hsh === '#fragrances') { show('catalog'); window.scrollTo(0, 0); document.title = STORE ? 'العطور | ' + STORE.name : 'اكتشف العطور | FragranceFlow'; return; }
     // through a store link, the pages for perfume shops and about FragranceFlow are not part of the visit
     if (hsh === '#stores' && !STORE) { renderPartners(); return; }
@@ -399,7 +390,7 @@ export function startSite({ loadQuiz }) {
     else if (t.hasAttribute('data-go')) goHome(t.getAttribute('data-go'));
     else goHome();
   });
-  document.getElementById('logo').addEventListener('click', function () { closeMenu(); goHome(); });
+  document.getElementById('logo').addEventListener('click', function () { closeMenu(); if (STORE) go('#quiz'); else goHome(); });
 
   /* ---------- mobile menu ---------- */
   var burger = document.getElementById('burger'), menu = document.getElementById('menu');
@@ -467,7 +458,7 @@ export function startSite({ loadQuiz }) {
     var occ = p.occasion.map(function (o) { return OCC[o] || o; }).join('، ');
     var offers = storeOffers(p);
     stage.appendChild(h('section', { class: 'stage' },
-      h('nav', { class: 'crumbs', 'aria-label': 'المسار' }, h('button', { type: 'button', class: 'textlink', onclick: function () { goHome(); } }, 'الرئيسية'), '/',
+      STORE ? null : h('nav', { class: 'crumbs', 'aria-label': 'المسار' }, h('button', { type: 'button', class: 'textlink', onclick: function () { goHome(); } }, 'الرئيسية'), '/',
         h('a', { class: 'textlink', href: '#fragrances' }, 'العطور')),
       h('article', { class: 'rc' },
         h('div', { class: 'ph' }, h('img', { src: p.image, alt: 'صورة توضيحية لقرعة عطر', width: '172', height: '119' }), h('small', { text: 'صورة توضيحية' })),
@@ -482,7 +473,10 @@ export function startSite({ loadQuiz }) {
             : p.url ? h('a', { class: 'btn', href: p.url, target: '_blank', rel: 'noopener', style: 'align-self:flex-start' }, 'شوف عند ' + (p.store || 'المحل'))
             : h('p', { class: 'shop' }, h('b', { text: 'فين تلقاه: ' }), 'قريبا، رابط مباشر عند المحلات الشريكة.'))),
       offers.length ? storesBlock(p, offers) : null,
-      hasResults()
+      STORE
+        // store link: the only way is back to the store's quiz / results
+        ? h('div', { class: 'actions' }, h('a', { class: 'btn', href: '#quiz' }, h('span', { class: 'back-arrow', 'aria-hidden': 'true', text: '→' }), hasResults() ? 'رجع للنتائج ديالك' : 'اكتشف عطرك'))
+      : hasResults()
         // came from the quiz results: the way back to the other suggestions comes first
         ? h('div', { class: 'actions' },
             h('a', { class: 'btn', href: '#quiz' }, h('span', { class: 'back-arrow', 'aria-hidden': 'true', text: '→' }), 'رجع للنتائج ديالك'),
