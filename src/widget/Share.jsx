@@ -48,6 +48,18 @@ const TXT = {
   },
 };
 
+// shared from a store link: the message and the card speak of that store's quiz
+function storeTexts(T, lang) {
+  const store = window.__FF_STORE__;
+  if (!store) return T;
+  const n = store.name;
+  return lang === "fr"
+    ? { ...T, line1: `J'ai découvert ma signature olfactive avec ${n} ✨`, line3: `Découvrez la vôtre avec ${n} 👇`,
+        cardKicker: `Ma signature olfactive avec ${n}`, cardCta: `Découvrez la vôtre avec ${n}` }
+    : { ...T, line1: `اكتشفت بصمتي العطرية مع ${n} ✨`, line3: `اكتشف بصمتك العطرية مع ${n} 👇`,
+        cardKicker: `بصمتي العطرية مع ${n}`, cardCta: `اكتشف بصمتك العطرية مع ${n}` };
+}
+
 const b64url = (s) => btoa(unescape(encodeURIComponent(s))).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
 
 function shareUrl(channel, persona) {
@@ -112,9 +124,11 @@ async function storyCard(T, persona, lang) {
 
   // shared from a store link: the card carries the store's name (FragranceFlow stays as a small credit at the foot)
   const store = window.__FF_STORE__;
-  g.fillStyle = "#4B176F"; g.font = store ? `700 84px ${DISPLAY}` : `600 80px ${LATIN}`;
+  g.fillStyle = "#4B176F"; g.font = store ? `700 64px ${DISPLAY}` : `600 80px ${LATIN}`;
   g.fillText(store ? store.name : "FragranceFlow", W / 2, 230);
   g.fillStyle = "#A87666"; g.font = `600 44px ${BODY}`;
+  const fit = (text, weight, size, min, maxW, family) => { let z = size; g.font = `${weight} ${z}px ${family}`; while (z > min && g.measureText(text).width > maxW) { z -= 2; g.font = `${weight} ${z}px ${family}`; } };
+  fit(T.cardKicker, 600, 44, 30, W - 240, BODY);
   g.fillText(T.cardKicker, W / 2, 380);
 
   // middle block (icon, name, Latin name, rule, description), measured first and centred between header and CTA
@@ -140,10 +154,12 @@ async function storyCard(T, persona, lang) {
 
   // call to action, fixed near the foot
   g.fillStyle = "#4B176F"; g.beginPath(); (g.roundRect ? g.roundRect(170, 1560, W - 340, 128, 64) : g.rect(170, 1560, W - 340, 128)); g.fill();
-  g.fillStyle = "#FAF7F2"; g.font = `600 48px ${BODY}`;
+  g.fillStyle = "#FAF7F2"; fit(T.cardCta, 600, 48, 32, W - 420, BODY);
   g.fillText(T.cardCta, W / 2, 1624);
-  g.fillStyle = "#6C6072"; g.font = `500 38px ${BODY}`;
-  g.fillText(store ? window.location.host + "  ·  FragranceFlow" : window.location.host, W / 2, 1765);
+  // the link the friend can type: the store's own quiz link, else the site
+  const link = store ? window.location.host + "/?store=" + store.id : window.location.host;
+  g.fillStyle = "#6C6072"; fit(link, 500, 38, 24, W - 220, BODY);
+  g.fillText(link, W / 2, 1765);
   return new Promise((res) => c.toBlob((b) => res(b), "image/png"));
 }
 
@@ -155,7 +171,7 @@ const ICONS = {
 };
 
 export default function ShareResult({ name, latin, icon, desc, lang }) {
-  const T = TXT[lang === "fr" ? "fr" : "ar"];
+  const T = storeTexts(TXT[lang === "fr" ? "fr" : "ar"], lang);
   const persona = { name, latin, icon, desc };
   const [open, setOpen] = useState(false);
   const [view, setView] = useState("list");       // "list" | "instagram"

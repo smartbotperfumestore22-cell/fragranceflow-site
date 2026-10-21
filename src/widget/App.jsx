@@ -3388,10 +3388,11 @@ function RVCard({ p, ans, lang, rank, used, peers }) {
         )}
         <RVSensory p={p} ans={ans} lang={lang} used={used}/>
         {window.__FF_STORE__ ? <RVStoreActions p={p} lang={lang}/> : <RVStores p={p} L={L} lang={lang}/>}
-        <div className="ffr-actions">
-          <a className={"ffr-btn" + (featured && !window.__FF_STORE__ ? "" : " ffr-btn-ghost")} href={"#f-" + encodeURIComponent(p.id)}>{L.view}</a>
+        {/* through a store link, WhatsApp is the action: no «شوف العطر» to a FragranceFlow page */}
+        {window.__FF_STORE__ ? null : <div className="ffr-actions">
+          <a className={"ffr-btn" + (featured ? "" : " ffr-btn-ghost")} href={"#f-" + encodeURIComponent(p.id)}>{L.view}</a>
           {/* no price on the results page: prices are on the fragrance page, store by store */}
-        </div>
+        </div>}
       </div>
     </article>
   );
