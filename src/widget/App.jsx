@@ -2237,7 +2237,7 @@ const ICONS = {
 // Visual quiz: questions answered with picture cards (UI only — values unchanged)
 const QUIZ_IMG_Q = { gender:"q1", occasion:"q2", season:"q3", character:"q4", impression:"q5" };
 // answers whose photo has not been supplied yet: a quiet dark tile with the option's icon stands in
-const QUIZ_IMG_PENDING = new Set(["impression:mysterious"]);
+const QUIZ_IMG_PENDING = new Set([]);
 const ICON_MAP = {
   men:"men", women:"women", unisex:"unisex",
   summer:"summer", winter:"winter", allseasons:"summer",
