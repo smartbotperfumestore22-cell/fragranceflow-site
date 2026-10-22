@@ -666,7 +666,7 @@ function generateWhyChosen(p, ans, slotType="best", lang="ar") {
       clean:    "عطر نظيف ومسكي يمنح إحساساً بالنقاء والراحة طوال اليوم",
       aquatic:  "عطر بحري منعش يمنحك إحساساً بالحرية والانتعاش — كنسيم البحر في كل لحظة",
       musky:    "عطر مسكي ناعم وحريري يلازم بشرتك ويترك أثراً هادئاً وراقياً",
-      floral:   "عطر زهري راقٍ يجمع الأنوثة والأناقة بلمسة عصرية",
+      floral:   "عطر زهري راقٍ يجمع الرقة والأناقة بلمسة عصرية",
       woody:    "عطر خشبي دافئ بحضور واضح يعكس الثقة والتميز",
       oriental: "عطر شرقي عميق بحضور قوي يناسب السهرات والمناسبات الخاصة",
       heavy:    "عطر ثقيل وعميق بحضور فاخر يترك أثراً لا يُنسى",
@@ -681,7 +681,7 @@ function generateWhyChosen(p, ans, slotType="best", lang="ar") {
       clean:    "Un parfum propre et musqué, sensation de pureté et de confort prolongée",
       aquatic:  "Un parfum marin et frais qui procure une sensation de liberté — comme une brise océane à chaque instant",
       musky:    "Un musqué doux et naturel qui laisse un sillage discret et agréable",
-      floral:   "Un floral raffiné alliant féminité moderne et élégance naturelle",
+      floral:   "Un floral raffiné alliant douceur moderne et élégance naturelle",
       woody:    "Un boisé chaleureux avec une présence affirmée qui reflète confiance et distinction",
       oriental: "Un oriental profond et enveloppant, idéal pour les soirées et occasions spéciales",
       heavy:    "Un parfum intense et luxueux à la présence forte et inoubliable",
@@ -829,7 +829,7 @@ return NOTE_SHORT_LOCAL[key];
         const charLabel = {
           fresh:"الانتعاش والخفة", citrus:"الحمضية والانتعاش",
           fruity:"الحيوية الفاكهية", clean:"النظافة والأناقة",
-          floral:"الأنوثة الزهرية", woody:"العمق الخشبي",
+          floral:"الرقة الزهرية", woody:"العمق الخشبي",
           oriental:"الطابع الشرقي الدافئ", heavy:"الحضور القوي",
           sweet:"الدفء والحلاوة", musky:"النقاء والناعومة",
         }[pChar] || "الطابع المميز";
@@ -874,7 +874,7 @@ return NOTE_SHORT_LOCAL[key];
       const WHY_FR = {
         fresh:    "Proche de vos préférences car il offre la fraîcheur et légèreté recherchées",
         citrus:   "Proche de vos préférences car il allie agrumes et vivacité",
-        floral:   "Proche de vos préférences car il allie féminité et élégance florale",
+        floral:   "Proche de vos préférences car il allie douceur et élégance florale",
         woody:    "Proche de vos préférences car il allie profondeur boisée et présence",
         oriental: "Proche de vos préférences car il réunit caractère oriental et chaleur sucrée",
         heavy:    "Proche de vos préférences car il offre présence forte et sillage durable",
@@ -3531,7 +3531,7 @@ const SIG_CARD = {
   "Le Doux Velouté":        ["light", "نعومة دافئة وحسية تترك أثراً لا يُنسى."],
   "Le Fruité Séduisant":    ["light", "حلاوة الفواكه الناضجة التي تثير الإعجاب."],
   "L'Âme Marine":           ["light", "انتعاش البحر ونسماته المنعشة."],
-  "Le Floral Envoûtant":    ["light", "أزهار آسرة تنبض بالأنوثة والرقة."],
+  "Le Floral Envoûtant":    ["light", "أزهار آسرة تنبض بالرقة والأناقة."],
   "Le Mystérieux Envoûtant":["dark",  "مزيج من الغموض والعمق الذي يثير الفضول."],
   "Le Doux Ensorcelant":    ["light", "دفء الفانيليا والحلاوة التي تأسر الحواس."],
   "Le Luxueux Moderne":     ["dark",  "فخامة بلمسة عصرية تجمع بين القوة والأناقة."],
@@ -3786,10 +3786,10 @@ function buildPersona(na) {
       "clean-longlast":   "تميل/ين للعطور المسكية الناعمة التي تترك أثراً هادئاً يدوم — نقاء يبقى معك ساعات.",
       "clean-fresh_imp":  "تفضل/ين الإحساس بالنظافة والنقاء طوال اليوم — مسك ناعم خفيف كالحرير.",
       // زهري
-      "floral-confident": "تميل/ين للعطور الزهرية التي تجمع الأنوثة والحضور القوي — زهري راقٍ يترك انطباعاً واثقاً.",
+      "floral-confident": "تميل/ين للعطور الزهرية التي تجمع الرقة والحضور القوي — زهري راقٍ يترك انطباعاً واثقاً.",
       "floral-attractive":"تميل/ين للعطور الزهرية الجذابة التي تمنح جاذبية طبيعية — رومانسي يلفت الأنظار.",
       "floral-elegant":   "تميل/ين للعطور الزهرية الراقية الأنيقة — عطري يعكس ذوقاً رفيعاً وأناقة طبيعية.",
-      "floral-luxury":    "تميل/ين للعطور الزهرية الفاخرة التي تجمع بين الأنوثة والثراء — زهري راقٍ لا يمر مرور الكرام.",
+      "floral-luxury":    "تميل/ين للعطور الزهرية الفاخرة التي تجمع بين الرقة والثراء — زهري راقٍ لا يمر مرور الكرام.",
       "floral-longlast":  "تميل/ين للعطور الزهرية التي تترك أثراً رومانسياً يدوم — زهري يبقى في الذاكرة.",
       "floral-firstlook": "تريد/ين عطراً زهرياً يصنع انطباعاً أولاً لا يُنسى — رومانسي يسحر من أول لقاء.",
       // خشبي
@@ -3947,7 +3947,7 @@ function buildPersona(na) {
       "heavy-daily-attractive":     { ar:"الجريء الواثق",   fr:"L'Audacieux Confiant",        icon:"🔥", desc:"تميل/ين للعطور العميقة الجذابة — جريء يلفت الأنظار بحضور واضح وقوي." },
       "heavy-evening-attractive":   { ar:"الساحر الفاخر",    fr:"L'Envoûtant Luxueux",         icon:"🖤", desc:"تميل/ين للعطور العميقة الجذابة للسهرات — فاخر وآسر يسحر من حولك." },
       "woody-daily-elegant":        { ar:"الفاخر العصري",    fr:"Le Luxueux Moderne",          icon:"💎", desc:"تميل/ين للعطور الخشبية الأنيقة — فخامة عصرية هادئة تناسب كل يوم." },
-      "floral-daily-elegant":       { ar:"الزهري الساحر",   fr:"Le Floral Envoûtant",        icon:"🌹", desc:"تميل/ين للعطور الزهرية الراقية الأنيقة — عطر عطري يعكس ذوقاً رفيعاً وأناقة طبيعية." },
+      "floral-daily-elegant":       { ar:"الزهري الساحر",   fr:"Le Floral Envoûtant",        icon:"🌹", desc:"تميل/ين للعطور الزهرية الراقية الأنيقة — عطر يعكس ذوقاً رفيعاً وأناقة طبيعية." },
 
       "floral-daily-attractive":    { ar:"الرومانسي الجذاب",fr:"Le Romantique Séduisant",     icon:"🌹", desc:"تميل/ين للعطور الزهرية الجذابة — رومانسي خفيف يمنح جاذبية طبيعية في كل يوم." },
 
