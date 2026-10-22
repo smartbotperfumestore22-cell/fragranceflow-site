@@ -1063,6 +1063,13 @@ a.dstore-name:hover { color: var(--purple); text-decoration-color: currentColor;
 .in-store .foot { padding-block: 28px 20px; }
 .in-store .foot-art { display: none; }
 /* results: «available here» and a direct way to order */
+/* near results: what a fragrance does not match, and asking the store */
+#ff-widget-root .ffr-gaps { list-style: none; display: flex; flex-wrap: wrap; gap: 6px; margin: 2px 0 4px; padding: 0; }
+#ff-widget-root .ffr-gaps li { padding: 3px 10px; border-radius: 999px; background: #FBF3EE; border: 1px solid #EBD8CC; color: var(--rose-ink); font-size: .8rem; line-height: 1.5; }
+#ff-widget-root .ffr-ask { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; padding: 18px 20px; border-radius: 14px; border: 1px solid rgba(123, 63, 160, .25); background: var(--mist); }
+#ff-widget-root .ffr-ask-title { font-family: var(--font-display); font-weight: 700; font-size: 1.25rem; color: var(--plum); }
+#ff-widget-root .ffr-ask p:not(.ffr-ask-title) { color: #4D4253; font-size: .95rem; }
+#ff-widget-root .ffr-ask .ffr-btn { margin-top: 4px; }
 #ff-widget-root .ffr-instore { display: flex; flex-direction: column; gap: 12px; padding: 14px 16px; border: 1px solid rgba(123, 63, 160, .25); border-radius: 12px; background: var(--paper); }
 #ff-widget-root .ffr-instore-badge { display: flex; align-items: flex-start; gap: 8px; font-size: .95rem; color: var(--ink); }
 #ff-widget-root .ffr-instore-badge svg { flex: none; width: 20px; height: 20px; margin-top: 2px; color: #2E8B5E; }

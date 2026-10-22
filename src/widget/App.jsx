@@ -3378,8 +3378,38 @@ function RVStoreActions({ p, lang }) {
   );
 }
 
-function RVCard({ p, ans, lang, rank, used, peers }) {
+function NearAsk({ ans, lang, persName, summary, pickLabel }) {
+  const store = window.__FF_STORE__;
+  if (!store || !store.whatsapp) return null;
+  const fr = lang === "fr";
+  const budget = ans.budget && ans.budget !== "any" ? pickLabel("budget") : null;
+  const lines = fr
+    ? ["Bonjour, j'ai fait votre quiz parfum" + (persName ? " — ma signature : " + persName : "") + ".",
+       "Aucun parfum ne réunissait tous mes choix : " + summary.join(" · ") + (budget ? " — budget : " + budget : "") + ".",
+       "Que me conseillez-vous ?"]
+    : ["السلام عليكم، دوزت اختبار العطور ديالكم" + (persName ? " وطلعات ليا البصمة: " + persName : "") + ".",
+       "ما لقيتش عطر كيجمع كلشي، هادي اختياراتي: " + summary.join(" · ") + (budget ? " — الميزانية: " + budget : "") + ".",
+       "شنو تنصحوني؟"];
+  const href = store.whatsapp + "?text=" + encodeURIComponent(lines.join("\n"));
+  return (
+    <aside className="ffr-ask">
+      <p className="ffr-ask-title">{fr ? "💬 Besoin d'un conseil ?" : "💬 بغيتي نصيحة؟"}</p>
+      <p>{fr ? "Écrivez à " + store.name + " sur WhatsApp : le message se remplit avec vos choix." : "سول " + store.name + " فالواتساب، والميساج كيتكتب وحدو بالاختيارات ديالك."}</p>
+      <a className="ffr-btn ffr-instore-wa" href={href} target="_blank" rel="noopener noreferrer"
+        onClick={() => window.track && window.track("near_whatsapp_click", { character: ans.character, impression: ans.impression, store: store.name })}>
+        {fr ? "Écrire à " + store.name + " sur WhatsApp" : "سول " + store.name + " فالواتساب"}
+      </a>
+    </aside>
+  );
+}
+
+const NEAR_RANK = {
+  ar: ["الأقرب لذوقك", "اختيار قريب من ذوقك", "اختيار آخر قريب من ذوقك"],
+  fr: ["Le plus proche de vos goûts", "Un choix proche de vos goûts", "Un autre choix proche de vos goûts"],
+};
+function RVCard({ p, ans, lang, rank, used, peers, near }) {
   const L = rvL(lang);
+  const gaps = near ? nearGaps(p, ans, lang) : [];
   const featured = rank === 1;
   const reasons = rvDistinct(p, peers || [], ans, lang);
   const why = generateWhyChosen(p, ans, p.slotType || "best", lang);
@@ -3387,9 +3417,10 @@ function RVCard({ p, ans, lang, rank, used, peers }) {
     <article className={"ffr-card" + (featured ? " ffr-featured" : "")} id={"ffr-card-" + rank} tabIndex={-1} aria-label={"#" + rank + " " + p.name}>
       <div className="ffr-body">
         <p className="ffr-kicker">
-          {(L.rankLine && L.rankLine[rank - 1]) || (featured ? L.featured : L.alt)}
+          {near ? NEAR_RANK[lang === "fr" ? "fr" : "ar"][rank - 1] : ((L.rankLine && L.rankLine[rank - 1]) || (featured ? L.featured : L.alt))}
           {p.sponsored ? <span className="ffr-sponsored">{L.sponsored}</span> : null}
         </p>
+        {gaps.length ? <ul className="ffr-gaps">{gaps.map(g => <li key={g}>{g}</li>)}</ul> : null}
         <div className="ffr-head">
           <span className="ffr-thumb"><img src={p.image} alt="" loading="lazy" onError={e => { e.currentTarget.style.visibility = "hidden"; }}/></span>
           <div className="ffr-names">
@@ -3437,7 +3468,57 @@ function FFPrint({ className, total = 8, done = null }) {
   );
 }
 
-function ResultsPage({ res, pers, ans, lang, t, questions, reset, favPicked, pickFavorite, personaFeedback, setPersonaFeedback }) {
+// ═══════════════════════════════════════════════════════════════
+//  NEAR RESULTS — when no fragrance passes every answer, loosen ONE kind of condition at a time
+//  (budget, then season, occasion, world, then together) and say on each fragrance what does not match.
+//  The engine itself (scoreP / getResults) is unchanged: it simply runs again on the loosened answers.
+// ═══════════════════════════════════════════════════════════════
+function nearResults(na) {
+  const tries = [
+    ["budget",   { budget: "any" }],
+    ["season",   { season: "allseasons" }],
+    ["occasion", { occasion: "allday" }],
+    ["world",    { world: "any" }],
+    ["mixed",    { budget: "any", season: "allseasons", occasion: "allday" }],
+    ["mixed",    { budget: "any", season: "allseasons", occasion: "allday", world: "any" }],
+  ];
+  for (const [reason, loosen] of tries) {
+    if (Object.keys(loosen).every(k => !na[k] || na[k] === loosen[k])) continue; // nothing to loosen
+    const res = getResults({ ...na, ...loosen });
+    if (res.main.length) return { res, reason };
+  }
+  return null;
+}
+// what a near fragrance does not match, in the visitor's words (only facts from the fragrance's own data)
+function nearGaps(p, ans, lang) {
+  const fr = lang === "fr", L = rvL(lang), out = [];
+  const want = CHARACTER_SUBTAGS[ans.character] || [ans.character];
+  const pc = p.character || [];
+  if (ans.character && pc.length && !pc.some(c => c === ans.character || (want.includes(c) && c !== "fresh" && c !== "oriental"))) {
+    const names = rvUniq(pc.slice(0, 2).map(c => L.family[c]).filter(Boolean));
+    if (names.length) out.push((fr ? "Famille : " : "عائلة أخرى: ") + names.join(fr ? ", " : " و"));
+  }
+  if (ans.budget && ans.budget !== "any") {
+    const sizeType = ans.sizeType || CONFIG.DEFAULT_SIZE || "full";
+    const bud = (calcDynamicBudget(sizeType, "ar", ans.world) || []).find(b => b.v === ans.budget);
+    if (bud && p.price >= bud.maxEx) out.push(fr ? "Un peu au-dessus de votre budget" : "فوق الميزانية ديالك شوية");
+    else if (bud && p.price < bud.min) out.push(fr ? "En dessous de votre budget" : "أقل من الميزانية ديالك");
+  }
+  const ps = p.season || [];
+  if (ans.season && ans.season !== "allseasons" && ps.length && !ps.includes("allseasons") && !ps.includes(ans.season)) {
+    const names = rvUniq(ps.map(x => L.season[x]).filter(Boolean));
+    if (names.length) out.push((fr ? "Plutôt pour : " : "مناسب أكثر لـ") + names.join(fr ? ", " : " و"));
+  }
+  const po = p.occasion || [];
+  if (ans.occasion && ans.occasion !== "allday" && po.length && !po.includes("allday") && !po.includes(ans.occasion)) {
+    const names = rvUniq(po.map(x => L.occasion[x]).filter(Boolean));
+    if (names.length) out.push((fr ? "Plutôt pour : " : "مناسب أكثر لـ") + names.join(fr ? ", " : " و"));
+  }
+  if (ans.world && ans.world !== "any" && worldOf(p) !== ans.world) out.push(fr ? "D'un autre univers de parfums" : "من نوع عطور آخر");
+  return out;
+}
+
+function ResultsPage({ res, pers, ans, lang, t, questions, reset, favPicked, pickFavorite, personaFeedback, setPersonaFeedback, near }) {
   const L = rvL(lang);
   // summary of the user's answers, using the quiz's own option labels
   const pickLabel = (id) => {
@@ -3503,6 +3584,21 @@ function ResultsPage({ res, pers, ans, lang, t, questions, reset, favPicked, pic
       ) : null}
 
       {/* 2. the fragrances, with the visitor's choices shown once */}
+      {near ? (
+      <header className="ffr-header">
+        <h2 id="ffr-title">{res.main.length
+          ? (lang === "fr" ? "Des parfums proches de vos goûts" : "لقينا ليك عطور قريبة من ذوقك")
+          : (lang === "fr" ? "Aucun parfum proche de vos choix pour le moment" : "ما لقينا حتى عطر قريب من اختياراتك دابا")}</h2>
+        <p>{res.main.length
+          ? (lang === "fr" ? "Aucun parfum ne réunit exactement tous vos choix pour le moment, mais voici les plus proches." : "ما عندناش دابا عطر كيجمع جميع اختياراتك بالضبط، ولكن هادو الأقرب ليك.")
+          : (window.__FF_STORE__ && window.__FF_STORE__.whatsapp
+              ? (lang === "fr" ? "Écrivez-nous : nous vous proposerons ce qui vous ressemble le plus." : "كتب لينا، ونقترحو عليك اللي كيشبه لذوقك أكثر.")
+              : (lang === "fr" ? "Essayez de changer le budget ou la saison." : "جرب تبدل الميزانية ولا الموسم."))}</p>
+        {summary.length > 0 && (
+          <ul className="ffr-profile" aria-label={L.profileSub}>{summary.map(s => <li key={s}>{s}</li>)}</ul>
+        )}
+      </header>
+      ) : (
       <header className="ffr-header">
         <h2 id="ffr-title">{window.__FF_STORE__ ? (lang === "fr" ? "Notre sélection pour vous chez " : "اخترنا ليك من ") + window.__FF_STORE__.name : L.title}</h2>
         <p>{L.profileSub}</p>
@@ -3511,16 +3607,17 @@ function ResultsPage({ res, pers, ans, lang, t, questions, reset, favPicked, pic
         )}
         <p className="ffr-profile-note">{L.profileNote}</p>
       </header>
+      )}
 
-      {res.main.length === 1 && topPct < 80 && (
+      {!near && res.main.length === 1 && topPct < 80 && (
         <p className="ffr-note">{lang === "fr" ? "Un seul parfum correspond à vos critères." : "ما لقيناش غير عطر واحد قريب من اختياراتك."}</p>
       )}
-      {topPct >= 80 && topPct < 90 && (
+      {!near && topPct >= 80 && topPct < 90 && (
         <p className="ffr-note">{lang === "fr" ? "Résultats limités — ajustez certains critères pour plus d'options." : "النتائج محدودة — جرب تعدل بعض الشروط باش تظهر اقتراحات أكثر."}</p>
       )}
 
       {/* 3a. the three fragrances side by side, in order (#1 first = on the right in Arabic) — tap one to jump to its card */}
-      {res.main.length > 1 && (
+      {!near && res.main.length > 1 && (
         <ol className={"ffr-podium ffr-podium-n" + res.main.length} aria-label={L.top3}>
           {res.main.map((p, i) => (
             <li key={p.id} className={i === 0 ? "is-first" : undefined}>
@@ -3548,10 +3645,12 @@ function ResultsPage({ res, pers, ans, lang, t, questions, reset, favPicked, pic
 
       {/* 3b. one card per fragrance, #1 → #2 → #3: why, imagine the scent, where to find it */}
       <div className={"ffr-top3 ffr-top3-n" + res.main.length}>
-        {res.main.map((p, i) => <RVCard key={p.id} p={p} ans={ans} lang={lang} rank={i + 1} used={used} peers={res.main.filter(x => x.id !== p.id)}/>)}
+        {res.main.map((p, i) => <RVCard key={p.id} p={p} ans={ans} lang={lang} rank={i + 1} used={used} peers={res.main.filter(x => x.id !== p.id)} near={!!near}/>)}
       </div>
 
-      {more.length > 0 && (
+      {near ? <NearAsk ans={ans} lang={lang} persName={persName} summary={summary} pickLabel={pickLabel}/> : null}
+
+      {res.main.length > 0 && more.length > 0 && (
         <section className="ffr-more" aria-labelledby="ffr-more-title">
           <h3 id="ffr-more-title">{L.more}</h3>
           <ul>
@@ -3569,7 +3668,7 @@ function ResultsPage({ res, pers, ans, lang, t, questions, reset, favPicked, pic
         </section>
       )}
 
-      {res.main.length > 0 && (
+      {!near && res.main.length > 0 && (
         <aside className="ffr-fav">
           {!favPicked ? (
             <>
@@ -4026,6 +4125,11 @@ function WidgetContent({ onClose, lang: langProp, initialStep="intro" }) {
         season:     na.season,
         budget:     na.budget,
       });
+      if (CONFIG.PAGE_MODE) {
+        const nr = nearResults(na);
+        setRes(nr ? { ...nr.res, nearReason: nr.reason } : { main: [], similar: [], nearReason: "none" });
+        window.track && window.track("near_results", { reason: nr ? nr.reason : "none", count: nr ? nr.res.main.length : 0 });
+      }
       setStep("empty");
     } else {
       setStep("results");
@@ -4343,6 +4447,11 @@ window.track && window.track("favorite_pick", {
           favPicked={favPicked} pickFavorite={pickFavorite}
           personaFeedback={personaFeedback} setPersonaFeedback={setPersonaFeedback}/>
       )}
+      {step==="empty" && CONFIG.PAGE_MODE && (
+        <ResultsPage res={res || { main: [], similar: [] }} pers={pers} ans={ans} lang={lang} t={t} questions={questions} reset={reset}
+          favPicked={favPicked} pickFavorite={pickFavorite}
+          personaFeedback={personaFeedback} setPersonaFeedback={setPersonaFeedback} near={res?.nearReason || "none"}/>
+      )}
       {step==="results" && !CONFIG.PAGE_MODE && (
         <div style={{ animation:"up .4s ease" }}>
 
@@ -4603,7 +4712,7 @@ window.track && window.track("favorite_pick", {
       )}
 
       {/* EMPTY */}
-      {step==="empty" && (
+      {step==="empty" && !CONFIG.PAGE_MODE && (
         <div style={{ padding:"8px 4px 16px" }}>
           {/* Icon + Title */}
           <div style={{ textAlign:"center", marginBottom:16 }}>
