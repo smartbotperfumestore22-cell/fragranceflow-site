@@ -258,13 +258,14 @@ const QS_FR = [
     ] },
   { id:"impression", q:"Quelle impression voulez-vous laisser ?", sub:"La sensation que vous voulez donner",
     opts:[
-      {v:"firstlook", l:"Mémorable dès le premier regard", i:"✨", d:"Première impression forte",    ic:"#5F4A00", bg:"#4f3a00"},
+      {v:"firstlook", l:"Mémorable dès le premier regard", i:"✨", d:"Une première impression forte et unique",    ic:"#5F4A00", bg:"#4f3a00"},
       {v:"attractive",l:"Présence qui attire les regards", i:"🔥", d:"Charme et charisme",           ic:"#6B1A00", bg:"#5f1500"},
-      {v:"elegant",   l:"Élégance discrète et raffinée",   i:"💫", d:"Distinction sans bruit",        ic:"#3A3A6B", bg:"#2a2a5f"},
-      {v:"confident", l:"Force et confiance",               i:"💪", d:"Personnalité forte et assurée", ic:"#1A3A1A", bg:"#1a4a1a"},
-      {v:"fresh_imp", l:"Fraîcheur et propreté",            i:"🌊", d:"Léger et frais en permanence",  ic:"#0A3A5F", bg:"#0a2a4f"},
-      {v:"longlast",  l:"Une trace qui persiste",           i:"🕯️", d:"Sillage fort et mémorable",     ic:"#3A1A0A", bg:"#4a2a0a"},
-      {v:"luxury",    l:"Luxe et prestige",                 i:"👑", d:"Présence royale et authentique",ic:"#5F3A00", bg:"#6b4500"},
+      {v:"elegant",   l:"Élégance discrète et raffinée",   i:"🤍", d:"Distinction sans bruit",        ic:"#3A3A6B", bg:"#2a2a5f"},
+      {v:"confident", l:"Force et confiance",               i:"👑", d:"Personnalité forte, présence assurée", ic:"#1A3A1A", bg:"#1a4a1a"},
+      {v:"mysterious",l:"Un mystère qui intrigue",          i:"🌙", d:"Une présence captivante qui donne envie d'en savoir plus", ic:"#1E1430", bg:"#1a1030"},
+      {v:"longlast",  l:"Une trace qui persiste",           i:"🖤", d:"Votre parfum reste présent après votre départ",     ic:"#3A1A0A", bg:"#4a2a0a"},
+      {v:"luxury",    l:"Luxe et prestige",                 i:"💎", d:"Présence luxueuse et royale",ic:"#5F3A00", bg:"#6b4500"},
+      {v:"fresh_imp", l:"Présence légère et agréable",      i:"🍃", d:"Ne dérange pas votre entourage",  ic:"#0A3A5F", bg:"#0a2a4f"},
     ] },
   ];
 
@@ -386,7 +387,8 @@ const IMPRESSION_FEELINGS = {
     attractive: "يجذب الأنظار ويترك انطباعاً لا يُنسى",
     elegant:    "يعكس الأناقة والرقي بدون مبالغة",
     confident:  "يمنحك قوة وثقة في كل خطوة",
-    fresh_imp:  "يمنحك إحساساً بالنظافة والانتعاش طول اليوم",
+    fresh_imp:  "يمنحك حضوراً خفيفاً ومريحاً طول اليوم",
+    mysterious: "يخلق حولك هالة من الغموض تثير الفضول",
     longlast:   "يبقى معك ساعات طويلة ويترك أثراً بعد رحيلك",
     luxury:     "يمنحك حضوراً ملكياً فاخراً يعكس الثراء والأصالة",
   },
@@ -395,7 +397,8 @@ const IMPRESSION_FEELINGS = {
     attractive: "attire les regards et laisse une impression inoubliable",
     elegant:    "reflète l'élégance et le raffinement sans excès",
     confident:  "vous donne force et assurance à chaque pas",
-    fresh_imp:  "une sensation de fraîcheur et de propreté toute la journée",
+    fresh_imp:  "une présence légère et agréable toute la journée",
+    mysterious: "crée autour de vous une aura de mystère qui intrigue",
     longlast:   "persiste des heures et laisse une trace après votre départ",
     luxury:     "vous confère une présence royale et luxueuse qui reflète raffinement et authenticité",
   },
@@ -522,6 +525,7 @@ function calcMatchScore(p, ans) {
       attractive:["fresh","citrus","clean"],
       elegant:["floral","clean","fresh","woody"],
       fresh_imp:["fresh","clean","citrus"],
+      mysterious:["heavy","oriental","woody"],
       longlast:["heavy","oriental"],
       firstlook:["fresh","citrus","floral"],
     };
@@ -529,7 +533,7 @@ function calcMatchScore(p, ans) {
     const impMatch = impChars.length === 0 || (p.character||[]).some(c=>impChars.includes(c));
     const impLabels = {
       confident:"قوة وثقة", luxury:"فخامة وثراء", attractive:"جاذبية",
-      elegant:"أناقة هادئة", fresh_imp:"نظافة وانتعاش",
+      elegant:"أناقة هادئة", fresh_imp:"حضور خفيف", mysterious:"غموض",
       longlast:"أثر طويل", firstlook:"انطباع أول"
     };
     criteria.push({
@@ -636,7 +640,7 @@ function generateWhyChosen(p, ans, slotType="best", lang="ar") {
 
   // الـ impression يُضاف فقط إلا كان منسجم مع character العطر
   const impIsCompatible = (()=>{
-    const heavyImps = ["luxury","confident","longlast","firstlook","attractive"];
+    const heavyImps = ["luxury","confident","longlast","firstlook","attractive","mysterious"];
     const freshImps = ["fresh_imp","elegant","firstlook","attractive"];
     const pIsHeavy  = ["heavy","oriental","woody"].includes(pChar);
     const pIsFresh  = ["fresh","clean","citrus"].includes(pChar);
@@ -1430,6 +1434,9 @@ const IMPRESSION_MATRIX = {
   firstlook: {
     fresh:9, fruity:8, aquatic:8, floral:8, clean:7, woody:6, sweet:5, oriental:5, heavy:4, musky:4
   },
+  mysterious: {
+    oriental:10, heavy:10, woody:9, sweet:6, musky:6, floral:4, fruity:2, clean:2, fresh:1, aquatic:1
+  },
 };
 function scoreP(p, ans) {
   // ── sizeType HARD FILTER ──
@@ -1578,6 +1585,8 @@ function scoreP(p, ans) {
     const pAutoImps = p.impression || autoImpressions(p.character, p.occasion);
     const impBoostFromAuto = pAutoImps.includes(imp) ? 8 : 0;
     s += impBoostFromAuto;
+    // «غموض»: no perfume carries it in its data, so it is read from character + evening use
+    if (imp==="mysterious" && (p.character||[]).some(c=>["heavy","oriental","woody"].includes(c)) && (p.occasion||[]).some(o=>["evening","dates"].includes(o))) s+=8;
     if (imp==="confident"||imp==="luxury") {
      const userCharIsHeavy = ["heavy","woody","oriental"].includes(userChar);
       if (userCharIsHeavy && (p.character||[]).some(c=>["heavy","woody","oriental"].includes(c))) s+=14;
@@ -1691,6 +1700,11 @@ else if (userChar === "fresh") {
     const freshMatch = allNotes.filter(n=>freshProNotes.some(fn=>n.toLowerCase().includes(fn.toLowerCase()))).length;
     s += Math.min(freshMatch, 4);
   }
+  if (ans.impression === "mysterious") {
+    const mysteryNotes = ["Oud","Incense","Frankincense","Amber","Patchouli","Leather","Myrrh","Saffron","Labdanum","Resin","Tobacco"];
+    const mysteryMatch = allNotes.filter(n=>mysteryNotes.some(mn=>n.toLowerCase().includes(mn.toLowerCase()))).length;
+    s += Math.min(mysteryMatch, 4);
+  }
   if (ans.impression === "luxury" || ans.impression === "confident") {
     const richMatch = allNotes.filter(n=>heavyProNotes.some(hn=>n.toLowerCase().includes(hn.toLowerCase()))).length;
     s += Math.min(richMatch, 4);
@@ -1742,7 +1756,7 @@ else if (userChar === "fresh") {
   // Impression exact
   const impForBonus = ans.impression;
   const impIsCompatible = impForBonus && (() => {
-    const heavyImps = ["luxury","confident","longlast","firstlook","attractive"];
+    const heavyImps = ["luxury","confident","longlast","firstlook","attractive","mysterious"];
     const freshImps = ["fresh_imp","elegant","firstlook","attractive"];
     const pChar_ = (p.character||[])[0] || "";
     if (["heavy","oriental","woody"].includes(pChar_) && heavyImps.includes(impForBonus)) return true;
@@ -2222,6 +2236,8 @@ const ICONS = {
 
 // Visual quiz: questions answered with picture cards (UI only — values unchanged)
 const QUIZ_IMG_Q = { gender:"q1", occasion:"q2", season:"q3", character:"q4", impression:"q5" };
+// answers whose photo has not been supplied yet: a quiet dark tile with the option's icon stands in
+const QUIZ_IMG_PENDING = new Set(["impression:mysterious"]);
 const ICON_MAP = {
   men:"men", women:"women", unisex:"unisex",
   summer:"summer", winter:"winter", allseasons:"summer",
@@ -2230,7 +2246,7 @@ const ICON_MAP = {
   daily:"daily", evening:"evening", dates:"dates",
   travel:"fresh", allday:"daily",
   firstlook:"self", attractive:"evening", elegant:"self",
-  confident:"daily", fresh_imp:"fresh", longlast:"heavy",
+  confident:"daily", fresh_imp:"fresh", mysterious:"evening", longlast:"heavy",
   light:"fresh", medium:"daily", strong:"heavy",
 
   decant:"decant", full:"full",
@@ -2280,13 +2296,14 @@ const QS_BASE = [
   // Q5 — الانطباع
   { id:"impression", q:"شنو الانطباع اللي بغيتي تخلي من وراك؟", sub:"الإحساس اللي تبغي يحسه من حواليك",
     opts:[
-      {v:"firstlook", l:"يتفكروك من أول لقاء",      i:"✨", d:"انطباع أول قوي",            ic:"#5F4A00", bg:"#4f3a00"},
+      {v:"firstlook", l:"يتفكروك من أول لقاء",      i:"✨", d:"انطباع أول قوي ومميز",            ic:"#5F4A00", bg:"#4f3a00"},
       {v:"attractive",l:"حضور جذاب يلفت الانتباه",  i:"🔥", d:"جاذبية وكاريزما",           ic:"#6B1A00", bg:"#5f1500"},
-      {v:"elegant",   l:"أناقة هادئة وراقية",        i:"💫", d:"تميز بدون صخب",             ic:"#3A3A6B", bg:"#2a2a5f"},
-      {v:"confident", l:"قوة وثقة",                  i:"💪", d:"شخصية قوية وواثقة",         ic:"#1A3A1A", bg:"#1a4a1a"},
-      {v:"fresh_imp", l:"إحساس بالنظافة والانتعاش", i:"🌊", d:"خفيف ومنعش دائماً",         ic:"#0A3A5F", bg:"#0a2a4f"},
-      {v:"longlast",  l:"أثر يبقى بعد ما تمشي",     i:"🕯️", d:"sillage قوي وذاكرة",        ic:"#3A1A0A", bg:"#4a2a0a"},
-      {v:"luxury",    l:"فخامة وثراء",               i:"👑", d:"حضور ملكي وأصيل",            ic:"#5F3A00", bg:"#6b4500"},
+      {v:"elegant",   l:"أناقة هادئة وراقية",        i:"🤍", d:"تميز بلا صخب",             ic:"#3A3A6B", bg:"#2a2a5f"},
+      {v:"confident", l:"قوة وثقة",                  i:"👑", d:"شخصية قوية وحضور واثق",         ic:"#1A3A1A", bg:"#1a4a1a"},
+      {v:"mysterious",l:"غموض يخلّي الفضول",          i:"🌙", d:"حضور آسر يخلي الناس باغين يعرفوك أكثر", ic:"#1E1430", bg:"#1a1030"},
+      {v:"longlast",  l:"أثر يبقى بعد ما تمشي",     i:"🖤", d:"تبقى ريحتك حاضرة حتى من بعد ما تغادر", ic:"#3A1A0A", bg:"#4a2a0a"},
+      {v:"luxury",    l:"فخامة وثراء",               i:"💎", d:"حضور فاخر وملكي",            ic:"#5F3A00", bg:"#6b4500"},
+      {v:"fresh_imp", l:"حضور خفيف ومريح",           i:"🍃", d:"ما كيقلقش اللي حداك", ic:"#0A3A5F", bg:"#0a2a4f"},
     ] },
 
   // Q6 — الثبات
@@ -2874,7 +2891,7 @@ const RV_LABELS = {
     family:  { floral:"زهري", woody:"خشبي", fresh:"منعش", citrus:"حمضي", aquatic:"بحري", oriental:"شرقي", heavy:"عميق", sweet:"حلو", clean:"نظيف", musky:"مسكي", fruity:"فاكهي", leather:"جلدي" },
     occasion:{ daily:"يومي", evening:"سهرات", dates:"مواعيد", travel:"سفر", allday:"كل وقت" },
     season:  { summer:"صيف", spring:"ربيع", autumn:"خريف", fall:"خريف", winter:"شتاء", allseasons:"كل الفصول" },
-    vibe:    { luxury:"فخامة", elegant:"أناقة", confident:"ثقة", attractive:"جاذبية", fresh_imp:"انتعاش", longlast:"أثر طويل", firstlook:"انطباع أول" },
+    vibe:    { luxury:"فخامة", elegant:"أناقة", confident:"ثقة", attractive:"جاذبية", fresh_imp:"خفة", mysterious:"غموض", longlast:"أثر طويل", firstlook:"انطباع أول" },
     title:"العطور المناسبة ليك",
     sub:"بناءً على اختياراتك، هادو أفضل العطور اللي لقيناها ليك.",
     featured:"أفضل اختيار ليك", alt:"اختيار قوي",
@@ -2894,7 +2911,7 @@ const RV_LABELS = {
     family:  { floral:"Floral", woody:"Boisé", fresh:"Frais", citrus:"Hespéridé", aquatic:"Aquatique", oriental:"Oriental", heavy:"Intense", sweet:"Gourmand", clean:"Propre", musky:"Musqué", fruity:"Fruité", leather:"Cuir" },
     occasion:{ daily:"Quotidien", evening:"Soirée", dates:"Rendez-vous", travel:"Voyage", allday:"Toute occasion" },
     season:  { summer:"Été", spring:"Printemps", autumn:"Automne", fall:"Automne", winter:"Hiver", allseasons:"Toutes saisons" },
-    vibe:    { luxury:"Luxe", elegant:"Élégance", confident:"Assurance", attractive:"Séduction", fresh_imp:"Fraîcheur", longlast:"Sillage", firstlook:"Première impression" },
+    vibe:    { luxury:"Luxe", elegant:"Élégance", confident:"Assurance", attractive:"Séduction", fresh_imp:"Légèreté", mysterious:"Mystère", longlast:"Sillage", firstlook:"Première impression" },
     title:"Les parfums faits pour vous",
     sub:"D'après vos réponses, voici les meilleurs parfums que nous avons trouvés pour vous.",
     featured:"Votre meilleur choix", alt:"Autre excellent choix",
@@ -2992,7 +3009,7 @@ function RVFacts({ p, L, ans }) {
 // "علاش اخترناه ليك؟" — what makes THIS fragrance stand out next to the other two results.
 // Built only from fields of the three fragrances (character, impressions, notes vs the visitor's family, price)
 // and the existing match %; never repeats the shared profile (gender / occasion / season).
-const RV_VIBE_DEF = { luxury:"الفخامة", elegant:"الأناقة", confident:"الثقة", attractive:"الجاذبية", fresh_imp:"الانتعاش", longlast:"الأثر الطويل", firstlook:"الانطباع الأول" };
+const RV_VIBE_DEF = { luxury:"الفخامة", elegant:"الأناقة", confident:"الثقة", attractive:"الجاذبية", fresh_imp:"الخفة", mysterious:"الغموض", longlast:"الأثر الطويل", firstlook:"الانطباع الأول" };
 function rvDistinct(p, peers, ans, lang) {
   const L = rvL(lang), fr = lang === "fr";
   const out = [];
@@ -3242,12 +3259,12 @@ const RV_CONTEXT = {
   ar: { occasion:{ evening:["كيناسب الأجواء الليلية","كيتلبس مزيان فالسهرات","مناسب لليالي والخرجات"], dates:["كيناسب الأمسيات الخاصة","مناسب للمواعيد","كيتلبس مزيان فالأمسيات الهادئة"],
                    daily:["كيناسب النهار والخدمة","مناسب للاستعمال اليومي","كيتلبس بسهولة فالنهار"], travel:["كيناسب الخرجات والسفر","مناسب للسفر","كيرافق الخرجات"], allday:["كيتلبس فبزاف ديال المناسبات"] },
         season:{ summer:["فالأيام السخونة","فالصيف","ملي كيسخن الجو"], spring:["فالربيع"], winter:["فالأيام الباردة","فالشتا","ملي كيبرد الجو"], autumn:["فالخريف"], fall:["فالخريف"], allseasons:["فكل الفصول","طول العام"] },
-        impression:{ luxury:"الفخامة", elegant:"الأناقة الهادئة", confident:"الثقة", attractive:"الجاذبية", fresh_imp:"النظافة والانتعاش", firstlook:"حضور واضح من البداية" },
+        impression:{ luxury:"الفخامة", elegant:"الأناقة الهادئة", confident:"الثقة", attractive:"الجاذبية", fresh_imp:"الخفة والراحة", mysterious:"الغموض", firstlook:"حضور واضح من البداية" },
         withImp:["، مع إحساس ب", "، وفيه لمسة ديال ", " — والإحساس اللي كيبقى هو "], general:"الإحساس العام: " },
   fr: { occasion:{ evening:["idéal pour les ambiances du soir","parfait pour les soirées","fait pour les nuits et les sorties"], dates:["idéal pour les soirées à deux","parfait pour un rendez-vous","agréable pour les soirées calmes"],
                    daily:["idéal pour la journée et le travail","facile à porter au quotidien","naturel en journée"], travel:["idéal pour les sorties et les voyages","parfait en voyage","agréable pour les sorties"], allday:["facile à porter en toute occasion"] },
         season:{ summer:["par temps chaud","en été","quand il fait chaud"], spring:["au printemps"], winter:["par temps froid","en hiver","quand il fait froid"], autumn:["en automne"], fall:["en automne"], allseasons:["en toute saison","toute l'année"] },
-        impression:{ luxury:"luxe", elegant:"élégance discrète", confident:"assurance", attractive:"séduction", fresh_imp:"propreté et fraîcheur", firstlook:"présence affirmée dès le départ" },
+        impression:{ luxury:"luxe", elegant:"élégance discrète", confident:"assurance", attractive:"séduction", fresh_imp:"légèreté", mysterious:"mystère", firstlook:"présence affirmée dès le départ" },
         withImp:[", avec une sensation de ", ", avec une touche de ", " — et ce qui reste, c'est une impression de "], general:"Impression générale : " },
 };
 function rvHasSeason(p, list) { const s = p.season || []; return s.includes("allseasons") || list.some(x => s.includes(x)); }
@@ -3630,6 +3647,9 @@ function buildPersona(na) {
       "oriental-elegant":  "تميل/ين للعطور الشرقية الغامضة الأنيقة — عمق هادئ يعكس شخصيتك المتميزة.",
       "oriental-luxury":   "تميل/ين للعطور الشرقية الفاخرة الأصيلة — ملكي يليق بأرقى المناسبات.",
       "oriental-longlast": "تميل/ين للعطور الشرقية التي تترك أثراً قوياً يدوم طويلاً — شرقي يُعرف بك.",
+      "oriental-mysterious":"تميل/ين للعطور الشرقية الغامضة التي تثير الفضول — حضور آسر يخلي الناس باغين يعرفوك أكثر.",
+      "woody-mysterious":   "تميل/ين للعطور الخشبية العميقة والغامضة — هدوء آسر يثير الفضول.",
+      "sweet-mysterious":   "تميل/ين للعطور الحلوة الداكنة التي تجمع الدفء والغموض — جاذبية هادئة تثير الفضول.",
       "oriental-firstlook":"تريد/ين عطراً شرقياً يصنع انطباعاً أولاً لا يُنسى — آسر يسحر من أول لقاء.",
       // حلو
       "sweet-confident":   "تميل/ين للعطور الحلوة الواثقة التي تجمع الدفء والحضور — حلو راقٍ يعكس شخصيتك الواثقة.",
@@ -3657,7 +3677,7 @@ function buildPersona(na) {
     };
     const IMP_TAG_AR = {
       luxury:"فاخر", confident:"واثق", attractive:"جذاب",
-      elegant:"أنيق", fresh_imp:"منعش", longlast:"مؤثر", firstlook:"ملفت",
+      elegant:"أنيق", fresh_imp:"خفيف", mysterious:"غامض", longlast:"مؤثر", firstlook:"ملفت",
     };
     const CHAR_TAG_FR = {
       fresh:"Frais", clean:"Propre", floral:"Floral", woody:"Boisé",
@@ -3669,7 +3689,7 @@ function buildPersona(na) {
     };
     const IMP_TAG_FR = {
       luxury:"Luxueux", confident:"Assuré", attractive:"Séduisant",
-      elegant:"Élégant", fresh_imp:"Frais", longlast:"Marquant", firstlook:"Mémorable",
+      elegant:"Élégant", fresh_imp:"Léger", mysterious:"Mystérieux", longlast:"Marquant", firstlook:"Mémorable",
     };
 
     // تاغات إضافية للاستعمال كـ fallback إلا كان تكرار
@@ -3678,7 +3698,7 @@ function buildPersona(na) {
     };
     const IMP_ALT_TAG_AR = {
       fresh_imp:"خفيف", confident:"قوي", attractive:"جذاب",
-      elegant:"هادئ", luxury:"فاخر", longlast:"ثابت", firstlook:"ملفت",
+      elegant:"هادئ", luxury:"فاخر", longlast:"ثابت", firstlook:"ملفت", mysterious:"آسر",
     };
 
     const tag1 = CHAR_TAG_AR[na.character] || CHAR_TAG_AR[char] || "مميز";
@@ -3701,6 +3721,27 @@ function buildPersona(na) {
 
     // جدول الشخصيات — 12 شخصية بأسماء + وصف خاص
     const PERSONA_LOOKUP = {
+      // «غموض يخلّي الفضول»
+      "oriental-daily-mysterious": { ar:"الغامض الآسر",    fr:"Le Mystérieux Envoûtant",     icon:"🌙", desc:"تميل/ين للعطور الشرقية الغامضة التي تثير الفضول — عطر ليلي آسر يترك أثراً غامضاً يصعب نسيانه." },
+      "oriental-travel-mysterious": { ar:"الغامض الآسر",    fr:"Le Mystérieux Envoûtant",     icon:"🌙", desc:"تميل/ين للعطور الشرقية الغامضة التي تثير الفضول — عطر ليلي آسر يترك أثراً غامضاً يصعب نسيانه." },
+      "oriental-evening-mysterious": { ar:"الآسر الفاخر",     fr:"L'Envoûtant Luxueux",         icon:"🖤", desc:"تميل/ين للعطور الشرقية الجذابة التي تمزج بين الغموض والفخامة — حضور آسر يسحر من حولك." },
+      "oriental-dates-mysterious": { ar:"الآسر الفاخر",     fr:"L'Envoûtant Luxueux",         icon:"🖤", desc:"تميل/ين للعطور الشرقية الجذابة التي تمزج بين الغموض والفخامة — حضور آسر يسحر من حولك." },
+      "woody-daily-mysterious": { ar:"الغامض الآسر",    fr:"Le Mystérieux Envoûtant",     icon:"🌙", desc:"تميل/ين للعطور الشرقية الغامضة التي تثير الفضول — عطر ليلي آسر يترك أثراً غامضاً يصعب نسيانه." },
+      "woody-travel-mysterious": { ar:"الغامض الآسر",    fr:"Le Mystérieux Envoûtant",     icon:"🌙", desc:"تميل/ين للعطور الشرقية الغامضة التي تثير الفضول — عطر ليلي آسر يترك أثراً غامضاً يصعب نسيانه." },
+      "woody-evening-mysterious": { ar:"الآسر الفاخر",     fr:"L'Envoûtant Luxueux",         icon:"🖤", desc:"تميل/ين للعطور الشرقية الجذابة التي تمزج بين الغموض والفخامة — حضور آسر يسحر من حولك." },
+      "woody-dates-mysterious": { ar:"الآسر الفاخر",     fr:"L'Envoûtant Luxueux",         icon:"🖤", desc:"تميل/ين للعطور الشرقية الجذابة التي تمزج بين الغموض والفخامة — حضور آسر يسحر من حولك." },
+      "heavy-daily-mysterious": { ar:"الغامض الآسر",    fr:"Le Mystérieux Envoûtant",     icon:"🌙", desc:"تميل/ين للعطور الشرقية الغامضة التي تثير الفضول — عطر ليلي آسر يترك أثراً غامضاً يصعب نسيانه." },
+      "heavy-travel-mysterious": { ar:"الغامض الآسر",    fr:"Le Mystérieux Envoûtant",     icon:"🌙", desc:"تميل/ين للعطور الشرقية الغامضة التي تثير الفضول — عطر ليلي آسر يترك أثراً غامضاً يصعب نسيانه." },
+      "heavy-evening-mysterious": { ar:"الآسر الفاخر",     fr:"L'Envoûtant Luxueux",         icon:"🖤", desc:"تميل/ين للعطور الشرقية الجذابة التي تمزج بين الغموض والفخامة — حضور آسر يسحر من حولك." },
+      "heavy-dates-mysterious": { ar:"الآسر الفاخر",     fr:"L'Envoûtant Luxueux",         icon:"🖤", desc:"تميل/ين للعطور الشرقية الجذابة التي تمزج بين الغموض والفخامة — حضور آسر يسحر من حولك." },
+      "sweet-daily-mysterious": { ar:"الغامض الآسر",    fr:"Le Mystérieux Envoûtant",     icon:"🌙", desc:"تميل/ين للعطور الشرقية الغامضة التي تثير الفضول — عطر ليلي آسر يترك أثراً غامضاً يصعب نسيانه." },
+      "sweet-travel-mysterious": { ar:"الغامض الآسر",    fr:"Le Mystérieux Envoûtant",     icon:"🌙", desc:"تميل/ين للعطور الشرقية الغامضة التي تثير الفضول — عطر ليلي آسر يترك أثراً غامضاً يصعب نسيانه." },
+      "sweet-evening-mysterious": { ar:"الآسر الفاخر",     fr:"L'Envoûtant Luxueux",         icon:"🖤", desc:"تميل/ين للعطور الشرقية الجذابة التي تمزج بين الغموض والفخامة — حضور آسر يسحر من حولك." },
+      "sweet-dates-mysterious": { ar:"الآسر الفاخر",     fr:"L'Envoûtant Luxueux",         icon:"🖤", desc:"تميل/ين للعطور الشرقية الجذابة التي تمزج بين الغموض والفخامة — حضور آسر يسحر من حولك." },
+      "musky-daily-mysterious": { ar:"الغامض الآسر",    fr:"Le Mystérieux Envoûtant",     icon:"🌙", desc:"تميل/ين للعطور الشرقية الغامضة التي تثير الفضول — عطر ليلي آسر يترك أثراً غامضاً يصعب نسيانه." },
+      "musky-travel-mysterious": { ar:"الغامض الآسر",    fr:"Le Mystérieux Envoûtant",     icon:"🌙", desc:"تميل/ين للعطور الشرقية الغامضة التي تثير الفضول — عطر ليلي آسر يترك أثراً غامضاً يصعب نسيانه." },
+      "musky-evening-mysterious": { ar:"الآسر الفاخر",     fr:"L'Envoûtant Luxueux",         icon:"🖤", desc:"تميل/ين للعطور الشرقية الجذابة التي تمزج بين الغموض والفخامة — حضور آسر يسحر من حولك." },
+      "musky-dates-mysterious": { ar:"الآسر الفاخر",     fr:"L'Envoûtant Luxueux",         icon:"🖤", desc:"تميل/ين للعطور الشرقية الجذابة التي تمزج بين الغموض والفخامة — حضور آسر يسحر من حولك." },
       "oriental-evening-luxury":    { ar:"الملكي الفاخر",     fr:"Le Royal Somptueux",          icon:"👑", desc:"تميل/ين للعطور الشرقية الفاخرة التي تفرض حضورها بقوة وأصالة — عطر يليق بالمناسبات الراقية ويترك أثراً ملكياً لا يُنسى." },
       "heavy-evening-luxury":       { ar:"الملكي الفاخر",     fr:"Le Royal Somptueux",          icon:"👑", desc:"تميل/ين للعطور الفاخرة العميقة التي تجمع الثقل والأناقة — حضور ملكي يناسب أرقى المناسبات." },
       "sweet-evening-luxury":       { ar:"الملكي الفاخر",     fr:"Le Royal Somptueux",          icon:"👑", desc:"تميل/ين للعطور الحلوة الفاخرة التي تجمع الدفء والثراء — شخصية راقية تترك بصمة لا تُنسى." },
@@ -4132,7 +4173,9 @@ window.track && window.track("favorite_pick", {
                     // bring the next question into view when the visitor had scrolled down to answer
                     setTimeout(()=>{ const top = document.querySelector(".ff-page"); if (top && top.getBoundingClientRect().top < 0) top.scrollIntoView({ behavior: "smooth", block: "start" }); }, 230);
                   }}>
-                  {img ? <span className="ffq-media" aria-hidden="true"><img src={img} alt="" loading={i < 4 ? "eager" : "lazy"} decoding="async" draggable="false"/></span>
+                  {img ? (QUIZ_IMG_PENDING.has(`${q.id}:${o.v}`)
+                         ? <span className="ffq-media is-pending" aria-hidden="true"><span>{o.i}</span></span>
+                         : <span className="ffq-media" aria-hidden="true"><img src={img} alt="" loading={i < 4 ? "eager" : "lazy"} decoding="async" draggable="false"/></span>)
                        : <span className="ffq-icon" aria-hidden="true">{ICONS[ICON_MAP[o.v]] || <span className="ffq-emoji">{o.i}</span>}</span>}
                   <span className="ffq-text">
                     <span className="ffq-label">{o.l}</span>
