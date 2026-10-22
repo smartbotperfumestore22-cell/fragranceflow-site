@@ -3446,6 +3446,26 @@ const SIG_IMG = {
   "Le Romantique Séduisant":"romantique-seduisant", "Le Raffiné Marquant":"raffine-marquant", "Le Noble Classique":"noble-classique",
   "Le Luxueux Classique":"luxueux-classique", "L'Envoûtant Luxueux":"envoutant-luxueux", "Le Royal Somptueux":"royal-somptueux",
 };
+const SIG_CARD = {
+  "Le Doux Velouté":        ["light", "نعومة دافئة وحسية تترك أثراً لا يُنسى."],
+  "Le Fruité Séduisant":    ["light", "حلاوة الفواكه الناضجة التي تثير الإعجاب."],
+  "L'Âme Marine":           ["light", "انتعاش البحر ونسماته المنعشة."],
+  "Le Floral Envoûtant":    ["light", "أزهار آسرة تنبض بالأنوثة والرقة."],
+  "Le Mystérieux Envoûtant":["dark",  "مزيج من الغموض والعمق الذي يثير الفضول."],
+  "Le Doux Ensorcelant":    ["light", "دفء الفانيليا والحلاوة التي تأسر الحواس."],
+  "Le Luxueux Moderne":     ["dark",  "فخامة بلمسة عصرية تجمع بين القوة والأناقة."],
+  "L'Élégant Raffiné":      ["light", "بسيط ومتوازن بكل تفاصيله."],
+  "L'Élégant Confiant":     ["light", "بسيط ومتوازن بكل تفاصيله."],
+  "L'Explorateur Élégant":  ["dark",  "روح المغامرة براحة وأناقة طبيعية."],
+  "Le Frais Dynamique":     ["light", "طاقة وانتعاش في كل لحظة."],
+  "Le Frais Élégant":       ["light", "انتعاش نقي بلمسة من الأناقة."],
+  "Le Romantique Séduisant":["light", "حب وشغف في كل نفحة."],
+  "Le Raffiné Marquant":    ["light", "أثر قوي وحضور لا يُنسى."],
+  "Le Noble Classique":     ["dark",  "أناقة خالدة بأسلوب كلاسيكي."],
+  "Le Luxueux Classique":   ["dark",  "فخامة أصيلة تدوم عبر الزمن."],
+  "L'Envoûtant Luxueux":    ["dark",  "عمق ودفء يأسر الحواس."],
+  "Le Royal Somptueux":     ["dark",  "فخامة مهيبة تليق بالمميزين."],
+};
 const sigImg = (pers) => pers && SIG_IMG[pers.fr] ? "/images/signatures/sig-" + SIG_IMG[pers.fr] + ".webp" : null;
 
 function ResultsPage({ res, pers, ans, lang, t, questions, reset, favPicked, pickFavorite, personaFeedback, setPersonaFeedback }) {
@@ -3489,9 +3509,33 @@ function ResultsPage({ res, pers, ans, lang, t, questions, reset, favPicked, pic
           <p className="ffr-sig-desc">{t.giftPersonaSub}</p>
         </aside>
       ) : pers && (
-        <aside className={"ffr-sig" + (sigImg(pers) ? " has-img" : "")} aria-labelledby="ffr-sig-name">
+        sigImg(pers) ? (<>
+        <aside className={"ffr-sig has-img tone-" + ((SIG_CARD[pers.fr] || [])[0] || "dark")} aria-labelledby="ffr-sig-name">
+          <span className="ffr-sig-bg" aria-hidden="true"><img src={sigImg(pers)} alt="" decoding="async"/></span>
+          <div className="ffr-sig-head">
+            <p className="ffr-sig-kicker">✨ {t.personaLabel}</p>
+            {lang !== "fr" && pers.fr ? <p className="ffr-sig-latin" lang="fr" dir="ltr">{pers.fr}</p> : null}
+            <span className="ffr-sig-rule" aria-hidden="true"></span>
+            <h2 className="ffr-sig-name" id="ffr-sig-name">{persName}</h2>
+            {lang !== "fr" && (SIG_CARD[pers.fr] || [])[1] ? <p className="ffr-sig-tag">{SIG_CARD[pers.fr][1]}</p> : null}
+          </div>
+          <div className="ffr-sig-foot">
+            <div className="ffr-feedback">
+              {personaFeedback === null ? (
+                <>
+                  <span>{lang === "fr" ? "Cette signature vous ressemble ?" : "واش هاد البصمة كتشبه ليك؟"}</span>
+                  <button type="button" aria-label={lang === "fr" ? "Oui" : "إيه"} onClick={() => feedback("yes")}>👍</button>
+                  <button type="button" aria-label={lang === "fr" ? "Non" : "لا"} onClick={() => feedback("no")}>👎</button>
+                </>
+              ) : <span>{lang === "fr" ? "Merci pour votre retour 🙏" : "شكراً على رأيك 🙏"}</span>}
+            </div>
+            <ShareResult name={persName} latin={lang === "fr" ? "" : pers.fr} icon={pers.icon} desc={persDesc} lang={lang}/>
+          </div>
+        </aside>
+        {persDesc ? <blockquote className="ffr-sig-about">{persDesc}</blockquote> : null}
+        </>) : (
+        <aside className="ffr-sig" aria-labelledby="ffr-sig-name">
           <FFPrint className="ffr-sig-fp"/>
-          {sigImg(pers) ? <span className="ffr-sig-media" aria-hidden="true"><img src={sigImg(pers)} alt="" decoding="async"/></span> : null}
           <p className="ffr-sig-kicker">✨ {t.personaLabel}</p>
           <h2 className="ffr-sig-name" id="ffr-sig-name">{persName} {pers.icon ? <span className="ffr-sig-icon" aria-hidden="true">{pers.icon}</span> : null}</h2>
           {lang !== "fr" && pers.fr ? <p className="ffr-sig-latin" lang="fr" dir="ltr">{pers.fr}</p> : null}
@@ -3507,6 +3551,7 @@ function ResultsPage({ res, pers, ans, lang, t, questions, reset, favPicked, pic
           </div>
           <ShareResult name={persName} latin={lang === "fr" ? "" : pers.fr} icon={pers.icon} desc={persDesc} lang={lang}/>
         </aside>
+        )
       )}
 
       {/* the link between the signature and the fragrances */}
@@ -3822,11 +3867,11 @@ function buildPersona(na) {
       "clean-travel-luxury":        { ar:"المستكشف الأنيق", fr:"L'Explorateur Élégant",       icon:"🧭", desc:"نقاء فاخر يلازمك في كل رحلة — خفيف وراقٍ يليق بأسلوب حياة المستكشف المتميز." },
 
       // 🌊 أكواتيك
-"aquatic-daily-fresh_imp":  { ar:"المنعش البحري", fr:"L'Âme Marine", icon:"🌊", desc:"تميل/ين للعطور البحرية المنعشة — كنسيم البحر يرافقك طوال اليوم.", desc_fr:"Votre goût penche vers les fragrances marines et fraîches — comme une brise océane qui vous accompagne toute la journée." },
-"aquatic-daily-confident":  { ar:"المنعش البحري", fr:"L'Âme Marine", icon:"🌊", desc:"تميل/ين للعطور الأكواتيك الواثقة — حضور منعش وقوي.", desc_fr:"Les fragrances aquatiques assurées vous correspondent — fraîcheur vive et présence affirmée." },
-"aquatic-daily-elegant":    { ar:"المنعش البحري", fr:"L'Âme Marine", icon:"🌊", desc:"تميل/ين للعطور البحرية الأنيقة — انتعاش راقٍ وهادئ.", desc_fr:"Les aquatiques élégants vous attirent — fraîcheur raffinée et sobre qui reflète votre goût distinctif." },
-"aquatic-daily-attractive": { ar:"المنعش البحري", fr:"L'Âme Marine", icon:"🌊", desc:"تميل/ين للعطور البحرية الجذابة — منعش وخفيف يمنح جاذبية طبيعية.", desc_fr:"Les aquatiques séduisants vous correspondent — frais et léger, il dégage un charme naturel irrésistible." },
-"aquatic-evening-elegant":  { ar:"المنعش البحري", fr:"L'Âme Marine", icon:"🌊", desc:"أكواتيك راقٍ للسهرات — اختيار مختلف وجريء.", desc_fr:"Un aquatique raffiné pour les soirées — un choix audacieux et distinctif." },
+"aquatic-daily-fresh_imp":  { ar:"الروح البحرية", fr:"L'Âme Marine", icon:"🌊", desc:"تميل/ين للعطور البحرية المنعشة — كنسيم البحر يرافقك طوال اليوم.", desc_fr:"Votre goût penche vers les fragrances marines et fraîches — comme une brise océane qui vous accompagne toute la journée." },
+"aquatic-daily-confident":  { ar:"الروح البحرية", fr:"L'Âme Marine", icon:"🌊", desc:"تميل/ين للعطور الأكواتيك الواثقة — حضور منعش وقوي.", desc_fr:"Les fragrances aquatiques assurées vous correspondent — fraîcheur vive et présence affirmée." },
+"aquatic-daily-elegant":    { ar:"الروح البحرية", fr:"L'Âme Marine", icon:"🌊", desc:"تميل/ين للعطور البحرية الأنيقة — انتعاش راقٍ وهادئ.", desc_fr:"Les aquatiques élégants vous attirent — fraîcheur raffinée et sobre qui reflète votre goût distinctif." },
+"aquatic-daily-attractive": { ar:"الروح البحرية", fr:"L'Âme Marine", icon:"🌊", desc:"تميل/ين للعطور البحرية الجذابة — منعش وخفيف يمنح جاذبية طبيعية.", desc_fr:"Les aquatiques séduisants vous correspondent — frais et léger, il dégage un charme naturel irrésistible." },
+"aquatic-evening-elegant":  { ar:"الروح البحرية", fr:"L'Âme Marine", icon:"🌊", desc:"أكواتيك راقٍ للسهرات — اختيار مختلف وجريء.", desc_fr:"Un aquatique raffiné pour les soirées — un choix audacieux et distinctif." },
 "aquatic-travel-fresh_imp": { ar:"المستكشف الأنيق", fr:"L'Explorateur Élégant", icon:"🧭", desc:"نسيم بحري يرافقك في كل رحلة.", desc_fr:"Une brise marine qui vous accompagne dans chaque voyage." },
 
 // 🤍 مسكي
