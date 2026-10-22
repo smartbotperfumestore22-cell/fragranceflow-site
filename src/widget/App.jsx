@@ -3518,6 +3518,37 @@ function nearGaps(p, ans, lang) {
   return out;
 }
 
+// one photo per fragrance signature (keyed by its French name, which stays stable)
+const SIG_IMG = {
+  "Le Doux Velouté":"doux-veloute", "Le Fruité Séduisant":"fruite-seduisant", "L'Âme Marine":"ame-marine",
+  "Le Floral Envoûtant":"floral-envoutant", "Le Mystérieux Envoûtant":"mysterieux-envoutant", "Le Doux Ensorcelant":"doux-ensorcelant",
+  "Le Luxueux Moderne":"luxueux-moderne", "L'Élégant Raffiné":"elegant-raffine", "L'Élégant Confiant":"elegant-raffine",
+  "L'Explorateur Élégant":"explorateur-elegant", "Le Frais Dynamique":"frais-dynamique", "Le Frais Élégant":"frais-elegant",
+  "Le Romantique Séduisant":"romantique-seduisant", "Le Raffiné Marquant":"raffine-marquant", "Le Noble Classique":"noble-classique",
+  "Le Luxueux Classique":"luxueux-classique", "L'Envoûtant Luxueux":"envoutant-luxueux", "Le Royal Somptueux":"royal-somptueux",
+};
+const SIG_CARD = {
+  "Le Doux Velouté":        ["light", "نعومة دافئة وحسية تترك أثراً لا يُنسى."],
+  "Le Fruité Séduisant":    ["light", "حلاوة الفواكه الناضجة التي تثير الإعجاب."],
+  "L'Âme Marine":           ["light", "انتعاش البحر ونسماته المنعشة."],
+  "Le Floral Envoûtant":    ["light", "أزهار آسرة تنبض بالأنوثة والرقة."],
+  "Le Mystérieux Envoûtant":["dark",  "مزيج من الغموض والعمق الذي يثير الفضول."],
+  "Le Doux Ensorcelant":    ["light", "دفء الفانيليا والحلاوة التي تأسر الحواس."],
+  "Le Luxueux Moderne":     ["dark",  "فخامة بلمسة عصرية تجمع بين القوة والأناقة."],
+  "L'Élégant Raffiné":      ["light", "بسيط ومتوازن بكل تفاصيله."],
+  "L'Élégant Confiant":     ["light", "بسيط ومتوازن بكل تفاصيله."],
+  "L'Explorateur Élégant":  ["dark",  "روح المغامرة براحة وأناقة طبيعية."],
+  "Le Frais Dynamique":     ["light", "طاقة وانتعاش في كل لحظة."],
+  "Le Frais Élégant":       ["light", "انتعاش نقي بلمسة من الأناقة."],
+  "Le Romantique Séduisant":["light", "حب وشغف في كل نفحة."],
+  "Le Raffiné Marquant":    ["light", "أثر قوي وحضور لا يُنسى."],
+  "Le Noble Classique":     ["dark",  "أناقة خالدة بأسلوب كلاسيكي."],
+  "Le Luxueux Classique":   ["dark",  "فخامة أصيلة تدوم عبر الزمن."],
+  "L'Envoûtant Luxueux":    ["dark",  "عمق ودفء يأسر الحواس."],
+  "Le Royal Somptueux":     ["dark",  "فخامة مهيبة تليق بالمميزين."],
+};
+const sigImg = (pers) => pers && SIG_IMG[pers.fr] ? "/images/signatures/sig-" + SIG_IMG[pers.fr] + ".webp" : null;
+
 function ResultsPage({ res, pers, ans, lang, t, questions, reset, favPicked, pickFavorite, personaFeedback, setPersonaFeedback, near }) {
   const L = rvL(lang);
   // summary of the user's answers, using the quiz's own option labels
@@ -3559,6 +3590,31 @@ function ResultsPage({ res, pers, ans, lang, t, questions, reset, favPicked, pic
           <p className="ffr-sig-desc">{t.giftPersonaSub}</p>
         </aside>
       ) : pers && (
+        sigImg(pers) ? (<>
+        <aside className={"ffr-sig has-img tone-" + ((SIG_CARD[pers.fr] || [])[0] || "dark")} aria-labelledby="ffr-sig-name">
+          <span className="ffr-sig-bg" aria-hidden="true"><img src={sigImg(pers)} alt="" decoding="async"/></span>
+          <div className="ffr-sig-head">
+            <p className="ffr-sig-kicker">✨ {t.personaLabel}</p>
+            {lang !== "fr" && pers.fr ? <p className="ffr-sig-latin" lang="fr" dir="ltr">{pers.fr}</p> : null}
+            <span className="ffr-sig-rule" aria-hidden="true"></span>
+            <h2 className="ffr-sig-name" id="ffr-sig-name">{persName}</h2>
+            {lang !== "fr" && (SIG_CARD[pers.fr] || [])[1] ? <p className="ffr-sig-tag">{SIG_CARD[pers.fr][1]}</p> : null}
+          </div>
+          <div className="ffr-sig-foot">
+            <div className="ffr-feedback">
+              {personaFeedback === null ? (
+                <>
+                  <span>{lang === "fr" ? "Cette signature vous ressemble ?" : "واش هاد البصمة كتشبه ليك؟"}</span>
+                  <button type="button" aria-label={lang === "fr" ? "Oui" : "إيه"} onClick={() => feedback("yes")}>👍</button>
+                  <button type="button" aria-label={lang === "fr" ? "Non" : "لا"} onClick={() => feedback("no")}>👎</button>
+                </>
+              ) : <span>{lang === "fr" ? "Merci pour votre retour 🙏" : "شكراً على رأيك 🙏"}</span>}
+            </div>
+            <ShareResult name={persName} latin={lang === "fr" ? "" : pers.fr} icon={pers.icon} desc={persDesc} lang={lang}/>
+          </div>
+        </aside>
+        {persDesc ? <blockquote className="ffr-sig-about">{persDesc}</blockquote> : null}
+        </>) : (
         <aside className="ffr-sig" aria-labelledby="ffr-sig-name">
           <FFPrint className="ffr-sig-fp"/>
           <p className="ffr-sig-kicker">✨ {t.personaLabel}</p>
@@ -3576,6 +3632,7 @@ function ResultsPage({ res, pers, ans, lang, t, questions, reset, favPicked, pic
           </div>
           <ShareResult name={persName} latin={lang === "fr" ? "" : pers.fr} icon={pers.icon} desc={persDesc} lang={lang}/>
         </aside>
+        )
       )}
 
       {/* the link between the signature and the fragrances */}
@@ -3821,39 +3878,39 @@ function buildPersona(na) {
     // جدول الشخصيات — 12 شخصية بأسماء + وصف خاص
     const PERSONA_LOOKUP = {
       // «غموض يخلّي الفضول»
-      "oriental-daily-mysterious": { ar:"الغامض الآسر",    fr:"Le Mystérieux Envoûtant",     icon:"🌙", desc:"تميل/ين للعطور الشرقية الغامضة التي تثير الفضول — عطر ليلي آسر يترك أثراً غامضاً يصعب نسيانه." },
-      "oriental-travel-mysterious": { ar:"الغامض الآسر",    fr:"Le Mystérieux Envoûtant",     icon:"🌙", desc:"تميل/ين للعطور الشرقية الغامضة التي تثير الفضول — عطر ليلي آسر يترك أثراً غامضاً يصعب نسيانه." },
-      "oriental-evening-mysterious": { ar:"الآسر الفاخر",     fr:"L'Envoûtant Luxueux",         icon:"🖤", desc:"تميل/ين للعطور الشرقية الجذابة التي تمزج بين الغموض والفخامة — حضور آسر يسحر من حولك." },
-      "oriental-dates-mysterious": { ar:"الآسر الفاخر",     fr:"L'Envoûtant Luxueux",         icon:"🖤", desc:"تميل/ين للعطور الشرقية الجذابة التي تمزج بين الغموض والفخامة — حضور آسر يسحر من حولك." },
-      "woody-daily-mysterious": { ar:"الغامض الآسر",    fr:"Le Mystérieux Envoûtant",     icon:"🌙", desc:"تميل/ين للعطور الشرقية الغامضة التي تثير الفضول — عطر ليلي آسر يترك أثراً غامضاً يصعب نسيانه." },
-      "woody-travel-mysterious": { ar:"الغامض الآسر",    fr:"Le Mystérieux Envoûtant",     icon:"🌙", desc:"تميل/ين للعطور الشرقية الغامضة التي تثير الفضول — عطر ليلي آسر يترك أثراً غامضاً يصعب نسيانه." },
-      "woody-evening-mysterious": { ar:"الآسر الفاخر",     fr:"L'Envoûtant Luxueux",         icon:"🖤", desc:"تميل/ين للعطور الشرقية الجذابة التي تمزج بين الغموض والفخامة — حضور آسر يسحر من حولك." },
-      "woody-dates-mysterious": { ar:"الآسر الفاخر",     fr:"L'Envoûtant Luxueux",         icon:"🖤", desc:"تميل/ين للعطور الشرقية الجذابة التي تمزج بين الغموض والفخامة — حضور آسر يسحر من حولك." },
-      "heavy-daily-mysterious": { ar:"الغامض الآسر",    fr:"Le Mystérieux Envoûtant",     icon:"🌙", desc:"تميل/ين للعطور الشرقية الغامضة التي تثير الفضول — عطر ليلي آسر يترك أثراً غامضاً يصعب نسيانه." },
-      "heavy-travel-mysterious": { ar:"الغامض الآسر",    fr:"Le Mystérieux Envoûtant",     icon:"🌙", desc:"تميل/ين للعطور الشرقية الغامضة التي تثير الفضول — عطر ليلي آسر يترك أثراً غامضاً يصعب نسيانه." },
-      "heavy-evening-mysterious": { ar:"الآسر الفاخر",     fr:"L'Envoûtant Luxueux",         icon:"🖤", desc:"تميل/ين للعطور الشرقية الجذابة التي تمزج بين الغموض والفخامة — حضور آسر يسحر من حولك." },
-      "heavy-dates-mysterious": { ar:"الآسر الفاخر",     fr:"L'Envoûtant Luxueux",         icon:"🖤", desc:"تميل/ين للعطور الشرقية الجذابة التي تمزج بين الغموض والفخامة — حضور آسر يسحر من حولك." },
-      "sweet-daily-mysterious": { ar:"الغامض الآسر",    fr:"Le Mystérieux Envoûtant",     icon:"🌙", desc:"تميل/ين للعطور الشرقية الغامضة التي تثير الفضول — عطر ليلي آسر يترك أثراً غامضاً يصعب نسيانه." },
-      "sweet-travel-mysterious": { ar:"الغامض الآسر",    fr:"Le Mystérieux Envoûtant",     icon:"🌙", desc:"تميل/ين للعطور الشرقية الغامضة التي تثير الفضول — عطر ليلي آسر يترك أثراً غامضاً يصعب نسيانه." },
-      "sweet-evening-mysterious": { ar:"الآسر الفاخر",     fr:"L'Envoûtant Luxueux",         icon:"🖤", desc:"تميل/ين للعطور الشرقية الجذابة التي تمزج بين الغموض والفخامة — حضور آسر يسحر من حولك." },
-      "sweet-dates-mysterious": { ar:"الآسر الفاخر",     fr:"L'Envoûtant Luxueux",         icon:"🖤", desc:"تميل/ين للعطور الشرقية الجذابة التي تمزج بين الغموض والفخامة — حضور آسر يسحر من حولك." },
-      "musky-daily-mysterious": { ar:"الغامض الآسر",    fr:"Le Mystérieux Envoûtant",     icon:"🌙", desc:"تميل/ين للعطور الشرقية الغامضة التي تثير الفضول — عطر ليلي آسر يترك أثراً غامضاً يصعب نسيانه." },
-      "musky-travel-mysterious": { ar:"الغامض الآسر",    fr:"Le Mystérieux Envoûtant",     icon:"🌙", desc:"تميل/ين للعطور الشرقية الغامضة التي تثير الفضول — عطر ليلي آسر يترك أثراً غامضاً يصعب نسيانه." },
-      "musky-evening-mysterious": { ar:"الآسر الفاخر",     fr:"L'Envoûtant Luxueux",         icon:"🖤", desc:"تميل/ين للعطور الشرقية الجذابة التي تمزج بين الغموض والفخامة — حضور آسر يسحر من حولك." },
-      "musky-dates-mysterious": { ar:"الآسر الفاخر",     fr:"L'Envoûtant Luxueux",         icon:"🖤", desc:"تميل/ين للعطور الشرقية الجذابة التي تمزج بين الغموض والفخامة — حضور آسر يسحر من حولك." },
-      "oriental-evening-luxury":    { ar:"الملكي الفاخر",     fr:"Le Royal Somptueux",          icon:"👑", desc:"تميل/ين للعطور الشرقية الفاخرة التي تفرض حضورها بقوة وأصالة — عطر يليق بالمناسبات الراقية ويترك أثراً ملكياً لا يُنسى." },
-      "heavy-evening-luxury":       { ar:"الملكي الفاخر",     fr:"Le Royal Somptueux",          icon:"👑", desc:"تميل/ين للعطور الفاخرة العميقة التي تجمع الثقل والأناقة — حضور ملكي يناسب أرقى المناسبات." },
-      "sweet-evening-luxury":       { ar:"الملكي الفاخر",     fr:"Le Royal Somptueux",          icon:"👑", desc:"تميل/ين للعطور الحلوة الفاخرة التي تجمع الدفء والثراء — شخصية راقية تترك بصمة لا تُنسى." },
-      "sweet-dates-luxury":         { ar:"الملكي الفاخر",     fr:"Le Royal Somptueux",          icon:"👑", desc:"تميل/ين للعطور الحلوة الفاخرة الرومانسية — دفء ملكي يجعل كل لحظة خاصة لا تُنسى." },
-      "sweet-daily-luxury":         { ar:"الفخم العصري",      fr:"Le Luxueux Moderne",          icon:"💎", desc:"تميل/ين للعطور الحلوة الفاخرة العصرية — دفء راقٍ يناسب الاستعمال اليومي ويترك حضوراً مميزاً." },
-      "oriental-evening-attractive":{ ar:"الآسر الفاخر",     fr:"L'Envoûtant Luxueux",         icon:"🖤", desc:"تميل/ين للعطور الشرقية الجذابة التي تمزج بين الغموض والفخامة — حضور آسر يسحر من حولك." },
-      "oriental-evening-firstlook": { ar:"الآسر الفاخر",     fr:"L'Envoûtant Luxueux",         icon:"🖤", desc:"تريد/ين أن يتذكرك الجميع من أول لقاء — عطر شرقي فاخر يصنع انطباعاً لا يُمحى." },
-      "sweet-daily-longlast":       { ar:"الآسر الأنيق",    fr:"Le Raffiné Marquant",         icon:"⭐", desc:"تميل/ين للعطور الحلوة الراقية التي تجمع النعومة والجاذبية — تترك انطباعاً أنيقاً يدوم في ذاكرة من حولك." },
-      "sweet-evening-longlast":     { ar:"الآسر الأنيق",    fr:"Le Raffiné Marquant",         icon:"⭐", desc:"تميل/ين للعطور الحلوة الراقية للسهرات — دفء أنيق يترك أثراً يصعب نسيانه." },
-      "sweet-daily-attractive":     { ar:"الدافئ الساحر",    fr:"Le Doux Ensorcelant",         icon:"🍯", desc:"تميل/ين للعطور الحلوة الدافئة التي تمنح جاذبية طبيعية — ساحر يقرب القلوب بأناقة هادئة." },
-      "sweet-evening-attractive":   { ar:"الدافئ الساحر",    fr:"Le Doux Ensorcelant",         icon:"🍯", desc:"تميل/ين للعطور الحلوة الجذابة للسهرات — دفء يلف الحواس ويترك أثراً رومانسياً." },
-      "clean-daily-elegant":        { ar:"الأنيق الواثق",    fr:"L'Élégant Raffiné",           icon:"✨", desc:"تميل/ين للعطور النظيفة الراقية التي تعكس الأناقة الهادئة — عطر يُعبّر عن رقيك دون مبالغة." },
-      "clean-evening-elegant":      { ar:"الأنيق الواثق",    fr:"L'Élégant Raffiné",           icon:"✨", desc:"تميل/ين للعطور المسكية الراقية للسهرات — نقاء وأناقة في آن واحد." },
+      "oriental-daily-mysterious": { ar:"الغامض الساحر",    fr:"Le Mystérieux Envoûtant",     icon:"🌙", desc:"تميل/ين للعطور الشرقية الغامضة التي تثير الفضول — عطر ليلي آسر يترك أثراً غامضاً يصعب نسيانه." },
+      "oriental-travel-mysterious": { ar:"الغامض الساحر",    fr:"Le Mystérieux Envoûtant",     icon:"🌙", desc:"تميل/ين للعطور الشرقية الغامضة التي تثير الفضول — عطر ليلي آسر يترك أثراً غامضاً يصعب نسيانه." },
+      "oriental-evening-mysterious": { ar:"الساحر الفاخر",     fr:"L'Envoûtant Luxueux",         icon:"🖤", desc:"تميل/ين للعطور الشرقية الجذابة التي تمزج بين الغموض والفخامة — حضور آسر يسحر من حولك." },
+      "oriental-dates-mysterious": { ar:"الساحر الفاخر",     fr:"L'Envoûtant Luxueux",         icon:"🖤", desc:"تميل/ين للعطور الشرقية الجذابة التي تمزج بين الغموض والفخامة — حضور آسر يسحر من حولك." },
+      "woody-daily-mysterious": { ar:"الغامض الساحر",    fr:"Le Mystérieux Envoûtant",     icon:"🌙", desc:"تميل/ين للعطور الشرقية الغامضة التي تثير الفضول — عطر ليلي آسر يترك أثراً غامضاً يصعب نسيانه." },
+      "woody-travel-mysterious": { ar:"الغامض الساحر",    fr:"Le Mystérieux Envoûtant",     icon:"🌙", desc:"تميل/ين للعطور الشرقية الغامضة التي تثير الفضول — عطر ليلي آسر يترك أثراً غامضاً يصعب نسيانه." },
+      "woody-evening-mysterious": { ar:"الساحر الفاخر",     fr:"L'Envoûtant Luxueux",         icon:"🖤", desc:"تميل/ين للعطور الشرقية الجذابة التي تمزج بين الغموض والفخامة — حضور آسر يسحر من حولك." },
+      "woody-dates-mysterious": { ar:"الساحر الفاخر",     fr:"L'Envoûtant Luxueux",         icon:"🖤", desc:"تميل/ين للعطور الشرقية الجذابة التي تمزج بين الغموض والفخامة — حضور آسر يسحر من حولك." },
+      "heavy-daily-mysterious": { ar:"الغامض الساحر",    fr:"Le Mystérieux Envoûtant",     icon:"🌙", desc:"تميل/ين للعطور الشرقية الغامضة التي تثير الفضول — عطر ليلي آسر يترك أثراً غامضاً يصعب نسيانه." },
+      "heavy-travel-mysterious": { ar:"الغامض الساحر",    fr:"Le Mystérieux Envoûtant",     icon:"🌙", desc:"تميل/ين للعطور الشرقية الغامضة التي تثير الفضول — عطر ليلي آسر يترك أثراً غامضاً يصعب نسيانه." },
+      "heavy-evening-mysterious": { ar:"الساحر الفاخر",     fr:"L'Envoûtant Luxueux",         icon:"🖤", desc:"تميل/ين للعطور الشرقية الجذابة التي تمزج بين الغموض والفخامة — حضور آسر يسحر من حولك." },
+      "heavy-dates-mysterious": { ar:"الساحر الفاخر",     fr:"L'Envoûtant Luxueux",         icon:"🖤", desc:"تميل/ين للعطور الشرقية الجذابة التي تمزج بين الغموض والفخامة — حضور آسر يسحر من حولك." },
+      "sweet-daily-mysterious": { ar:"الغامض الساحر",    fr:"Le Mystérieux Envoûtant",     icon:"🌙", desc:"تميل/ين للعطور الشرقية الغامضة التي تثير الفضول — عطر ليلي آسر يترك أثراً غامضاً يصعب نسيانه." },
+      "sweet-travel-mysterious": { ar:"الغامض الساحر",    fr:"Le Mystérieux Envoûtant",     icon:"🌙", desc:"تميل/ين للعطور الشرقية الغامضة التي تثير الفضول — عطر ليلي آسر يترك أثراً غامضاً يصعب نسيانه." },
+      "sweet-evening-mysterious": { ar:"الساحر الفاخر",     fr:"L'Envoûtant Luxueux",         icon:"🖤", desc:"تميل/ين للعطور الشرقية الجذابة التي تمزج بين الغموض والفخامة — حضور آسر يسحر من حولك." },
+      "sweet-dates-mysterious": { ar:"الساحر الفاخر",     fr:"L'Envoûtant Luxueux",         icon:"🖤", desc:"تميل/ين للعطور الشرقية الجذابة التي تمزج بين الغموض والفخامة — حضور آسر يسحر من حولك." },
+      "musky-daily-mysterious": { ar:"الغامض الساحر",    fr:"Le Mystérieux Envoûtant",     icon:"🌙", desc:"تميل/ين للعطور الشرقية الغامضة التي تثير الفضول — عطر ليلي آسر يترك أثراً غامضاً يصعب نسيانه." },
+      "musky-travel-mysterious": { ar:"الغامض الساحر",    fr:"Le Mystérieux Envoûtant",     icon:"🌙", desc:"تميل/ين للعطور الشرقية الغامضة التي تثير الفضول — عطر ليلي آسر يترك أثراً غامضاً يصعب نسيانه." },
+      "musky-evening-mysterious": { ar:"الساحر الفاخر",     fr:"L'Envoûtant Luxueux",         icon:"🖤", desc:"تميل/ين للعطور الشرقية الجذابة التي تمزج بين الغموض والفخامة — حضور آسر يسحر من حولك." },
+      "musky-dates-mysterious": { ar:"الساحر الفاخر",     fr:"L'Envoûtant Luxueux",         icon:"🖤", desc:"تميل/ين للعطور الشرقية الجذابة التي تمزج بين الغموض والفخامة — حضور آسر يسحر من حولك." },
+      "oriental-evening-luxury":    { ar:"الملكي الفخم",     fr:"Le Royal Somptueux",          icon:"👑", desc:"تميل/ين للعطور الشرقية الفاخرة التي تفرض حضورها بقوة وأصالة — عطر يليق بالمناسبات الراقية ويترك أثراً ملكياً لا يُنسى." },
+      "heavy-evening-luxury":       { ar:"الملكي الفخم",     fr:"Le Royal Somptueux",          icon:"👑", desc:"تميل/ين للعطور الفاخرة العميقة التي تجمع الثقل والأناقة — حضور ملكي يناسب أرقى المناسبات." },
+      "sweet-evening-luxury":       { ar:"الملكي الفخم",     fr:"Le Royal Somptueux",          icon:"👑", desc:"تميل/ين للعطور الحلوة الفاخرة التي تجمع الدفء والثراء — شخصية راقية تترك بصمة لا تُنسى." },
+      "sweet-dates-luxury":         { ar:"الملكي الفخم",     fr:"Le Royal Somptueux",          icon:"👑", desc:"تميل/ين للعطور الحلوة الفاخرة الرومانسية — دفء ملكي يجعل كل لحظة خاصة لا تُنسى." },
+      "sweet-daily-luxury":         { ar:"الفاخر العصري",      fr:"Le Luxueux Moderne",          icon:"💎", desc:"تميل/ين للعطور الحلوة الفاخرة العصرية — دفء راقٍ يناسب الاستعمال اليومي ويترك حضوراً مميزاً." },
+      "oriental-evening-attractive":{ ar:"الساحر الفاخر",     fr:"L'Envoûtant Luxueux",         icon:"🖤", desc:"تميل/ين للعطور الشرقية الجذابة التي تمزج بين الغموض والفخامة — حضور آسر يسحر من حولك." },
+      "oriental-evening-firstlook": { ar:"الساحر الفاخر",     fr:"L'Envoûtant Luxueux",         icon:"🖤", desc:"تريد/ين أن يتذكرك الجميع من أول لقاء — عطر شرقي فاخر يصنع انطباعاً لا يُمحى." },
+      "sweet-daily-longlast":       { ar:"الراقي الملفت",    fr:"Le Raffiné Marquant",         icon:"⭐", desc:"تميل/ين للعطور الحلوة الراقية التي تجمع النعومة والجاذبية — تترك انطباعاً أنيقاً يدوم في ذاكرة من حولك." },
+      "sweet-evening-longlast":     { ar:"الراقي الملفت",    fr:"Le Raffiné Marquant",         icon:"⭐", desc:"تميل/ين للعطور الحلوة الراقية للسهرات — دفء أنيق يترك أثراً يصعب نسيانه." },
+      "sweet-daily-attractive":     { ar:"الحلو الساحر",    fr:"Le Doux Ensorcelant",         icon:"🍯", desc:"تميل/ين للعطور الحلوة الدافئة التي تمنح جاذبية طبيعية — ساحر يقرب القلوب بأناقة هادئة." },
+      "sweet-evening-attractive":   { ar:"الحلو الساحر",    fr:"Le Doux Ensorcelant",         icon:"🍯", desc:"تميل/ين للعطور الحلوة الجذابة للسهرات — دفء يلف الحواس ويترك أثراً رومانسياً." },
+      "clean-daily-elegant":        { ar:"الأنيق الراقي",    fr:"L'Élégant Raffiné",           icon:"✨", desc:"تميل/ين للعطور النظيفة الراقية التي تعكس الأناقة الهادئة — عطر يُعبّر عن رقيك دون مبالغة." },
+      "clean-evening-elegant":      { ar:"الأنيق الراقي",    fr:"L'Élégant Raffiné",           icon:"✨", desc:"تميل/ين للعطور المسكية الراقية للسهرات — نقاء وأناقة في آن واحد." },
       "clean-daily-fresh_imp":      { ar:"الناعم المخملي",   fr:"Le Doux Velouté",             icon:"🤍", desc:"تميل/ين للعطور المسكية الناعمة التي تمنح إحساساً بالنقاء — خفيف كالحرير يلازمك طوال اليوم." },
       "clean-daily-longlast":       { ar:"الناعم المخملي",   fr:"Le Doux Velouté",             icon:"🤍", desc:"تميل/ين للعطور المسكية الناعمة التي تترك أثراً هادئاً ومميزاً — نقاء يبقى معك ساعات." },
       "clean-daily-attractive":     { ar:"الناعم المخملي",   fr:"Le Doux Velouté",             icon:"🤍", desc:"تميل/ين للعطور النظيفة الجذابة — مسك ناعم يمنح جاذبية طبيعية وحضوراً هادئاً." },
@@ -3866,30 +3923,30 @@ function buildPersona(na) {
       "fresh-evening-confident":    { ar:"المنعش الحيوي",    fr:"Le Frais Dynamique",          icon:"🌊", desc:"انتعاش واثق للأمسيات — منعش بحضور واضح يترك انطباعاً قوياً في كل لقاء." },
       "fresh-dates-attractive":     { ar:"المنعش الحيوي",    fr:"Le Frais Dynamique",          icon:"🌊", desc:"تميل/ين للعطور المنعشة الرومانسية التي تمنح جاذبية طبيعية في المواعيد الخاصة." },
       "fresh-dates-elegant":        { ar:"المنعش الحيوي",    fr:"Le Frais Dynamique",          icon:"🌊", desc:"انتعاش أنيق ورومانسي — يجعل حضورك خفيفاً وجذاباً في اللحظات الحميمة." },
-      "fresh-daily-attractive":     { ar:"المنعش الأنيق",    fr:"Le Frais Élégant",            icon:"✨", desc:"تميل/ين للعطور المنعشة الراقية التي تمنح كاريزما طبيعية — منعش يلفت الأنظار بأناقة." },
-      "fresh-daily-elegant":        { ar:"المنعش الأنيق",    fr:"Le Frais Élégant",            icon:"✨", desc:"تميل/ين للعطور المنعشة الأنيقة — انتعاش راقٍ يعكس ذوقك المتميز." },
+      "fresh-daily-attractive":     { ar:"المنعش الراقي",    fr:"Le Frais Élégant",            icon:"✨", desc:"تميل/ين للعطور المنعشة الراقية التي تمنح كاريزما طبيعية — منعش يلفت الأنظار بأناقة." },
+      "fresh-daily-elegant":        { ar:"المنعش الراقي",    fr:"Le Frais Élégant",            icon:"✨", desc:"تميل/ين للعطور المنعشة الأنيقة — انتعاش راقٍ يعكس ذوقك المتميز." },
       "woody-daily-confident":      { ar:"النبيل الكلاسيكي", fr:"Le Noble Classique",          icon:"🎩", desc:"تميل/ين للعطور الخشبية الكلاسيكية التي تعكس الثقة والوقار — شخصية نبيلة تترك انطباعاً احترافياً." },
       "woody-evening-confident":    { ar:"النبيل الكلاسيكي", fr:"Le Noble Classique",          icon:"🎩", desc:"تميل/ين للعطور الخشبية الفاخرة — حضور نبيل يناسب المناسبات والسهرات الراقية." },
-      "woody-daily-luxury":         { ar:"الفخم الكلاسيكي",  fr:"Le Luxueux Classique",        icon:"🎩", desc:"تميل/ين للعطور الخشبية الفاخرة — أناقة كلاسيكية راقية تعكس الثراء والتميز في كل يوم." },
-      // خشبي + سهرات + جاذبية → الآسر الفاخر
-      "woody-evening-attractive":   { ar:"الآسر الفاخر",     fr:"L'Envoûtant Luxueux",         icon:"🖤", desc:"تميل/ين للعطور الخشبية الجذابة التي تجمع العمق والجاذبية — خشبي آسر يسحر من حولك في السهرات." },
-      "woody-evening-firstlook":    { ar:"الآسر الفاخر",     fr:"L'Envoûtant Luxueux",         icon:"🖤", desc:"تريد/ين عطراً خشبياً يصنع انطباعاً أولاً لا يُنسى — عميق وجذاب يسحر من أول لقاء." },
-      // خشبي + سهرات + أناقة → الغامض الآسر
-      "woody-evening-elegant":      { ar:"الغامض الآسر",     fr:"Le Mystérieux Envoûtant",     icon:"🌙", desc:"تميل/ين للعطور الخشبية الغامضة للسهرات — عمق هادئ وأنيق يثير الفضول ويترك أثراً." },
-      "woody-evening-luxury":       { ar:"الملكي الفاخر",    fr:"Le Royal Somptueux",          icon:"👑", desc:"تميل/ين للعطور الخشبية الملكية الفاخرة للسهرات — نبيل وثري يليق بأرقى المناسبات." },
-      "oriental-evening-elegant":   { ar:"الغامض الآسر",    fr:"Le Mystérieux Envoûtant",     icon:"🌙", desc:"تميل/ين للعطور الشرقية الغامضة التي تثير الفضول — عطر ليلي آسر يترك أثراً غامضاً يصعب نسيانه." },
-      "oriental-daily-elegant":     { ar:"الغامض الآسر",    fr:"Le Mystérieux Envoûtant",     icon:"🌙", desc:"تميل/ين للعطور الشرقية الغامضة — حضور هادئ وعميق يشعرك بالتميز في كل لحظة." },
-      "oriental-daily-luxury":      { ar:"الفخم العصري",    fr:"Le Luxueux Moderne",          icon:"💎", desc:"تميل/ين للعطور الشرقية الفاخرة العصرية — شرقي راقٍ يجمع الأصالة والحداثة، رفيق مثالي في السفر والاستعمال اليومي." },
+      "woody-daily-luxury":         { ar:"الفاخر الكلاسيكي",  fr:"Le Luxueux Classique",        icon:"🎩", desc:"تميل/ين للعطور الخشبية الفاخرة — أناقة كلاسيكية راقية تعكس الثراء والتميز في كل يوم." },
+      // خشبي + سهرات + جاذبية → الساحر الفاخر
+      "woody-evening-attractive":   { ar:"الساحر الفاخر",     fr:"L'Envoûtant Luxueux",         icon:"🖤", desc:"تميل/ين للعطور الخشبية الجذابة التي تجمع العمق والجاذبية — خشبي آسر يسحر من حولك في السهرات." },
+      "woody-evening-firstlook":    { ar:"الساحر الفاخر",     fr:"L'Envoûtant Luxueux",         icon:"🖤", desc:"تريد/ين عطراً خشبياً يصنع انطباعاً أولاً لا يُنسى — عميق وجذاب يسحر من أول لقاء." },
+      // خشبي + سهرات + أناقة → الغامض الساحر
+      "woody-evening-elegant":      { ar:"الغامض الساحر",     fr:"Le Mystérieux Envoûtant",     icon:"🌙", desc:"تميل/ين للعطور الخشبية الغامضة للسهرات — عمق هادئ وأنيق يثير الفضول ويترك أثراً." },
+      "woody-evening-luxury":       { ar:"الملكي الفخم",    fr:"Le Royal Somptueux",          icon:"👑", desc:"تميل/ين للعطور الخشبية الملكية الفاخرة للسهرات — نبيل وثري يليق بأرقى المناسبات." },
+      "oriental-evening-elegant":   { ar:"الغامض الساحر",    fr:"Le Mystérieux Envoûtant",     icon:"🌙", desc:"تميل/ين للعطور الشرقية الغامضة التي تثير الفضول — عطر ليلي آسر يترك أثراً غامضاً يصعب نسيانه." },
+      "oriental-daily-elegant":     { ar:"الغامض الساحر",    fr:"Le Mystérieux Envoûtant",     icon:"🌙", desc:"تميل/ين للعطور الشرقية الغامضة — حضور هادئ وعميق يشعرك بالتميز في كل لحظة." },
+      "oriental-daily-luxury":      { ar:"الفاخر العصري",    fr:"Le Luxueux Moderne",          icon:"💎", desc:"تميل/ين للعطور الشرقية الفاخرة العصرية — شرقي راقٍ يجمع الأصالة والحداثة، رفيق مثالي في السفر والاستعمال اليومي." },
       "oriental-travel-confident":   { ar:"الأنيق الواثق",  fr:"L'Élégant Confiant",          icon:"✨", desc:"شرقي راقٍ يجمع بين الأصالة والعملية — يمنحك حضوراً واثقاً أينما كانت وجهتك." },
       "oriental-travel-elegant":     { ar:"الأنيق الواثق",  fr:"L'Élégant Confiant",          icon:"✨", desc:"تميل/ين للعطور الشرقية المتوازنة التي تجمع الأناقة والحضور الواثق — عطر يرافقك بثقة في السفر والمناسبات." },
       "oriental-travel-attractive":  { ar:"الأنيق الواثق",  fr:"L'Élégant Confiant",          icon:"✨", desc:"شرقي أنيق وعملي — يمنحك جاذبية طبيعية وحضوراً واثقاً في كل وجهة جديدة." },
-      "oriental-travel-luxury":      { ar:"الفخم العصري",   fr:"Le Luxueux Moderne",           icon:"💎", desc:"شرقي فاخر ومتوازن — راقٍ بما يكفي للمناسبات، وعملي بما يكفي للسفر." },
-      "heavy-daily-luxury":         { ar:"الفخم العصري",    fr:"Le Luxueux Moderne",          icon:"💎", desc:"تميل/ين للعطور الفاخرة العميقة في اليومي — حضور قوي وراقٍ يعكس شخصيتك المميزة." },
+      "oriental-travel-luxury":      { ar:"الفاخر العصري",   fr:"Le Luxueux Moderne",           icon:"💎", desc:"شرقي فاخر ومتوازن — راقٍ بما يكفي للمناسبات، وعملي بما يكفي للسفر." },
+      "heavy-daily-luxury":         { ar:"الفاخر العصري",    fr:"Le Luxueux Moderne",          icon:"💎", desc:"تميل/ين للعطور الفاخرة العميقة في اليومي — حضور قوي وراقٍ يعكس شخصيتك المميزة." },
       "heavy-daily-confident":      { ar:"الجريء الواثق",   fr:"L'Audacieux Confiant",        icon:"🔥", desc:"تميل/ين للعطور العميقة الواثقة التي تعكس قوة شخصيتك — حضور جريء لا يمر مرور الكرام." },
       "heavy-evening-confident":    { ar:"الجريء الواثق",   fr:"L'Audacieux Confiant",        icon:"🔥", desc:"تميل/ين للعطور العميقة الجريئة للسهرات — قوة وثقة يتذكرها الجميع." },
       "heavy-daily-attractive":     { ar:"الجريء الواثق",   fr:"L'Audacieux Confiant",        icon:"🔥", desc:"تميل/ين للعطور العميقة الجذابة — جريء يلفت الأنظار بحضور واضح وقوي." },
-      "heavy-evening-attractive":   { ar:"الآسر الفاخر",    fr:"L'Envoûtant Luxueux",         icon:"🖤", desc:"تميل/ين للعطور العميقة الجذابة للسهرات — فاخر وآسر يسحر من حولك." },
-      "woody-daily-elegant":        { ar:"الفخم العصري",    fr:"Le Luxueux Moderne",          icon:"💎", desc:"تميل/ين للعطور الخشبية الأنيقة — فخامة عصرية هادئة تناسب كل يوم." },
+      "heavy-evening-attractive":   { ar:"الساحر الفاخر",    fr:"L'Envoûtant Luxueux",         icon:"🖤", desc:"تميل/ين للعطور العميقة الجذابة للسهرات — فاخر وآسر يسحر من حولك." },
+      "woody-daily-elegant":        { ar:"الفاخر العصري",    fr:"Le Luxueux Moderne",          icon:"💎", desc:"تميل/ين للعطور الخشبية الأنيقة — فخامة عصرية هادئة تناسب كل يوم." },
       "floral-daily-elegant":       { ar:"الزهري الساحر",   fr:"Le Floral Envoûtant",        icon:"🌹", desc:"تميل/ين للعطور الزهرية الراقية الأنيقة — عطر عطري يعكس ذوقاً رفيعاً وأناقة طبيعية." },
 
       "floral-daily-attractive":    { ar:"الرومانسي الجذاب",fr:"Le Romantique Séduisant",     icon:"🌹", desc:"تميل/ين للعطور الزهرية الجذابة — رومانسي خفيف يمنح جاذبية طبيعية في كل يوم." },
@@ -3925,12 +3982,12 @@ function buildPersona(na) {
 "musky-evening-attractive": { ar:"الناعم المخملي", fr:"Le Doux Velouté", icon:"🤍", desc:"تميل/ين للعطور المسكية الجذابة للسهرات.", desc_fr:"Les muscs séduisants pour les soirées — soyeux et envoûtant, il attire tous les regards." },
 
 // 🍑 فاكهي
-"fruity-daily-attractive":  { ar:"الحيوي الجذاب", fr:"Le Fruité Séduisant", icon:"🍑", desc:"تميل/ين للعطور الفاكهية الجذابة — حيوية وانتعاش فاكهي.", desc_fr:"Les fruités séduisants vous correspondent — vitalité et fraîcheur fruitée qui dégage un charme naturel et enjoué." },
-"fruity-daily-elegant":     { ar:"الحيوي الجذاب", fr:"Le Fruité Séduisant", icon:"🍑", desc:"تميل/ين للعطور الفاكهية الراقية — فاكهي أنيق وخفيف.", desc_fr:"Les fruités élégants vous attirent — fruité raffiné et léger qui reflète votre personnalité moderne." },
-"fruity-daily-fresh_imp":   { ar:"الحيوي الجذاب", fr:"Le Fruité Séduisant", icon:"🍑", desc:"تميل/ين للعطور الفاكهية المنعشة — حيوية وطاقة.", desc_fr:"Les fruités frais vous correspondent — vitalité et énergie fruitée pour une sensation de fraîcheur toute la journée." },
-"fruity-evening-attractive":{ ar:"الحيوي الجذاب", fr:"Le Fruité Séduisant", icon:"🍑", desc:"فاكهي جذاب للسهرات — حيوي ومختلف.", desc_fr:"Un fruité séduisant pour les soirées — vif et différent, il laisse une impression enjouée et mémorable." },
-"fruity-dates-attractive":  { ar:"الحيوي الجذاب", fr:"Le Fruité Séduisant", icon:"🍑", desc:"فاكهي رومانسي للأمسيات الخاصة.", desc_fr:"Un fruité romantique pour les soirées intimes — doux et léger, il rend chaque moment spécial." },
-"fruity-daily-confident":   { ar:"الحيوي الجذاب", fr:"Le Fruité Séduisant", icon:"🍑", desc:"تميل/ين للعطور الفاكهية الواثقة — حيوية وطاقة.", desc_fr:"Les fruités assurés vous correspondent — vitalité et dynamisme qui reflètent votre personnalité active." },
+"fruity-daily-attractive":  { ar:"الفاكهي الجذاب", fr:"Le Fruité Séduisant", icon:"🍑", desc:"تميل/ين للعطور الفاكهية الجذابة — حيوية وانتعاش فاكهي.", desc_fr:"Les fruités séduisants vous correspondent — vitalité et fraîcheur fruitée qui dégage un charme naturel et enjoué." },
+"fruity-daily-elegant":     { ar:"الفاكهي الجذاب", fr:"Le Fruité Séduisant", icon:"🍑", desc:"تميل/ين للعطور الفاكهية الراقية — فاكهي أنيق وخفيف.", desc_fr:"Les fruités élégants vous attirent — fruité raffiné et léger qui reflète votre personnalité moderne." },
+"fruity-daily-fresh_imp":   { ar:"الفاكهي الجذاب", fr:"Le Fruité Séduisant", icon:"🍑", desc:"تميل/ين للعطور الفاكهية المنعشة — حيوية وطاقة.", desc_fr:"Les fruités frais vous correspondent — vitalité et énergie fruitée pour une sensation de fraîcheur toute la journée." },
+"fruity-evening-attractive":{ ar:"الفاكهي الجذاب", fr:"Le Fruité Séduisant", icon:"🍑", desc:"فاكهي جذاب للسهرات — حيوي ومختلف.", desc_fr:"Un fruité séduisant pour les soirées — vif et différent, il laisse une impression enjouée et mémorable." },
+"fruity-dates-attractive":  { ar:"الفاكهي الجذاب", fr:"Le Fruité Séduisant", icon:"🍑", desc:"فاكهي رومانسي للأمسيات الخاصة.", desc_fr:"Un fruité romantique pour les soirées intimes — doux et léger, il rend chaque moment spécial." },
+"fruity-daily-confident":   { ar:"الفاكهي الجذاب", fr:"Le Fruité Séduisant", icon:"🍑", desc:"تميل/ين للعطور الفاكهية الواثقة — حيوية وطاقة.", desc_fr:"Les fruités assurés vous correspondent — vitalité et dynamisme qui reflètent votre personnalité active." },
     };
 
     // ابحث على أقرب شخصية حسب character + occasion + impression
@@ -3963,7 +4020,7 @@ function buildPersona(na) {
       || (pLookupKeyCharBest ? PERSONA_LOOKUP[pLookupKeyCharBest] : null);
 
     const enrichedPers = {
-      ar:      lookedUpFallback?.ar   || "الأنيق الواثق",
+      ar:      lookedUpFallback?.ar   || "الأنيق الراقي",
       fr:      lookedUpFallback?.fr   || "L'Élégant Raffiné",
       icon:    lookedUpFallback?.icon || "✨",
       tags:    dynamicTags,

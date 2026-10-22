@@ -784,6 +784,56 @@ a.dstore-name:hover { color: var(--purple); text-decoration-color: currentColor;
 /* 1. the signature */
 #ff-widget-root .ffr-sig { display: flex; flex-direction: column; animation: rise .8s var(--ease) both; }
 #ff-widget-root .ffr-sig > * { max-width: 760px; }
+/* signature card with its photo: the picture is the background, the words sit on it (like the card designs) */
+#ff-widget-root .ffr-sig.has-img { width: 100%; max-width: 440px; align-self: center; min-height: 600px; padding: 0; background: #1A1210; justify-content: space-between; text-align: center; }
+#ff-widget-root .ffr-sig.has-img > * { max-width: none; }
+#ff-widget-root .ffr-sig-bg { position: absolute; inset: 0; z-index: -1; }
+#ff-widget-root .ffr-sig-bg img { width: 100%; height: 100%; object-fit: cover; display: block; }
+#ff-widget-root .ffr-sig-bg::after { content: ""; position: absolute; inset: 0; }
+#ff-widget-root .ffr-sig.tone-dark .ffr-sig-bg::after { background: linear-gradient(to bottom, rgba(12, 6, 4, .62), rgba(12, 6, 4, .25) 38%, rgba(12, 6, 4, 0) 52%, rgba(12, 6, 4, 0) 62%, rgba(12, 6, 4, .72) 100%); }
+#ff-widget-root .ffr-sig.tone-light .ffr-sig-bg::after { background: linear-gradient(to bottom, rgba(255, 251, 246, .82), rgba(255, 251, 246, .45) 36%, rgba(255, 251, 246, 0) 52%, rgba(255, 251, 246, 0) 60%, rgba(255, 251, 246, .85) 100%); }
+#ff-widget-root .ffr-sig-head { display: flex; flex-direction: column; align-items: center; padding: 34px 26px 0; }
+#ff-widget-root .ffr-sig.has-img .ffr-sig-kicker { font-size: .85rem; letter-spacing: .01em; }
+#ff-widget-root .ffr-sig.has-img .ffr-sig-latin { align-self: center; margin-top: 14px !important; font-style: normal; font-size: clamp(1.9rem, 7vw, 2.3rem); line-height: 1.15; }
+#ff-widget-root .ffr-sig-rule { position: relative; display: block; width: 120px; height: 1px; margin: 14px auto 12px; background: currentColor; opacity: .55; }
+#ff-widget-root .ffr-sig-rule::after { content: ""; position: absolute; left: 50%; top: 50%; width: 6px; height: 6px; transform: translate(-50%, -50%) rotate(45deg); background: currentColor; }
+#ff-widget-root .ffr-sig.has-img .ffr-sig-name { margin-top: 0; font-family: var(--font-body); font-weight: 700; font-size: clamp(1.55rem, 6vw, 1.9rem); line-height: 1.35; }
+#ff-widget-root .ffr-sig-tag { margin-top: 10px !important; max-width: 24ch; font-size: 1rem; line-height: 1.7; }
+#ff-widget-root .ffr-sig-foot { padding: 0 22px 22px; display: flex; flex-direction: column; align-items: center; }
+#ff-widget-root .ffr-sig.has-img .ffr-feedback { justify-content: center; border-top: 0; margin-top: 0 !important; padding-top: 0; }
+#ff-widget-root .ffr-sig.has-img .ffr-share { width: 100%; display: flex; flex-direction: column; align-items: center; }
+#ff-widget-root .ffr-sig.has-img .ffr-share-toggle { align-self: center; }
+/* dark pictures: light words */
+#ff-widget-root .ffr-sig.tone-dark { color: #FFF8F0; }
+#ff-widget-root .ffr-sig.tone-dark .ffr-sig-kicker { color: #F0D6C8; }
+#ff-widget-root .ffr-sig.tone-dark .ffr-sig-latin, #ff-widget-root .ffr-sig.tone-dark .ffr-sig-name { color: #FFF; }
+#ff-widget-root .ffr-sig.tone-dark .ffr-sig-name, #ff-widget-root .ffr-sig.tone-dark .ffr-sig-latin, #ff-widget-root .ffr-sig.tone-dark .ffr-sig-tag { text-shadow: 0 2px 14px rgba(0, 0, 0, .45); }
+/* light pictures: dark words, plum actions */
+#ff-widget-root .ffr-sig.tone-light { color: #2B1D18; }
+#ff-widget-root .ffr-sig.tone-light .ffr-sig-kicker { color: var(--rose-ink); }
+#ff-widget-root .ffr-sig.tone-light .ffr-sig-latin, #ff-widget-root .ffr-sig.tone-light .ffr-sig-name { color: #241712; }
+#ff-widget-root .ffr-sig.tone-light .ffr-sig-name, #ff-widget-root .ffr-sig.tone-light .ffr-sig-latin, #ff-widget-root .ffr-sig.tone-light .ffr-sig-tag { text-shadow: 0 1px 12px rgba(255, 251, 246, .7); }
+#ff-widget-root .ffr-sig.tone-light .ffr-feedback { color: #3B2A24; }
+#ff-widget-root .ffr-sig.tone-light .ffr-feedback button { border-color: rgba(43, 29, 24, .22); background: rgba(255, 255, 255, .6); }
+#ff-widget-root .ffr-sig.tone-light .ffr-feedback button:hover { background: #FFF; border-color: var(--rose); }
+#ff-widget-root .ffr-sig.tone-light .ffr-share-toggle { background: var(--plum); color: #FFF; border-color: var(--plum); }
+#ff-widget-root .ffr-sig.tone-light .ffr-share-toggle:hover { background: var(--plum-deep); border-color: var(--plum-deep); }
+#ff-widget-root .ffr-sig.tone-light .ffr-share-toggle[aria-expanded="true"] { background: rgba(255, 255, 255, .7); color: var(--plum); border-color: rgba(75, 23, 111, .35); }
+#ff-widget-root .ffr-sig.tone-light .ffr-share-opts button { background: rgba(255, 255, 255, .78); border-color: rgba(43, 29, 24, .16); color: #2B1D18; }
+#ff-widget-root .ffr-sig.tone-light .ffr-share-opts button:hover { background: #FFF; color: var(--plum); }
+#ff-widget-root .ffr-sig.tone-light .ffr-share-opts svg { color: var(--plum); }
+#ff-widget-root .ffr-sig.tone-light .ffr-share-ig-title { color: #2B1D18; }
+#ff-widget-root .ffr-sig.tone-light .ffr-share-ig-actions button { color: var(--plum); border-color: rgba(75, 23, 111, .35); }
+#ff-widget-root .ffr-sig.tone-light .ffr-share-ig-actions button.is-primary { background: var(--plum); color: #FFF; border-color: var(--plum); }
+#ff-widget-root .ffr-sig.tone-light .ffr-share-note, #ff-widget-root .ffr-sig.tone-light .ffr-share-making { color: #4D3A33; }
+#ff-widget-root .ffr-sig.tone-light .ffr-share-msg { color: var(--rose-ink); }
+/* the longer description sits under the card, on the page */
+#ff-widget-root .ffr-sig-about { align-self: center; max-width: 46ch; margin: 2px auto 0; padding: 0 8px; text-align: center; font-size: 1.02rem; line-height: 1.9; color: #4D4253; }
+@media (min-width: 760px) {
+  #ff-widget-root .ffr-sig.has-img { padding: 0; min-height: 640px; }
+  #ff-widget-root .ffr-sig-head { padding: 40px 34px 0; }
+  #ff-widget-root .ffr-sig-foot { padding: 0 28px 26px; }
+}
 #ff-widget-root .ffr-sig-icon { font-size: .6em; vertical-align: .2em; }
 #ff-widget-root .ffr-sig-latin { align-self: flex-start; font-family: var(--font-latin); font-style: italic; font-size: 1.3rem; color: var(--lavender); margin-top: 8px !important; }
 #ff-widget-root .ffr-sig .ffr-feedback { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-top: 26px !important; padding-top: 18px; border-top: 1px solid rgba(250, 247, 242, .16); font-size: .9rem; color: rgba(250, 247, 242, .82); }
