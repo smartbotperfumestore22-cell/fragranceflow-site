@@ -784,6 +784,15 @@ a.dstore-name:hover { color: var(--purple); text-decoration-color: currentColor;
 /* 1. the signature */
 #ff-widget-root .ffr-sig { display: flex; flex-direction: column; animation: rise .8s var(--ease) both; }
 #ff-widget-root .ffr-sig > * { max-width: 760px; }
+/* signature photo: a band on top on phones, a framed picture beside the words on wider screens */
+#ff-widget-root .ffr-sig-media { display: block; margin: -36px -26px 24px; max-width: none; aspect-ratio: 16 / 10; overflow: hidden; position: relative; }
+#ff-widget-root .ffr-sig-media img { width: 100%; height: 100%; object-fit: cover; display: block; }
+#ff-widget-root .ffr-sig-media::after { content: ""; position: absolute; inset: 0; background: linear-gradient(to bottom, rgba(75, 23, 111, 0) 50%, rgba(75, 23, 111, .6) 82%, var(--plum)); }
+@media (min-width: 760px) {
+  #ff-widget-root .ffr-sig.has-img { padding-inline-end: calc(52px + 34% + 28px); }
+  #ff-widget-root .ffr-sig-media { position: absolute; top: 52px; bottom: 52px; inset-inline-end: 52px; width: 34%; margin: 0; aspect-ratio: auto; border-radius: 12px; border: 1px solid rgba(250, 247, 242, .18); box-shadow: 0 18px 40px -20px rgba(10, 2, 20, .8); }
+  #ff-widget-root .ffr-sig-media::after { background: linear-gradient(to top, rgba(36, 12, 52, .25), rgba(36, 12, 52, 0) 40%); }
+}
 #ff-widget-root .ffr-sig-icon { font-size: .6em; vertical-align: .2em; }
 #ff-widget-root .ffr-sig-latin { align-self: flex-start; font-family: var(--font-latin); font-style: italic; font-size: 1.3rem; color: var(--lavender); margin-top: 8px !important; }
 #ff-widget-root .ffr-sig .ffr-feedback { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-top: 26px !important; padding-top: 18px; border-top: 1px solid rgba(250, 247, 242, .16); font-size: .9rem; color: rgba(250, 247, 242, .82); }
