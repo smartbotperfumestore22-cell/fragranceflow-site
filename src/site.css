@@ -1490,3 +1490,19 @@ body.on-b2b .head-cta:hover { background: #3E1F9C; border-color: #3E1F9C; }
   .b2-ps .b2-journey b { font-size: .8rem; }
   .b2-ps .b2-statement { font-size: 1.1rem; padding: 14px 18px; }
 }
+
+/* the journey reads as a path: arrows between steps */
+.b2-journey li { position: relative; }
+@media (max-width: 899px) {
+  .b2-journey { grid-template-columns: 1fr; gap: 22px; }
+  .b2-journey li { flex-direction: row; justify-content: flex-start; gap: 12px; padding: 10px 14px; text-align: start; }
+  .b2-journey li + li::before { content: "↓"; position: absolute; top: -20px; inset-inline-start: 30px; color: var(--v); opacity: .6; font-size: 1rem; line-height: 1; }
+}
+@media (min-width: 1000px) {
+  .b2-ps .b2-journey { grid-template-columns: 1fr; gap: 18px; }
+  .b2-ps .b2-journey li { flex-direction: row; justify-content: flex-start; gap: 12px; padding: 8px 14px; text-align: start; }
+  .b2-ps .b2-journey .b2-ic { width: 34px; height: 34px; border-radius: 10px; }
+  .b2-ps .b2-journey .b2-ic svg { width: 18px; height: 18px; }
+  .b2-ps .b2-journey b { font-size: .9rem; }
+  .b2-ps .b2-journey li + li::before { display: block; content: "↓"; top: -17px; right: auto; inset-inline-start: 28px; transform: none; font-size: .9rem; line-height: 1; }
+}
