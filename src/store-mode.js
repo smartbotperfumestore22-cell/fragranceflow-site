@@ -14,7 +14,9 @@ export function storeIdFromUrl() {
 // the store's own quiz (the visitor never left the store's experience).
 function withMessage(url, name, inStore) {
   if (!/^https:\/\/wa\.me\/\d+$/.test(url)) return url;
-  const text = inStore
+  const text = inStore === "demo"
+    ? `السلام عليكم، جربت الديمو ديال FragranceFlow وطلع ليا ${name}. بغيت نعرف أكثر على الخدمة للمتجر ديالي.`
+    : inStore
     ? `السلام عليكم، دوزت اختبار العطور ديالكم وطلع ليا ${name}. واش متوفر عندكم؟`
     : `السلام عليكم، شفت ${name} ف FragranceFlow. واش متوفر عندكم؟`;
   return url + "?text=" + encodeURIComponent(text);
@@ -25,7 +27,7 @@ export function applyStoreMode(db) {
   const id = storeIdFromUrl();
   const inStore = !!id && db.some((p) => (p.stores || []).some((s) => s.storeId === id));
   const all = db.map((p) => (p.stores && p.stores.length
-    ? { ...p, stores: p.stores.map((s) => ({ ...s, url: withMessage(s.url, p.name, inStore), whatsapp: s.whatsapp ? withMessage(s.whatsapp, p.name, inStore) : "" })) }
+    ? { ...p, stores: p.stores.map((s) => ({ ...s, url: withMessage(s.url, p.name, inStore && id === "demo" ? "demo" : inStore), whatsapp: s.whatsapp ? withMessage(s.whatsapp, p.name, inStore && id === "demo" ? "demo" : inStore) : "" })) }
     : p));
   if (!id) return { db: all, store: null };
   const mine = [];

@@ -104,7 +104,7 @@ export function startSite({ loadQuiz }) {
   var stN = document.getElementById('st-n'), stB = document.getElementById('st-b');
   if (stN) stN.textContent = DB.length;
   if (stB) stB.textContent = Object.keys(brands).length;
-  document.getElementById('fine').textContent = 'نسخة تجريبية بـ ' + DB.length + ' عطر. الأثمنة والتصنيفات تقريبية، والصور توضيحية حتى توصل صور المحلات الشريكة.';
+  document.getElementById('fine').textContent = '';
 
   /* ---------- footer: links that exist become links; the others stay plain text for now (see src/footer-links.js) ---------- */
   Array.prototype.forEach.call(document.querySelectorAll('.foot [data-link]'), function (li) {
@@ -131,21 +131,17 @@ export function startSite({ loadQuiz }) {
       else el.hidden = true;
     });
     Array.prototype.forEach.call(document.querySelectorAll('[data-partner-note]'), function (el) { el.hidden = !!links[el.getAttribute('data-partner-note')]; });
-    // the hero button opens the same contact as the last section
-    var heroJoin = document.querySelector('.pt-join');
-    if (heroJoin && !links.join) heroJoin.parentNode.hidden = true;
-    else if (heroJoin) { heroJoin.href = links.join; if (/^https:/i.test(links.join)) { heroJoin.target = '_blank'; heroJoin.rel = 'noopener'; } }
   })();
   var qrDrawn = false;
   function renderPartners() {
     show('partners'); window.scrollTo(0, 0);
-    document.title = 'FragranceFlow للمتاجر';
+    document.title = BASE_TITLE;
     if (qrDrawn) return;
     qrDrawn = true;
     // demonstration QR: it opens the FragranceFlow quiz (a real store gets its own link ?store=…)
     import('qrcode').then(function (m) {
       var QR = m.default || m;
-      QR.toCanvas(document.getElementById('pv-qr'), location.origin + location.pathname + '#quiz', { width: 320, margin: 1, color: { dark: '#24172C', light: '#FFFFFF' } }, function () {});
+      QR.toCanvas(document.getElementById('pv-qr'), location.origin + location.pathname + '?store=demo', { width: 320, margin: 1, color: { dark: '#24172C', light: '#FFFFFF' } }, function () {});
     });
   }
 
@@ -182,6 +178,8 @@ export function startSite({ loadQuiz }) {
     // through a store link the visit is the store's quiz: home, catalogue and other pages lead into it
     // (a fragrance opened from the results, #f-…, stays available)
     if (STORE && hsh.indexOf('#f-') !== 0) { location.replace(location.pathname + location.search + '#quiz'); return; }
+    // FragranceFlow is for perfume stores now: outside a store link, the consumer pages lead to the stores homepage
+    if (!STORE && (hsh === '#fragrances' || hsh === '#about')) { location.replace(location.pathname + location.search); return; }
     if (hsh === '#fragrances') { show('catalog'); window.scrollTo(0, 0); document.title = STORE ? 'العطور | ' + STORE.name : 'اكتشف العطور | FragranceFlow'; return; }
     // through a store link, the pages for perfume shops and about FragranceFlow are not part of the visit
     if (hsh === '#stores' && !STORE) { renderPartners(); return; }
@@ -189,7 +187,8 @@ export function startSite({ loadQuiz }) {
     if (hsh.indexOf('#f-') === 0) { var p = byId(decodeURIComponent(hsh.slice(3))); if (p) { renderPerfume(p); return; } }
     if (window.FF_CLOSE) window.FF_CLOSE();
     quizOpen = false;
-    show('landing'); document.title = STORE ? STORE.name + ' · اكتشف عطرك' : BASE_TITLE;
+    if (!STORE) { renderPartners(); return; }
+    show('landing'); document.title = STORE.name + ' · اكتشف عطرك';
   }
   window.addEventListener('hashchange', route);
   window.FF_ON_CLOSE = function () { goHome(); };
