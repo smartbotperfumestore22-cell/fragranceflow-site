@@ -3610,7 +3610,8 @@ function ResultsPage({ res, pers, ans, lang, t, questions, reset, favPicked, pic
                 </>
               ) : <span>{lang === "fr" ? "Merci pour votre retour 🙏" : "شكراً على رأيك 🙏"}</span>}
             </div>
-            <ShareResult name={persName} latin={lang === "fr" ? "" : pers.fr} icon={pers.icon} desc={persDesc} lang={lang}/>
+            <ShareResult name={persName} latin={lang === "fr" ? "" : pers.fr} icon={pers.icon} desc={persDesc} lang={lang}
+              img={sigImg(pers)} tone={(SIG_CARD[pers.fr] || [])[0]} tagline={lang !== "fr" ? (SIG_CARD[pers.fr] || [])[1] : ""}/>
           </div>
         </aside>
         {persDesc ? <blockquote className="ffr-sig-about">{persDesc}</blockquote> : null}

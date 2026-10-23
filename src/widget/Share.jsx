@@ -102,8 +102,68 @@ function wrap(g, text, maxW, maxLines) {
 }
 
 // 1080×1920 (9:16) story card, drawn independently of the results layout.
+function loadImg(src) {
+  return new Promise((res) => { const im = new Image(); im.decoding = "async"; im.onload = () => res(im); im.onerror = () => res(null); im.src = src; });
+}
+
+// With the signature's photo: the same look as the results card — the photo fills the card, the words sit on it.
+async function storyCardPhoto(T, persona, lang, img) {
+  const W = 1080, H = 1920, c = document.createElement("canvas");
+  c.width = W; c.height = H;
+  const g = c.getContext("2d");
+  if (!g) return null;
+  try { g.direction = lang === "fr" ? "ltr" : "rtl"; } catch (e) {}
+  const DISPLAY = '"Amiri", "Noto Naskh Arabic", Georgia, serif';
+  const BODY = '"Manrope", "IBM Plex Sans Arabic", system-ui, -apple-system, "Segoe UI", sans-serif';
+  const LATIN = '"Cormorant Garamond", Georgia, serif';
+  const dark = persona.tone !== "light";
+  // the photo, cropped to fill (object-fit: cover)
+  const s = Math.max(W / img.width, H / img.height), dw = img.width * s, dh = img.height * s;
+  g.imageSmoothingQuality = "high";
+  g.drawImage(img, (W - dw) / 2, (H - dh) / 2, dw, dh);
+  // veils at the top (words) and at the foot (button), in the photo's own tone
+  const veil = (y0, y1, a0, a1) => { const gr = g.createLinearGradient(0, y0, 0, y1); const rgb = dark ? "12, 6, 4" : "255, 251, 246"; gr.addColorStop(0, `rgba(${rgb}, ${a0})`); gr.addColorStop(1, `rgba(${rgb}, ${a1})`); g.fillStyle = gr; g.fillRect(0, y0, W, y1 - y0); };
+  veil(0, 1050, dark ? .7 : .86, 0);
+  veil(1300, H, 0, dark ? .8 : .9);
+  const ink = dark ? "#FFFFFF" : "#241712", soft = dark ? "rgba(255, 248, 240, .86)" : "#4D3A33", accent = dark ? "#F0D6C8" : "#9A6A5B";
+  g.strokeStyle = dark ? "rgba(255, 255, 255, .55)" : "rgba(75, 23, 111, .45)"; g.lineWidth = 2; g.strokeRect(56, 56, W - 112, H - 112);
+  g.textAlign = "center"; g.textBaseline = "middle";
+  if (dark) { g.shadowColor = "rgba(0, 0, 0, .45)"; g.shadowBlur = 24; }
+  const fit = (text, weight, size, min, maxW, family) => { let z = size; g.font = `${weight} ${z}px ${family}`; while (z > min && g.measureText(text).width > maxW) { z -= 2; g.font = `${weight} ${z}px ${family}`; } };
+  const store = window.__FF_STORE__;
+  g.fillStyle = ink; fit(store ? store.name : "FragranceFlow", store ? 700 : 600, store ? 60 : 72, 36, W - 240, store ? DISPLAY : LATIN);
+  g.fillText(store ? store.name : "FragranceFlow", W / 2, 200);
+  g.fillStyle = accent; fit(T.cardKicker, 600, 42, 28, W - 240, BODY);
+  g.fillText(T.cardKicker, W / 2, 290);
+  let y = 470;
+  const showLatin = persona.latin && persona.latin !== persona.name;
+  if (showLatin) { g.fillStyle = ink; fit(persona.latin, 500, 96, 56, W - 220, LATIN); g.fillText(persona.latin, W / 2, y); y += 100; }
+  // the rule with a small diamond, as on the card
+  g.shadowBlur = 0; g.fillStyle = ink; g.globalAlpha = .6; g.fillRect(W / 2 - 150, y, 300, 3); g.globalAlpha = 1;
+  g.save(); g.translate(W / 2, y + 1.5); g.rotate(Math.PI / 4); g.fillRect(-8, -8, 16, 16); g.restore();
+  if (dark) g.shadowBlur = 24;
+  y += 100;
+  g.fillStyle = ink; fit(persona.name, 700, 104, 70, W - 220, BODY);
+  g.fillText(persona.name, W / 2, y); y += 110;
+  if (persona.tagline) {
+    g.fillStyle = soft; g.font = `500 48px ${BODY}`;
+    wrap(g, persona.tagline, W - 300, 2).forEach((l) => { g.fillText(l, W / 2, y); y += 70; });
+  }
+  g.shadowBlur = 0;
+  // call to action and the link, near the foot
+  g.fillStyle = dark ? "#FAF7F2" : "#4B176F";
+  g.beginPath(); (g.roundRect ? g.roundRect(170, 1560, W - 340, 128, 64) : g.rect(170, 1560, W - 340, 128)); g.fill();
+  g.fillStyle = dark ? "#4B176F" : "#FAF7F2"; fit(T.cardCta, 600, 48, 32, W - 420, BODY);
+  g.fillText(T.cardCta, W / 2, 1624);
+  const link = store ? window.location.host + "/?store=" + store.id : window.location.host;
+  g.fillStyle = soft; fit(link, 500, 38, 24, W - 220, BODY);
+  g.fillText(link, W / 2, 1765);
+  return new Promise((res) => c.toBlob((b) => res(b), "image/png"));
+}
+
 async function storyCard(T, persona, lang) {
   try { if (document.fonts && document.fonts.ready) await document.fonts.ready; } catch (e) {}
+  if (persona.img) { const im = await loadImg(persona.img); if (im) { const b = await storyCardPhoto(T, persona, lang, im); if (b) return b; } }
   const W = 1080, H = 1920, c = document.createElement("canvas");
   c.width = W; c.height = H;
   const g = c.getContext("2d");
@@ -170,9 +230,9 @@ const ICONS = {
   link: <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" d="M10 14a4.5 4.5 0 0 0 6.4 0l3-3a4.5 4.5 0 0 0-6.4-6.4l-1 1M14 10a4.5 4.5 0 0 0-6.4 0l-3 3a4.5 4.5 0 0 0 6.4 6.4l1-1"/></svg>,
 };
 
-export default function ShareResult({ name, latin, icon, desc, lang }) {
+export default function ShareResult({ name, latin, icon, desc, lang, img, tone, tagline }) {
   const T = storeTexts(TXT[lang === "fr" ? "fr" : "ar"], lang);
-  const persona = { name, latin, icon, desc };
+  const persona = { name, latin, icon, desc, img, tone, tagline };
   const [open, setOpen] = useState(false);
   const [view, setView] = useState("list");       // "list" | "instagram"
   const [card, setCard] = useState(null);         // { blob, url } once drawn
