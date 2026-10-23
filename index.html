@@ -62,7 +62,7 @@
   <div class="wrap">
     <button type="button" class="logo" id="logo" aria-label="FragranceFlow، الصفحة الرئيسية">
       <svg class="mark" aria-hidden="true"><use href="#ff-mark"/></svg>
-      <span class="logo-text"><span class="logo-name">FragranceFlow</span><span class="logo-tag">Find the fragrance that feels like you.</span></span>
+      <span class="logo-text"><span class="logo-name">FragranceFlow</span><span class="logo-tag">Quiz for perfume stores</span></span>
     </button>
     <nav class="menu" id="menu" aria-label="القائمة الرئيسية">
       <button type="button" data-go="how">كيفاش كيخدم</button>
@@ -75,7 +75,7 @@
       <input id="q" type="search" placeholder="قلب على عطر أو ماركة..." autocomplete="off">
       <div class="drop" id="drop" hidden></div>
     </div>
-    <a class="btn head-cta" href="https://wa.me/212654091373?text=%D8%A7%D9%84%D8%B3%D9%84%D8%A7%D9%85%20%D8%B9%D9%84%D9%8A%D9%83%D9%85%D8%8C%20%D8%B9%D9%86%D8%AF%D9%8A%20%D9%85%D8%AA%D8%AC%D8%B1%20%D8%B9%D8%B7%D9%88%D8%B1%20%D9%88%D8%A8%D8%BA%D9%8A%D8%AA%20%D9%86%D8%B9%D8%B1%D9%81%20%D8%A3%D9%83%D8%AB%D8%B1%20%D8%B9%D9%84%D9%89%20FragranceFlow." target="_blank" rel="noopener">💬 تواصل معانا</a>
+    <a class="btn head-cta" href="https://wa.me/212654091373?text=%D8%A7%D9%84%D8%B3%D9%84%D8%A7%D9%85%20%D8%B9%D9%84%D9%8A%D9%83%D9%85%D8%8C%20%D8%B9%D9%86%D8%AF%D9%8A%20%D9%85%D8%AA%D8%AC%D8%B1%20%D8%B9%D8%B7%D9%88%D8%B1%20%D9%88%D8%A8%D8%BA%D9%8A%D8%AA%20%D9%86%D8%B9%D8%B1%D9%81%20%D8%A3%D9%83%D8%AB%D8%B1%20%D8%B9%D9%84%D9%89%20FragranceFlow." target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20l1.2-4.1A8.5 8.5 0 1 1 8.4 19z"/><path d="M9 8.5c.3 2.6 2.8 5.3 5.8 6l1.2-1.4-1.9-1-1 .9c-1-.4-2-1.4-2.4-2.4l.9-1-1-1.9z" stroke-width="1.2"/></svg><span>تواصل معانا</span></a>
     <button type="button" class="burger" id="burger" aria-expanded="false" aria-controls="menu" aria-label="فتح القائمة">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M4 8h16M4 16h16"/></svg>
     </button>
@@ -279,151 +279,167 @@
 </main>
 
 <!-- FragranceFlow للمتاجر: the homepage (and #stores) -->
-<main id="partners" class="partners" hidden aria-labelledby="pt-title">
-  <section class="pt-hero">
-    <div class="wrap pt-hero-grid">
-      <div class="pt-hero-copy">
-        <p class="biz-lockup" aria-label="FragranceFlow للمتاجر"><svg class="biz-mark" aria-hidden="true"><use href="#ff-mark"/></svg><span class="biz-name latin">FragranceFlow</span><span class="biz-tag">للمتاجر</span></p>
-        <h1 id="pt-title">خلّي زبنائك يلقاو عطرهم عندك.</h1>
-        <p class="pt-lead">كويز عطور باسم متجرك، كيقترح على الزبون 3 عطور من السلعة ديالك، ويوصلو ليك نيشان فالواتساب.</p>
-        <div class="pt-ctas">
-          <a class="btn lg pt-join" href="/?store=demo#quiz">جرب الكويز ديال متجر تجريبي <svg class="arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
-          <a class="btn lg ghost" href="https://wa.me/212654091373?text=%D8%A7%D9%84%D8%B3%D9%84%D8%A7%D9%85%20%D8%B9%D9%84%D9%8A%D9%83%D9%85%D8%8C%20%D8%B9%D9%86%D8%AF%D9%8A%20%D9%85%D8%AA%D8%AC%D8%B1%20%D8%B9%D8%B7%D9%88%D8%B1%20%D9%88%D8%A8%D8%BA%D9%8A%D8%AA%20%D9%86%D8%B9%D8%B1%D9%81%20%D8%A3%D9%83%D8%AB%D8%B1%20%D8%B9%D9%84%D9%89%20FragranceFlow." target="_blank" rel="noopener">💬 تواصل معانا</a>
+<main id="partners" class="partners b2" hidden aria-labelledby="pt-title">
+  <section class="b2-hero">
+    <div class="wrap b2-hero-grid">
+      <div class="b2-hero-copy">
+        <p class="b2-badge">حل رقمي لمتاجر العطور</p>
+        <h1 id="pt-title">خلّي زبنائك يلقاو<br><span>عطرهم عندك.</span></h1>
+        <p class="b2-lead">كويز عطور باسم متجرك، كيقترح على الزبون 3 عطور من السلعة ديالك، ويوصل الطلب مباشرة ليك فالواتساب.</p>
+        <div class="b2-ctas">
+          <a class="b2-btn" href="https://wa.me/212654091373?text=%D8%A7%D9%84%D8%B3%D9%84%D8%A7%D9%85%20%D8%B9%D9%84%D9%8A%D9%83%D9%85%D8%8C%20%D8%A8%D8%BA%D9%8A%D8%AA%20%D9%86%D8%A8%D8%AF%D8%A7%20%D9%85%D8%B9%20FragranceFlow%20%D9%84%D9%84%D9%85%D8%AA%D8%AC%D8%B1%20%D8%AF%D9%8A%D8%A7%D9%84%D9%8A." target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20l1.2-4.1A8.5 8.5 0 1 1 8.4 19z"/><path d="M9 8.5c.3 2.6 2.8 5.3 5.8 6l1.2-1.4-1.9-1-1 .9c-1-.4-2-1.4-2.4-2.4l.9-1-1-1.9z" stroke-width="1.2"/></svg><span>بدا دابا</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5M11 6l-6 6 6 6"/></svg></a>
+          <a class="b2-btn b2-btn-line" href="/?store=demo#quiz"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5.5v13l10-6.5z"/></svg><span>جرب الديمو</span></a>
         </div>
+        <ul class="b2-facts">
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m12 3.5 2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 16.9l-5.2 2.7 1-5.8L3.5 9.7l5.9-.9z"/></svg><span>تجربة مجانية 7 أيام</span></li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3 5 6v5.5c0 4.3 3 8 7 9.5 4-1.5 7-5.2 7-9.5V6z"/><path d="m9 12 2 2 4-4"/></svg><span>بدون التزام</span></li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 3 5 13.5h6L10 21l8-10.5h-6z"/></svg><span>جاهز فـ 24–48 ساعة</span></li>
+        </ul>
       </div>
-      <figure class="pv" role="img" aria-label="مثال: لوحة فوق كونطوار المحل فيها QR Code «اكتشف عطرك عندنا»، وتيليفون فيه الكويز">
-        <img class="pv-bottle" src="/images/partner-bottle.webp" alt="" width="300" height="405" loading="lazy" decoding="async">
-        <div class="pv-stand">
-          <svg class="pv-mark" aria-hidden="true"><use href="#ff-mark"/></svg>
-          <p class="pv-brand latin">FragranceFlow</p>
-          <p class="pv-title">اكتشف عطرك عندنا</p>
-          <p class="pv-shop">اسم متجرك</p>
-          <div class="pv-qr"><canvas id="pv-qr" width="160" height="160"></canvas></div>
-          <p class="pv-scan">امسح الكود وابدأ الكويز</p>
-          <ul class="pv-icons">
-            <li><span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><rect x="3.5" y="3.5" width="17" height="17" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.2" cy="6.8" r=".9" fill="currentColor" stroke="none"/></svg></span><small class="latin">Instagram</small></li>
-            <li><span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" aria-hidden="true"><path d="M4 20l1.2-4.1A8.5 8.5 0 1 1 8.4 19z"/><path d="M9 8.5c.3 2.6 2.8 5.3 5.8 6l1.2-1.4-1.9-1-1 .9c-1-.4-2-1.4-2.4-2.4l.9-1-1-1.9z" stroke-width="1.1"/></svg></span><small class="latin">WhatsApp</small></li>
-            <li><span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" aria-hidden="true"><path d="M4 10v9.5h16V10"/><path d="M3 10l1.6-5.5h14.8L21 10c0 1.4-1.2 2.4-2.6 2.4S15.8 11.4 15.8 10c0 1.4-1.2 2.4-2.6 2.4h-2.4c-1.4 0-2.6-1-2.6-2.4 0 1.4-1.2 2.4-2.6 2.4S3 11.4 3 10z"/><path d="M10 19.5v-4.5h4v4.5"/></svg></span><small>في المحل</small></li>
-            <li><span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1.2 1.2"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1.2-1.2"/></svg></span><small>رابط مباشر</small></li>
+      <div class="b2-hero-art" aria-hidden="true">
+        <span class="b2-glow"></span>
+        <img class="b2-bottle" src="/images/partner-bottle.webp" alt="" width="300" height="405" decoding="async">
+        <span class="b2-phone b2-phone-a"><img src="/images/b2b/screen-quiz.webp" alt="" width="520" height="1040" loading="lazy" decoding="async"></span>
+        <span class="b2-phone b2-phone-b"><img src="/images/b2b/screen-podium.webp" alt="" width="520" height="1040" loading="lazy" decoding="async"></span>
+        <p class="b2-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v4M12 17v4M3 12h4M17 12h4M6 6l2.5 2.5M15.5 15.5 18 18M18 6l-2.5 2.5M8.5 15.5 6 18"/></svg><span><b>نظام ذكي</b> كيقترح عطور مناسبة من كتالوج متجرك</span></p>
+      </div>
+    </div>
+  </section>
+
+  <section class="b2-sec" aria-labelledby="b2-problem-title">
+    <div class="wrap">
+      <div class="b2-problem">
+        <div class="b2-problem-copy">
+          <h2 id="b2-problem-title">المشكل</h2>
+          <ul>
+            <li>الزبون ما كيعرفش شنو يختار،</li>
+            <li>كيسول فالـ DM وكيتسنى،</li>
+            <li>وبزاف كيمشيو بلا ما يشريو.</li>
           </ul>
         </div>
-        <div class="pv-phone">
-          <div class="pv-screen">
-            <svg class="pv-mark sm" aria-hidden="true"><use href="#ff-mark"/></svg>
-            <p class="pv-ptitle">شنو نوع العطور اللي كيعجبك؟</p>
-            <ul class="pv-tiles">
-              <li><img src="/images/bottle-floral.webp" alt="" loading="lazy"><span>زهري</span></li>
-              <li><img src="/images/bottle-oriental.webp" alt="" loading="lazy"><span>شرقي</span></li>
-              <li><img src="/images/bottle-woody.webp" alt="" loading="lazy"><span>خشبي</span></li>
-              <li><img src="/images/bottle-fresh.webp" alt="" loading="lazy"><span>منعش</span></li>
-            </ul>
-            <span class="pv-pbtn">ابدأ الكويز</span>
-          </div>
+        <div class="b2-chat" aria-hidden="true">
+          <p>شنو العطر المناسب ليا؟</p>
+          <p class="b2-typing"><span></span><span></span><span></span></p>
+          <p>واش هادا متوفر؟</p>
+          <p>شحال الثمن؟</p>
         </div>
-      </figure>
-    </div>
-  </section>
-
-  <section class="pt-block pt-problem" aria-labelledby="pt-problem-title">
-    <div class="wrap">
-      <header class="pt-head"><h2 id="pt-problem-title">الزبون باغي يشري، ولكن ما عارفش شنو يختار.</h2></header>
-      <ul class="pt-pains">
-        <li>كيدخل للانستغرام ولا للموقع ديالك، وكيلقى عطور بزاف وما كيعرفش منين يبدا.</li>
-        <li>كيسول فالـ DM «شنو تنصحني؟» وكيبقى يتسنى الجواب.</li>
-        <li>وبزاف ديال الناس كيمشيو بلا ما يشريو.</li>
-      </ul>
-    </div>
-  </section>
-
-  <section class="pt-block" id="how" aria-labelledby="pt-how-title">
-    <div class="wrap">
-      <header class="pt-head"><h2 id="pt-how-title">كيفاش كيخدم؟</h2><p>ثلاث خطوات، وما كتحتاج تبدل والو فالموقع ديالك.</p></header>
-      <ol class="pt-steps">
-        <li><span class="pt-num latin">01</span><h3>صيفط لينا العطور ديالك</h3><p>لائحة العطور اللي عندك والأثمنة، واللوغو ديال المتجر.</p></li>
-        <li><span class="pt-num latin">02</span><h3>كنجهزو الكويز ديالك</h3><p>بالسمية واللوغو ديالك، ومعاه رابط خاص و QR Code.</p></li>
-        <li><span class="pt-num latin">03</span><h3>شاركو مع زبنائك</h3><p>فالبيو، فالستوري، فالواتساب، ولا QR فالمحل. والطلبات كتوصلك فالواتساب.</p></li>
-      </ol>
-    </div>
-  </section>
-
-  <section class="pt-block pt-screens-sec" aria-labelledby="pt-screens-title">
-    <div class="wrap">
-      <header class="pt-head"><h2 id="pt-screens-title">شنو كيشوف الزبون ديالك؟</h2><p>لقطات من الكويز ديال المتجر التجريبي.</p></header>
-      <ol class="pt-screens">
-        <li><span class="pt-phone"><img src="/images/b2b/screen-quiz.webp" alt="أسئلة الكويز بالصور، مثلاً العائلة العطرية" width="520" height="1040" loading="lazy" decoding="async"></span><p>كيجاوب على أسئلة بالصور</p></li>
-        <li><span class="pt-phone"><img src="/images/b2b/screen-sig.webp" alt="كارطة البصمة العطرية ديال الزبون" width="520" height="1040" loading="lazy" decoding="async"></span><p>كيكتاشف البصمة العطرية ديالو</p></li>
-        <li><span class="pt-phone"><img src="/images/b2b/screen-card.webp" alt="عطر مقترح من عند المتجر مع السبب" width="520" height="1040" loading="lazy" decoding="async"></span><p>كيشوف 3 عطور من عندك وعلاش تختارو</p></li>
-        <li><span class="pt-phone"><img src="/images/b2b/screen-wa.webp" alt="زر اطلبو فالواتساب باسم المتجر" width="520" height="1040" loading="lazy" decoding="async"></span><p>كيطلب منك نيشان فالواتساب</p></li>
-      </ol>
-    </div>
-  </section>
-
-  <section class="pt-block" aria-labelledby="pt-benefits-title">
-    <div class="wrap">
-      <header class="pt-head"><h2 id="pt-benefits-title">شنو غادي تستافد؟</h2></header>
-      <ul class="pt-benefits">
-        <li><span class="pt-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg></span>كويز بالسمية واللوغو والألوان ديال متجرك</li>
-        <li><span class="pt-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg></span>غير العطور المتوفرة عندك، وبالأثمنة ديالك</li>
-        <li><span class="pt-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg></span>الطلبات كتوصلك مباشرة فالواتساب</li>
-        <li><span class="pt-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg></span>رابط خاص بمتجرك و QR Code جاهز</li>
-        <li><span class="pt-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg></span>الزبون يقدر يبارطاجي النتيجة ديالو فالستوري، بسمية متجرك</li>
-        <li><span class="pt-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg></span>حتى ملي ما كاينش عطر كيجمع كلشي، كنقترحو عليه الأقرب ويقدر يسولك فالواتساب</li>
-      </ul>
-    </div>
-  </section>
-
-  <section class="pt-block" aria-labelledby="pt-demo-title">
-    <div class="wrap">
-      <div class="pt-demo">
-        <h2 id="pt-demo-title">جرب الكويز بحال الزبون</h2>
-        <p>متجر تجريبي فيه عطور حقيقية. جاوب على الأسئلة وشوف بعينيك شنو كيوصل للزبون.</p>
-        <p><a class="btn lg" href="/?store=demo#quiz">جرب الديمو <svg class="arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a></p>
       </div>
     </div>
   </section>
 
-  <section class="pt-block pt-price-sec" id="pricing" aria-labelledby="pt-price-title">
+  <section class="b2-sec" id="how" aria-labelledby="b2-how-title">
     <div class="wrap">
-      <header class="pt-head"><h2 id="pt-price-title">الثمن</h2></header>
-      <div class="pt-price">
-        <p class="pt-price-amount"><b class="latin">299</b> درهم <small>/ الشهر</small></p>
-        <ul class="pt-price-list">
-          <li><span class="pt-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg></span>إنشاء الكويز باسم المتجر</li>
-          <li><span class="pt-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg></span>إضافة العطور والأثمنة</li>
-          <li><span class="pt-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg></span>رابط خاص بالمتجر</li>
-          <li><span class="pt-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg></span>QR Code</li>
-          <li><span class="pt-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg></span>الطلبات عبر WhatsApp</li>
-          <li><span class="pt-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg></span>تحديث الأثمنة والعطور (حتى مرة فالسيمانة)</li>
-          <li><span class="pt-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg></span>الدعم</li>
+      <header class="b2-head"><h2 id="b2-how-title">كيفاش كيخدم؟</h2><p>3 خطوات بسيطة باش يكون عندك كويز العطور ديال متجرك.</p></header>
+      <ol class="b2-steps">
+        <li><span class="b2-n">1</span><span class="b2-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 15V4M7.5 8.5 12 4l4.5 4.5"/><path d="M4 14v5h16v-5"/></svg></span><h3>صيفط لائحة العطور والأثمنة</h3><p>صيفط لينا ملف Excel فيه العطور والأثمنة واللوغو (والصور إلى عندك).</p></li>
+        <li><span class="b2-n">2</span><span class="b2-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1.2 1.2"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1.2-1.2"/></svg></span><h3>كتوصل برابط و QR باسمك</h3><p>كنصممو ليك الكويز باسم متجرك، مع رابط خاص و QR Code.</p></li>
+        <li><span class="b2-n">3</span><span class="b2-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="18" cy="5.5" r="2.5"/><circle cx="6" cy="12" r="2.5"/><circle cx="18" cy="18.5" r="2.5"/><path d="m8.2 10.8 7.6-4.1M8.2 13.2l7.6 4.1"/></svg></span><h3>حطهم فالبيو والستوري والمحل</h3><p>باش زبنائك يجربو الكويز، وتوصلك الطلبات مباشرة فالواتساب.</p></li>
+      </ol>
+    </div>
+  </section>
+
+  <section class="b2-sec" aria-labelledby="b2-cust-title">
+    <div class="wrap">
+      <div class="b2-cust">
+        <div class="b2-cust-copy">
+          <header class="b2-head"><h2 id="b2-cust-title">شنو كيستافد الزبون؟</h2><p>تجربة سهلة وسريعة.</p></header>
+          <ul class="b2-feats">
+            <li><span class="b2-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="4" width="7" height="7" rx="1.5"/><rect x="13" y="4" width="7" height="7" rx="1.5"/><rect x="4" y="13" width="7" height="7" rx="1.5"/><rect x="13" y="13" width="7" height="7" rx="1.5"/></svg></span><div><b>كويز بالصور</b><small>كيختار اللي كيعجبو بسهولة.</small></div></li>
+            <li><span class="b2-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6h11M9 12h11M9 18h11"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/></svg></span><div><b>3 عطور مع السبب</b><small>اقتراحات مناسبة لتفضيلاتو، من السلعة ديالك.</small></div></li>
+            <li><span class="b2-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20l1.2-4.1A8.5 8.5 0 1 1 8.4 19z"/><path d="M9 8.5c.3 2.6 2.8 5.3 5.8 6l1.2-1.4-1.9-1-1 .9c-1-.4-2-1.4-2.4-2.4l.9-1-1-1.9z" stroke-width="1.2"/></svg></span><div><b>زر مباشر للطلب</b><small>كيتواصل معاك فالواتساب مباشرة.</small></div></li>
+          </ul>
+        </div>
+        <div class="b2-cust-art">
+          <span class="b2-phone "><img src="/images/b2b/screen-card.webp" alt="عطر مقترح من عند المتجر التجريبي مع السبب" width="520" height="1040" loading="lazy" decoding="async"></span>
+          <p class="b2-note">اقتراحات من كتالوج متجرك</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="b2-sec" aria-labelledby="b2-merch-title">
+    <div class="wrap">
+      <div class="b2-merch">
+        <header class="b2-head"><h2 id="b2-merch-title">شنو كيستافد التاجر؟</h2></header>
+        <ul class="b2-tiles">
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 10v9.5h16V10"/><path d="M3 10l1.6-5.5h14.8L21 10c0 1.4-1.2 2.4-2.6 2.4S15.8 11.4 15.8 10c0 1.4-1.2 2.4-2.6 2.4h-2.4c-1.4 0-2.6-1-2.6-2.4 0 1.4-1.2 2.4-2.6 2.4S3 11.4 3 10z"/><path d="M10 19.5v-4.5h4v4.5"/></svg><span>السمية واللوغو ديال متجرك</span></li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m12 3 8 4.5v9L12 21l-8-4.5v-9z"/><path d="m4 7.5 8 4.5 8-4.5M12 12v9"/></svg><span>غير العطور المتوفرة عندك، وبالأثمنة ديالك</span></li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20l1.2-4.1A8.5 8.5 0 1 1 8.4 19z"/><path d="M9 8.5c.3 2.6 2.8 5.3 5.8 6l1.2-1.4-1.9-1-1 .9c-1-.4-2-1.4-2.4-2.4l.9-1-1-1.9z" stroke-width="1.2"/></svg><span>الطلبات مباشرة فالواتساب</span></li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 20V12M10 20V6M15 20v-9M20 20V9"/></svg><span>حتى ملي ما كيلقاش الزبون عطر، كنقترحو عليه عطور قريبة</span></li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="4" width="6" height="6" rx="1"/><rect x="14" y="4" width="6" height="6" rx="1"/><rect x="4" y="14" width="6" height="6" rx="1"/><path d="M14 14h2.5v2.5H14zM17.5 17.5H20V20h-2.5zM14 20h1M20 14v1"/></svg><span>رابط خاص و QR Code</span></li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="m13.5 6.5 4 4"/></svg><span>تحديث العطور والأثمنة فأي وقت</span></li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="18" cy="5.5" r="2.5"/><circle cx="6" cy="12" r="2.5"/><circle cx="18" cy="18.5" r="2.5"/><path d="m8.2 10.8 7.6-4.1M8.2 13.2l7.6 4.1"/></svg><span>بارطاج فالستوري باسم متجرك</span></li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 15v-3a8 8 0 0 1 16 0v3"/><rect x="3" y="14" width="4" height="6" rx="1.5"/><rect x="17" y="14" width="4" height="6" rx="1.5"/></svg><span>دعم فني ومساعدة</span></li>
         </ul>
-        <p class="pt-trial">7 أيام مجانية، كيتحسبو من النهار اللي كيولّي فيه الكويز ديالك خدام.</p>
-        <a class="btn lg" href="https://wa.me/212654091373?text=%D8%A7%D9%84%D8%B3%D9%84%D8%A7%D9%85%20%D8%B9%D9%84%D9%8A%D9%83%D9%85%D8%8C%20%D8%A8%D8%BA%D9%8A%D8%AA%20%D9%86%D8%A8%D8%AF%D8%A7%20%D9%85%D8%B9%20FragranceFlow%20%D9%84%D9%84%D9%85%D8%AA%D8%AC%D8%B1%20%D8%AF%D9%8A%D8%A7%D9%84%D9%8A." target="_blank" rel="noopener">بدا دابا <svg class="arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
       </div>
     </div>
   </section>
 
-  <section class="pt-block" aria-labelledby="pt-faq-title">
+  <section class="b2-sec" aria-labelledby="b2-demo-title">
     <div class="wrap">
-      <header class="pt-head"><h2 id="pt-faq-title">أسئلة متكررة</h2></header>
-      <div class="pt-faq">
-        <details><summary>واش خاصني يكون عندي موقع؟</summary><p>لا. الرابط كيخدم بوحدو: تحطو فالانستغرام ولا فالواتساب، ولا كتطبع الـ QR Code وتحطو فالمحل.</p></details>
-        <details><summary>شكون كيزيد العطور؟</summary><p>حنا. صيفط لينا لائحة العطور والأثمنة، وحنا كنجهزو كلشي.</p></details>
-        <details><summary>واش نقدر نبدل الأثمنة ولا نزيد عطور؟</summary><p>إيه. صيفط لينا التعديلات فالواتساب، وكنحدثوها ليك (حتى مرة فالسيمانة).</p></details>
-        <details><summary>شحال كياخد باش يكون جاهز؟</summary><p>غالباً كنجهزو الكويز ديال متجرك فـ 24 إلى 48 ساعة من بعد ما توصلنا بلائحة العطور والأثمنة واللوغو ديالك.</p></details>
+      <div class="b2-demo">
+        <div class="b2-demo-copy">
+          <h2 id="b2-demo-title">جرب الديمو المباشر</h2>
+          <p>اكتشف كيفاش كيبان الكويز لزبناء متجرك، وشوف النتائج الحقيقية.</p>
+          <a class="b2-btn b2-btn-white" href="/?store=demo#quiz"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5.5v13l10-6.5z"/></svg><span>جرب الكويز دابا</span></a>
+        </div>
+        <div class="b2-demo-art" aria-hidden="true">
+          <span class="b2-phone "><img src="/images/b2b/screen-quiz.webp" alt="" width="520" height="1040" loading="lazy" decoding="async"></span>
+          <span class="b2-phone "><img src="/images/b2b/screen-sig.webp" alt="" width="520" height="1040" loading="lazy" decoding="async"></span>
+          <span class="b2-phone "><img src="/images/b2b/screen-podium.webp" alt="" width="520" height="1040" loading="lazy" decoding="async"></span>
+        </div>
       </div>
     </div>
   </section>
 
-  <section class="pt-final" aria-labelledby="pt-final-title">
-    <div class="wrap pt-final-inner">
-      <h2 id="pt-final-title">جاهز تخلي زبنائك يلقاو عطرهم عندك؟</h2>
-      <p>جرب الديمو، ولا تواصل معانا ونجهزو الكويز ديال متجرك.</p>
-      <div class="pt-ctas center">
-        <a class="btn lg light" href="https://wa.me/212654091373?text=%D8%A7%D9%84%D8%B3%D9%84%D8%A7%D9%85%20%D8%B9%D9%84%D9%8A%D9%83%D9%85%D8%8C%20%D8%A8%D8%BA%D9%8A%D8%AA%20%D9%86%D8%A8%D8%AF%D8%A7%20%D9%85%D8%B9%20FragranceFlow%20%D9%84%D9%84%D9%85%D8%AA%D8%AC%D8%B1%20%D8%AF%D9%8A%D8%A7%D9%84%D9%8A." target="_blank" rel="noopener">بدا دابا <svg class="arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
-        <a class="btn lg ghost-light" href="/?store=demo#quiz">جرب الديمو</a>
+  <section class="b2-sec" id="pricing" aria-labelledby="b2-price-title">
+    <div class="wrap b2-price-faq">
+      <div class="b2-price">
+        <div class="b2-price-top">
+          <p class="b2-launch">عرض الإطلاق</p>
+          <h2 id="b2-price-title" class="sr">الثمن</h2>
+          <p class="b2-from">ابتداءً من</p>
+          <p class="b2-amount"><b class="latin">299 DH</b><small>/ الشهر</small></p>
+          <p class="b2-trial"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m12 3.5 2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 16.9l-5.2 2.7 1-5.8L3.5 9.7l5.9-.9z"/></svg><span>تجربة مجانية 7 أيام</span></p>
+          <a class="b2-btn b2-btn-white" href="https://wa.me/212654091373?text=%D8%A7%D9%84%D8%B3%D9%84%D8%A7%D9%85%20%D8%B9%D9%84%D9%8A%D9%83%D9%85%D8%8C%20%D8%A8%D8%BA%D9%8A%D8%AA%20%D9%86%D8%A8%D8%AF%D8%A7%20%D9%85%D8%B9%20FragranceFlow%20%D9%84%D9%84%D9%85%D8%AA%D8%AC%D8%B1%20%D8%AF%D9%8A%D8%A7%D9%84%D9%8A." target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20l1.2-4.1A8.5 8.5 0 1 1 8.4 19z"/><path d="M9 8.5c.3 2.6 2.8 5.3 5.8 6l1.2-1.4-1.9-1-1 .9c-1-.4-2-1.4-2.4-2.4l.9-1-1-1.9z" stroke-width="1.2"/></svg><span>بدا دابا</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5M11 6l-6 6 6 6"/></svg></a>
+        </div>
+        <ul class="b2-checks">
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg>إنشاء الكويز باسم متجرك</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg>إضافة العطور والأثمنة</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg>رابط خاص و QR Code</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg>الطلبات عبر WhatsApp</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg>تحديث العطور والأثمنة</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg>دعم فني</li>
+        </ul>
+      </div>
+      <div class="b2-faq">
+        <h2>أسئلة متكررة</h2>
+        <details><summary>واش خاصني موقع؟</summary><p>لا. الرابط كيخدم بوحدو: تحطو فالانستغرام ولا فالواتساب، ولا كتطبع الـ QR Code وتحطو فالمحل.</p></details>
+        <details><summary>شكون كيزيد العطور؟</summary><p>حنا. صيفط لينا لائحة العطور والأثمنة، وحنا كنجهزو كلشي.</p></details>
+        <details><summary>واش نقدر نبدل الأثمنة؟</summary><p>إيه. صيفط لينا التعديلات فالواتساب، وكنحدثوها ليك.</p></details>
+        <details><summary>شحال كياخد باش يكون جاهز؟</summary><p>غالباً كنجهزو الكويز ديال متجرك فـ 24 إلى 48 ساعة من بعد ما توصلنا بلائحة العطور والأثمنة واللوغو ديالك.</p></details>
+        <details><summary>واش كاين تجربة مجانية؟</summary><p>إيه، 7 أيام مجانية، كيتحسبو من النهار اللي كيولّي فيه الكويز ديالك خدام.</p></details>
       </div>
     </div>
   </section>
+
+  <footer class="b2-foot">
+    <div class="wrap b2-foot-row">
+      <button type="button" class="b2-foot-logo" data-home="1" aria-label="FragranceFlow، الصفحة الرئيسية">
+        <svg class="mark" aria-hidden="true"><use href="#ff-mark"/></svg>
+        <span><b class="latin">FragranceFlow</b><small class="latin">QUIZ FOR PERFUME STORES</small></span>
+      </button>
+      <nav class="b2-foot-links" aria-label="روابط">
+        <button type="button" data-go="how">كيفاش كيخدم</button>
+        <button type="button" data-go="pricing">الثمن</button>
+        <a href="/?store=demo#quiz">جرب الديمو</a>
+      </nav>
+      <div class="b2-foot-contact">
+        <a class="b2-btn b2-btn-sm" href="https://wa.me/212654091373?text=%D8%A7%D9%84%D8%B3%D9%84%D8%A7%D9%85%20%D8%B9%D9%84%D9%8A%D9%83%D9%85%D8%8C%20%D8%B9%D9%86%D8%AF%D9%8A%20%D9%85%D8%AA%D8%AC%D8%B1%20%D8%B9%D8%B7%D9%88%D8%B1%20%D9%88%D8%A8%D8%BA%D9%8A%D8%AA%20%D9%86%D8%B9%D8%B1%D9%81%20%D8%A3%D9%83%D8%AB%D8%B1%20%D8%B9%D9%84%D9%89%20FragranceFlow." target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20l1.2-4.1A8.5 8.5 0 1 1 8.4 19z"/><path d="M9 8.5c.3 2.6 2.8 5.3 5.8 6l1.2-1.4-1.9-1-1 .9c-1-.4-2-1.4-2.4-2.4l.9-1-1-1.9z" stroke-width="1.2"/></svg><span>تواصل معانا</span></a>
+      </div>
+    </div>
+    <p class="wrap b2-copy">© 2026 <span class="latin">FragranceFlow</span>. جميع الحقوق محفوظة.</p>
+  </footer>
 </main>
 
 <main id="quizpage" class="quizpage" hidden aria-label="اكتشف بصمتك العطرية">

@@ -139,6 +139,7 @@ export function startSite({ loadQuiz }) {
     if (qrDrawn) return;
     qrDrawn = true;
     // demonstration QR: it opens the FragranceFlow quiz (a real store gets its own link ?store=…)
+    if (!document.getElementById('pv-qr')) return;
     import('qrcode').then(function (m) {
       var QR = m.default || m;
       QR.toCanvas(document.getElementById('pv-qr'), location.origin + location.pathname + '?store=demo', { width: 320, margin: 1, color: { dark: '#24172C', light: '#FFFFFF' } }, function () {});
@@ -151,6 +152,7 @@ export function startSite({ loadQuiz }) {
     landing.hidden = view !== 'landing'; quizpage.hidden = view !== 'quiz'; detail.hidden = view !== 'detail';
     catalog.hidden = view !== 'catalog'; about.hidden = view !== 'about';
     if (partners) partners.hidden = view !== 'partners';
+    document.body.classList.toggle('on-b2b', view === 'partners');
   }
   function go(hash) {
     if (location.hash === hash) route(); else location.hash = hash;
