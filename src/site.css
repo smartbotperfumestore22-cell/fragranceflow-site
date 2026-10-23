@@ -1360,3 +1360,10 @@ body.on-b2b .head-cta:hover { background: #3E1F9C; border-color: #3E1F9C; }
   .b2-row { grid-template-columns: 1.1fr .9fr; padding: 40px 56px; gap: 48px; }
   .b2-row.is-flip .b2-row-copy { order: 2; }
 }
+
+/* tagline under the logo: Arabic first, English smaller under it */
+.logo-tag { letter-spacing: 0; }
+.logo-tag-ar { display: block; font-size: .78rem; font-weight: 600; color: #4D4253; }
+.logo-tag-en { display: block; font-size: .64rem; letter-spacing: .04em; color: var(--muted); margin-top: 1px; text-align: end; }
+.b2-foot-logo .b2-tag-ar { font-size: .82rem; letter-spacing: 0; font-weight: 600; color: #3A3150; margin-top: 3px; }
+.b2-foot-logo .b2-tag-en { text-align: end; font-size: .68rem; letter-spacing: .04em; color: var(--b2-muted); }
