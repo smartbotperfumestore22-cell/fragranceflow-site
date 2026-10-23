@@ -1389,3 +1389,6 @@ body.on-b2b .head-cta:hover { background: #3E1F9C; border-color: #3E1F9C; }
 .b2-phone-c { inset-inline-start: auto; inset-inline-end: 0; top: 11%; z-index: 2; transform: rotate(-5deg); }
 .b2-chip { top: -54px; z-index: 5; }
 @media (max-width: 899px) { .b2-chip { display: none; } }
+
+.b2-phone { position: relative; }
+.b2-soon { position: absolute; top: 14%; left: 50%; transform: translateX(-50%); padding: 5px 12px; border-radius: 999px; background: var(--v); color: #FFF; font-style: normal; font-size: .74rem; font-weight: 700; white-space: nowrap; box-shadow: 0 8px 20px -10px rgba(60, 30, 140, .7); }
