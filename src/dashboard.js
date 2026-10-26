@@ -68,6 +68,7 @@ function insight(d) {
   return parts.length ? parts.join("، ") + "." : "";
 }
 
+// links per source (instagram, whatsapp, …): planned for a later update, not shown for now
 const SOURCES_LINKS = [["instagram", "Instagram", "حطو فالبيو ولا فالستوري"], ["whatsapp", "WhatsApp", "صيفطو للزبناء فالواتساب"],
   ["website", "الموقع ديالك", "زر ولا رابط فالموقع"], ["qr", "QR فالمحل", "اطبعو وحطو فالكونطوار"]];
 function linksBlock(store) {
@@ -77,12 +78,12 @@ function linksBlock(store) {
     return `<li><div><b>${name}</b><small>${hint}</small><code dir="ltr">${esc(url)}</code></div><button type="button" class="d-copy" data-url="${esc(url)}">نسخ</button></li>`;
   };
   return `<section class="d-card d-links" aria-labelledby="d-links-title">
-    <h2 id="d-links-title">روابط متجرك</h2>
-    <p class="d-sub">استعمل الرابط ديال كل بلاصة، باش تعرف منين كيجيو زبنائك.</p>
-    <ul>${SOURCES_LINKS.map(([s, n, h]) => row(s, n, h)).join("")}${row("", "الرابط العام", "بلا مصدر")}</ul>
+    <h2 id="d-links-title">الرابط ديال متجرك</h2>
+    <p class="d-sub">حطو فالبيو، صيفطو فالواتساب، ولا زيدو فالموقع ديالك.</p>
+    <ul>${row("", "الرابط ديال الكويز", "نفس الرابط لكل البلايص")}</ul>
     <div class="d-qr"><canvas id="d-qr" width="200" height="200" aria-label="QR Code ديال متجرك"></canvas>
-      <div><b>QR Code ديال المحل</b><small>فيه الرابط مع source=qr، باش تتحسب الزيارات اللي جات من المحل.</small>
-      <a class="d-btn" id="d-qr-dl" download="qr-${esc(store.id)}.png" href="#">تحميل الـ QR</a></div></div>
+      <div><b>QR Code ديال المحل</b><small>اطبعو وحطو فالكونطوار ولا على الرفوف.</small>
+      <a class="d-btn" id="d-qr-dl" download="qr-${esc(store.id)}.png" href="#">تحميل الـ QR Code</a></div></div>
   </section>`;
 }
 
@@ -124,7 +125,6 @@ function render(d) {
       <div class="d-card">
         <h2>منين كيجيو الزوار</h2>
         ${bars(d.source, SOURCE)}
-        <p class="d-note">باش يتعرف المصدر، زيد <code dir="ltr">&amp;source=instagram</code> (ولا whatsapp، website) للرابط ديالك.</p>
       </div>
       <div class="d-card">
         <h2>العائلات اللي كيختارو زبنائك</h2>
