@@ -383,7 +383,8 @@ function storeByToken_(t) {
   var found = null;
   rows_(TAB.stores).forEach(function (s) {
     if (!found && String(s.dash_token || '').trim() === t && String(s.active).toUpperCase() !== 'FALSE')
-      found = { id: String(s.store_id).trim().toLowerCase(), name: String(s.name || s.store_id) };
+      found = { id: String(s.store_id).trim().toLowerCase(), name: String(s.name || s.store_id),
+        logo: /^https:\/\//.test(String(s.logo_url || '')) ? String(s.logo_url) : '', color: /^#[0-9a-f]{6}$/i.test(String(s.color || '')) ? String(s.color) : '' };
   });
   if (found) cache.put('ff_tok_' + t, JSON.stringify(found), 600);
   return found;
@@ -395,11 +396,16 @@ function storeStats_(token, daysParam) {
   var n = Math.max(7, Math.min(90, Number(daysParam) || 30));
   var now = new Date(), today = day_(now), from = day_(new Date(now.getTime() - (n - 1) * 864e5));
   if (from < STATS_START) from = STATS_START;
-  var lines = [];
+  var lines = [], prev = {};
+  // the period just before, same length, for the "compared with before" figures (never before STATS_START)
+  var len = Math.round((new Date(today + 'T12:00:00Z') - new Date(from + 'T12:00:00Z')) / 864e5) + 1;
+  var prevFrom = day_(new Date(new Date(from + 'T12:00:00Z').getTime() - len * 864e5));
   var sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(TAB.stats);
   if (sh && sh.getLastRow() > 1) sh.getDataRange().getValues().slice(1).forEach(function (r) {
     var d = r[0] instanceof Date ? day_(r[0]) : String(r[0]);
-    if (String(r[1]) === store.id && d >= from && d < today) lines.push([d, r[2], String(r[3]), Number(r[4]) || 0]);
+    if (String(r[1]) !== store.id) return;
+    if (d >= from && d < today) lines.push([d, r[2], String(r[3]), Number(r[4]) || 0]);
+    else if (d >= prevFrom && d < from && d >= STATS_START && String(r[3]) === 'all') prev[r[2]] = (prev[r[2]] || 0) + (Number(r[4]) || 0);
   });
   // today is not in Daily_Stats yet (built at night): count it from today's events
   statsOfDay_(today, eventsFor_([today])).forEach(function (r) { if (r[1] === store.id) lines.push([r[0], r[2], r[3], r[4]]); });
@@ -426,6 +432,7 @@ function storeStats_(token, daysParam) {
     .map(function (id) { var m = names[id] || {}; return { id: id, name: m.name || id, brand: m.brand || '', shown: shown[id] || 0, whatsapp: wa[id] || 0 }; })
     .sort(function (a, b) { return b.shown - a.shown || b.whatsapp - a.whatsapp; }).slice(0, 10);
   return { store: store, from: from, to: today, days: days, series: series, totals: totals,
+    prev: prevFrom >= STATS_START ? prev : null,
     source: dims.source || {}, family: dims.family || {}, impression: dims.impression || {}, perfumes: perfumes };
 }
 
