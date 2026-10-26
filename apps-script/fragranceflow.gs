@@ -19,7 +19,7 @@
  * so the same /exec URL keeps working.
  */
 
-var TAB = { perfumes: 'Perfumes', stores: 'Stores', offers: 'Offers', events: 'Events' };
+var TAB = { perfumes: 'Perfumes', stores: 'Stores', offers: 'Offers', events: 'Events', stats: 'Daily_Stats' };
 var GENDERS = ['men', 'women', 'unisex'];
 var WORLDS = ['designer', 'niche', 'ultra_niche', 'arabian'];
 var EVENTS = [
@@ -145,6 +145,9 @@ function onOpen() {
     .addItem('🔁 تحديث يومي أوتوماتيكي: شعل', 'enableDailyPublish')
     .addItem('⏹ تحديث يومي أوتوماتيكي: طفي', 'disableDailyPublish')
     .addSeparator()
+    .addItem('📊 الإحصائيات: حساب يومي أوتوماتيكي: شعل', 'enableDailyStats')
+    .addItem('📊 الإحصائيات: عاود الحساب من نهار…', 'rebuildStatsPrompt')
+    .addSeparator()
     .addItem('🔑 بدل رابط النشر (Deploy Hook)', 'setDeployHook')
     .addToUi();
 }
@@ -229,6 +232,138 @@ function enableDailyPublish() {
 function disableDailyPublish(silent) {
   ScriptApp.getProjectTriggers().forEach(function (t) { if (t.getHandlerFunction() === 'dailyPublish') ScriptApp.deleteTrigger(t); });
   if (silent !== true) SpreadsheetApp.getUi().alert('⏹ التحديث اليومي طفا.');
+}
+
+/* ---------------- statistics for the stores (Daily_Stats) ----------------
+ * Events stays the source of truth. Daily_Stats holds one line per day × store × metric × dimension, so the
+ * dashboard never reads the raw Events. Any range of days can be rebuilt from Events (rebuildStats).
+ *   metrics (dimension "all"): experiences (visits that opened the quiz), completed (visits that finished it),
+ *     quizzes (finished quizzes, a visit can do several), whatsapp (WhatsApp clicks), whatsapp_visits,
+ *     shares (profile shared on a network or copied), near (no exact match: closest fragrances shown)
+ *   metrics with a dimension: source (visits by source), family (Q4 answer), impression (Q5 answer),
+ *     perfume (times shown in the results, by perfume_id), whatsapp_perfume (WhatsApp clicks by perfume_id)
+ *   store "_site" = visits without a store link (the FragranceFlow quiz itself).
+ */
+var STATS_START = '2026-10-26';          // days before this are never counted (tests before the launch)
+var STATS_TZ = 'Africa/Casablanca';
+var STATS_HEADER = ['date', 'store_id', 'metric', 'dimension', 'value'];
+var SHARE_EVENTS = ['personality_share_whatsapp', 'personality_share_facebook', 'personality_share_instagram', 'personality_share_copy'];
+
+function day_(d) { return Utilities.formatDate(d, STATS_TZ, 'yyyy-MM-dd'); }
+
+// perfume id in one form (FF-0037), from the Perfume ID column, the old details, or the name
+function pid_(raw, name, byName) {
+  var v = String(raw || '').trim();
+  var m = v.match(/^ff-?0*(\d+)$/i);
+  if (m) return 'FF-' + ('0000' + m[1]).slice(-4);
+  if (v) return v.toUpperCase();
+  return byName[String(name || '').trim().toLowerCase()] || '';
+}
+
+// the Events rows of the given days (yyyy-MM-dd strings), as plain objects
+function eventsFor_(days) {
+  var sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(TAB.events);
+  if (!sh || sh.getLastRow() < 2) return [];
+  var want = {}; days.forEach(function (d) { want[d] = 1; });
+  var byName = {};
+  rows_(TAB.perfumes).forEach(function (p) { if (p.name && p.perfume_id) byName[String(p.name).trim().toLowerCase()] = String(p.perfume_id).trim(); });
+  var out = [];
+  sh.getDataRange().getValues().slice(1).forEach(function (r) {
+    if (!(r[0] instanceof Date)) return;
+    var d = day_(r[0]);
+    if (!want[d]) return;
+    var det = {};
+    try { det = r[7] ? JSON.parse(r[7]) : {}; } catch (e) {}
+    out.push({ day: d, event: String(r[1]), visit: String(r[2] || det.visit || ''), source: String(r[3] || '').toLowerCase(),
+      perfume: pid_(r[9] || det.pid, r[4], byName), character: String(r[5] || ''), impression: String(r[6] || ''),
+      store: String(r[8] || det.shop || '').toLowerCase() || '_site' });
+  });
+  return out;
+}
+
+// counts of one day, as Daily_Stats lines
+function statsOfDay_(day, events) {
+  var acc = {};                                   // store|metric|dimension → value
+  var add = function (store, metric, dim, n) { var k = store + '|' + metric + '|' + (dim || 'all'); acc[k] = (acc[k] || 0) + (n || 1); };
+  var visits = {};                                // store|visit → { source, opened, completed, whatsapp }
+  events.forEach(function (e) {
+    if (e.day !== day) return;
+    var vk = e.store + '|' + (e.visit || ('~' + Math.random()));
+    var v = visits[vk] || (visits[vk] = { store: e.store, source: '', opened: false, completed: false, whatsapp: false });
+    if (!v.source && e.source) v.source = e.source;
+    if (e.event === 'widget_open') v.opened = true;
+    if (e.event === 'quiz_complete') {
+      v.completed = true; add(e.store, 'quizzes');
+      if (e.character) add(e.store, 'family', e.character);
+      if (e.impression) add(e.store, 'impression', e.impression);
+    }
+    if (e.event === 'result_shown' && e.perfume) add(e.store, 'perfume', e.perfume);
+    if (e.event === 'whatsapp_click' || e.event === 'near_whatsapp_click') {
+      v.whatsapp = true; add(e.store, 'whatsapp');
+      if (e.perfume) add(e.store, 'whatsapp_perfume', e.perfume);
+    }
+    if (SHARE_EVENTS.indexOf(e.event) !== -1) add(e.store, 'shares');
+    if (e.event === 'near_results' || e.event === 'lost_sale') add(e.store, 'near');
+  });
+  Object.keys(visits).forEach(function (k) {
+    var v = visits[k];
+    if (!v.opened && !v.completed) return;        // a visit that only looked at a fragrance page is not an experience
+    add(v.store, 'experiences');
+    add(v.store, 'source', v.source || 'direct');
+    if (v.completed) add(v.store, 'completed');
+    if (v.whatsapp) add(v.store, 'whatsapp_visits');
+  });
+  return Object.keys(acc).sort().map(function (k) { var p = k.split('|'); return [day, p[0], p[1], p[2], acc[k]]; });
+}
+
+// rebuild Daily_Stats for every day from `from` to `to` (yyyy-MM-dd, both included); other days are kept as they are
+function rebuildStats(from, to) {
+  if (from < STATS_START) from = STATS_START;
+  var days = [], d = new Date(from + 'T12:00:00Z'), end = new Date(to + 'T12:00:00Z');
+  while (d <= end) { days.push(Utilities.formatDate(d, 'UTC', 'yyyy-MM-dd')); d = new Date(d.getTime() + 864e5); }
+  if (!days.length) return 0;
+  var events = eventsFor_(days), fresh = [];
+  days.forEach(function (day) { fresh = fresh.concat(statsOfDay_(day, events)); });
+  var lock = LockService.getScriptLock();
+  lock.waitLock(20000);
+  try {
+    var ss = SpreadsheetApp.getActiveSpreadsheet();
+    var sh = ss.getSheetByName(TAB.stats) || ss.insertSheet(TAB.stats);
+    var old = sh.getLastRow() > 1 ? sh.getDataRange().getValues().slice(1) : [];
+    var redo = {}; days.forEach(function (x) { redo[x] = 1; });
+    var keep = old.filter(function (r) { var x = r[0] instanceof Date ? day_(r[0]) : String(r[0]); return !redo[x]; })
+      .map(function (r) { return [r[0] instanceof Date ? day_(r[0]) : String(r[0]), r[1], r[2], r[3], r[4]]; });
+    var all = keep.concat(fresh).sort(function (a, b) { return a[0] < b[0] ? -1 : a[0] > b[0] ? 1 : 0; });
+    sh.clearContents();
+    sh.getRange(1, 1, 1, STATS_HEADER.length).setValues([STATS_HEADER]);
+    if (all.length) {
+      sh.getRange(2, 1, all.length, 1).setNumberFormat('@');          // dates stay text (yyyy-MM-dd), not converted
+      sh.getRange(2, 1, all.length, STATS_HEADER.length).setValues(all);
+    }
+    sh.setFrozenRows(1);
+  } finally { lock.releaseLock(); }
+  return fresh.length;
+}
+
+// every night: yesterday (and the day before, in case an event arrived late)
+function nightlyStats() {
+  var now = new Date();
+  rebuildStats(day_(new Date(now.getTime() - 2 * 864e5)), day_(new Date(now.getTime() - 864e5)));
+}
+function enableDailyStats() {
+  ScriptApp.getProjectTriggers().forEach(function (t) { if (t.getHandlerFunction() === 'nightlyStats') ScriptApp.deleteTrigger(t); });
+  ScriptApp.newTrigger('nightlyStats').timeBased().everyDays(1).atHour(2).create();
+  var n = rebuildStats(STATS_START, day_(new Date()));
+  SpreadsheetApp.getUi().alert('📊 تشعل: الإحصائيات غادي تتحسب كل ليلة مع 2 د الصباح.\nدابا تحسبو ' + n + ' سطر من ' + STATS_START + ' حتى اليوم.');
+}
+function rebuildStatsPrompt() {
+  var ui = SpreadsheetApp.getUi();
+  var r = ui.prompt('عاود الحساب', 'من أي نهار؟ (yyyy-MM-dd، مثلا ' + STATS_START + ')', ui.ButtonSet.OK_CANCEL);
+  if (r.getSelectedButton() !== ui.Button.OK) return;
+  var from = r.getResponseText().trim();
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(from)) { ui.alert('كتب التاريخ بهاد الشكل: 2026-10-26'); return; }
+  var n = rebuildStats(from, day_(new Date()));
+  ui.alert('✅ تعاود الحساب: ' + n + ' سطر.');
 }
 
 /* ---------------- helpers ---------------- */
