@@ -61,14 +61,16 @@ function insight(d) {
   const src = sorted(d.source).filter(([k]) => k !== "direct")[0];
   const fam = sorted(d.family)[0];
   const parts = [];
-  if (src && src[1] / t.experiences >= 0.3) parts.push(`أغلب زبنائك كيجيو من ${SOURCE[src[0]] || src[0]}`);
+  if (SHOW_SOURCES && src && src[1] / t.experiences >= 0.3) parts.push(`أغلب زبنائك كيجيو من ${SOURCE[src[0]] || src[0]}`);
   if (fam) parts.push(`العائلة اللي كيختارو أكثر هي «${FAMILY[fam[0]] || fam[0]}»`);
   const top = (d.perfumes || [])[0];
   if (top && top.shown >= 10) parts.push(`و${top.name} هو العطر اللي كيطلع أكثر فالنتائج`);
   return parts.length ? parts.join("، ") + "." : "";
 }
 
-// links per source (instagram, whatsapp, …): planned for a later update, not shown for now
+// visit sources (card + links per source): planned for a later update, hidden for now
+const SHOW_SOURCES = false;
+// links per source (instagram, whatsapp, …)
 const SOURCES_LINKS = [["instagram", "Instagram", "حطو فالبيو ولا فالستوري"], ["whatsapp", "WhatsApp", "صيفطو للزبناء فالواتساب"],
   ["website", "الموقع ديالك", "زر ولا رابط فالموقع"], ["qr", "QR فالمحل", "اطبعو وحطو فالكونطوار"]];
 function linksBlock(store) {
@@ -117,15 +119,15 @@ function render(d) {
         <p class="d-legend"><span><i class="is-a"></i>التجارب</span><span><i class="is-b"></i>المكملة</span></p>
         ${line(d.days, d.series.experiences, d.series.completed)}
       </div>
-      <div class="d-card">
+      <div class="d-card${SHOW_SOURCES ? "" : " d-wide"}">
         <h2>من التجربة حتى الواتساب</h2>
         <ol class="d-funnel">${funnel.map(([l, v]) => `<li><span>${l}</span><span class="d-bar"><i style="width:${exp ? Math.max(3, (v / exp) * 100) : 0}%"></i></span><b>${fmt(v)}</b></li>`).join("")}</ol>
         ${t.near ? `<p class="d-note">${fmt(t.near)} مرة ما لقاش الزبون عطر كيجمع كلشي، واقترحنا عليه الأقرب.</p>` : ""}
       </div>
-      <div class="d-card">
+      ${SHOW_SOURCES ? `      <div class="d-card">
         <h2>منين كيجيو الزوار</h2>
         ${bars(d.source, SOURCE)}
-      </div>
+      </div>` : ""}
       <div class="d-card">
         <h2>العائلات اللي كيختارو زبنائك</h2>
         ${bars(d.family, FAMILY, 9)}
