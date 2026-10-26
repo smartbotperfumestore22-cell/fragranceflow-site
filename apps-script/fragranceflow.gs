@@ -27,13 +27,18 @@ var EVENTS = [
   'buy_click', 'whatsapp_click', 'lost_sale',
   'personality_share_click', 'personality_share_whatsapp', 'personality_share_facebook',
   'personality_share_instagram', 'personality_share_copy',
-  'perfume_view', 'search_pick'
+  'perfume_view', 'search_pick',
+  'near_results', 'near_whatsapp_click'
 ];
+// visit sources a link can carry (?source= or ?utm_source=); anything else is recorded as "other"
+var SOURCES = ['instagram', 'whatsapp', 'facebook', 'tiktok', 'website', 'qr', 'direct'];
+// at most this many events per visit and per hour (stops a script from filling the Events tab)
+var MAX_EVENTS_PER_VISIT = 80;
 // "most looked-for" score per fragrance, over the last POP_DAYS days of the Events tab
 var POP_DAYS = 30;
 var POP_WEIGHTS = { perfume_view: 1, search_pick: 2, favorite_pick: 3, buy_click: 4, whatsapp_click: 4 };
-var EVENT_HEADER = ['Time', 'Event', 'Session', 'Source', 'Perfume / answer', 'Character', 'Impression', 'Details'];
-var EVENT_SKIP = ['action', 'store', 'key', 'event', 'visit', 'utm', 'perfume', 'character', 'impression'];
+var EVENT_HEADER = ['Time', 'Event', 'Session', 'Source', 'Perfume / answer', 'Character', 'Impression', 'Details', 'Store', 'Perfume ID'];
+var EVENT_SKIP = ['action', 'store', 'key', 'event', 'visit', 'utm', 'source', 'perfume', 'character', 'impression', 'shop', 'pid'];
 
 /* ---------------- web endpoints ---------------- */
 
@@ -79,8 +84,37 @@ function popular_() {
   return { days: POP_DAYS, interactions: total, items: items };
 }
 
+// ids of the active stores (Stores tab), cached for 10 minutes so each event does not read the tab
+function activeStores_() {
+  var cache = CacheService.getScriptCache(), hit = cache.get('ff_active_stores');
+  if (hit) return JSON.parse(hit);
+  var ids = rows_(TAB.stores).filter(function (s) { return s.store_id && String(s.active).toUpperCase() !== 'FALSE'; })
+    .map(function (s) { return String(s.store_id).trim().toLowerCase(); });
+  cache.put('ff_active_stores', JSON.stringify(ids), 600);
+  return ids;
+}
+
+// one source name: instagram, whatsapp, … or "other"; empty when the link carried none
+function source_(v) {
+  v = String(v || '').trim().toLowerCase();
+  if (!v) return '';
+  if (v === 'ig' || v === 'insta') v = 'instagram';
+  if (v === 'wa') v = 'whatsapp';
+  return SOURCES.indexOf(v) !== -1 ? v : 'other';
+}
+
 function recordEvent_(p) {
   if (EVENTS.indexOf(p.event) === -1) return 'ignored';
+  // an event that names a store must name an active one (a typo or a forged id is not recorded)
+  var shop = String(p.shop || '').trim().toLowerCase();
+  if (shop && activeStores_().indexOf(shop) === -1) return 'ignored';
+  // a visit id is required, and a visit cannot send more than MAX_EVENTS_PER_VISIT events an hour
+  var visit = String(p.visit || '').trim();
+  if (!/^[\w-]{4,20}$/.test(visit)) return 'ignored';
+  var cache = CacheService.getScriptCache(), ck = 'ff_v_' + visit, n = Number(cache.get(ck) || 0) + 1;
+  if (n > MAX_EVENTS_PER_VISIT) return 'ignored';
+  cache.put(ck, String(n), 3600);
+
   var details = {};
   Object.keys(p).forEach(function (k) { if (EVENT_SKIP.indexOf(k) === -1) details[clip_(k, 40)] = clip_(p[k], 200); });
   var lock = LockService.getScriptLock();
@@ -89,8 +123,10 @@ function recordEvent_(p) {
     var ss = SpreadsheetApp.getActiveSpreadsheet();
     var sh = ss.getSheetByName(TAB.events);
     if (!sh) { sh = ss.insertSheet(TAB.events); sh.appendRow(EVENT_HEADER); sh.setFrozenRows(1); }
-    sh.appendRow([new Date(), p.event, clip_(p.visit, 20), clip_(p.utm, 40), clip_(p.perfume, 120),
-      clip_(p.character, 40), clip_(p.impression, 40), Object.keys(details).length ? JSON.stringify(details) : '']);
+    else if (sh.getLastColumn() < EVENT_HEADER.length) sh.getRange(1, 1, 1, EVENT_HEADER.length).setValues([EVENT_HEADER]); // new columns
+    sh.appendRow([new Date(), p.event, clip_(visit, 20), source_(p.source || p.utm), clip_(p.perfume, 120),
+      clip_(p.character, 40), clip_(p.impression, 40), Object.keys(details).length ? JSON.stringify(details) : '',
+      shop, clip_(p.pid, 20)]);
     return 'ok';
   } catch (err) {
     return 'busy';

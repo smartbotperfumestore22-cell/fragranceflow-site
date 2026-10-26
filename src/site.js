@@ -204,7 +204,7 @@ export function startSite({ loadQuiz }) {
         h('p', { text: 'زيد ?store= ومعاه store_id ديال المحل ف الرابط، مثلا: ?store=parfumerie-x#qr' })));
       return;
     }
-    var link = location.origin + location.pathname + '?store=' + encodeURIComponent(STORE.id) + '&utm_source=qr#quiz';
+    var link = location.origin + location.pathname + '?store=' + encodeURIComponent(STORE.id) + '&source=qr#quiz';
     var canvas = h('canvas', { class: 'qr-canvas', 'aria-label': 'QR code: ' + link });
     var dl = h('a', { class: 'btn', download: 'qr-' + STORE.id + '.png', href: '#', text: 'تحميل الصورة (PNG)' });
     var copyBtn = h('button', { type: 'button', class: 'btn ghost', text: 'نسخ الرابط' });

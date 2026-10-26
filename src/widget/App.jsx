@@ -4158,6 +4158,7 @@ function WidgetContent({ onClose, lang: langProp, initialStep="intro" }) {
     results.main.forEach(p => {
   window.track && window.track("result_shown", {
     perfume: p.name,
+    pid: p.id,
     character: na.character,
     occasion: na.occasion,
   });

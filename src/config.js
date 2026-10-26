@@ -27,9 +27,10 @@ window.__FF_CONFIG__ = {
   MARKETPLACE: true,   // زر الشراء كيدي لموقع المحل الشريك، بلا واتساب
 };
 
-// visit attribution for analytics: where the visitor came from (a shared link carries utm_source), kept for this tab only
+// visit attribution for analytics: where the visitor came from (a shared link carries ?source= or utm_source), kept for this tab only
 try {
-  const utm = new URLSearchParams(window.location.search).get("utm_source");
+  const q = new URLSearchParams(window.location.search);
+  const utm = q.get("source") || q.get("utm_source");
   if (utm && /^[\w.-]{1,40}$/.test(utm)) sessionStorage.setItem("ff_utm", utm);
 } catch (e) {}
 
