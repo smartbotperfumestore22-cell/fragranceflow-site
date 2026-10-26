@@ -429,6 +429,19 @@ function storeStats_(token, daysParam) {
     source: dims.source || {}, family: dims.family || {}, impression: dims.impression || {}, perfumes: perfumes };
 }
 
+// a small window with the link in a box that can be selected and copied (an alert's text cannot be copied)
+function showLink_(id, url) {
+  var safe = String(url).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; });
+  var html = HtmlService.createHtmlOutput(
+    '<div dir="rtl" style="font-family:sans-serif;font-size:14px">' +
+    '<p>الرابط ديال <b>' + id + '</b>. صيفطو للتاجر، وما تنشروش:</p>' +
+    '<input id="l" readonly value="' + safe + '" style="width:100%;padding:8px;font-size:12px;direction:ltr" onclick="this.select()">' +
+    '<p><button onclick="var i=document.getElementById(\'l\');i.select();document.execCommand(\'copy\');this.textContent=\'تنسخ ✓\'" ' +
+    'style="padding:8px 16px;background:#5B35C8;color:#fff;border:0;border-radius:8px;cursor:pointer">نسخ الرابط</button></p></div>'
+  ).setWidth(520).setHeight(200);
+  SpreadsheetApp.getUi().showModalDialog(html, 'رابط الإحصائيات');
+}
+
 // menu: make (or replace) the secret dashboard link of a store
 function dashboardLinkPrompt() {
   var ui = SpreadsheetApp.getUi();
@@ -445,12 +458,12 @@ function dashboardLinkPrompt() {
   var old = col < values[row].length ? String(values[row][col] || '').trim() : '';
   if (old) {
     var again = ui.alert('هاد المتجر عندو رابط من قبل', 'نصاوب رابط جديد؟ الرابط القديم غادي يوقف.', ui.ButtonSet.YES_NO);
-    if (again !== ui.Button.YES) { ui.alert('الرابط ديال ' + id + ':\n\n' + SITE_URL + '/dashboard/?t=' + old); return; }
+    if (again !== ui.Button.YES) { showLink_(id, SITE_URL + '/dashboard/?t=' + old); return; }
     CacheService.getScriptCache().remove('ff_tok_' + old);
   }
   var token = (Utilities.getUuid() + Utilities.getUuid()).replace(/-/g, '');   // 64 random hex characters
   sh.getRange(row + 1, col + 1).setValue(token);
-  ui.alert('✅ الرابط ديال ' + id + ' (صيفطو للتاجر، وما تنشروش):\n\n' + SITE_URL + '/dashboard/?t=' + token);
+  showLink_(id, SITE_URL + '/dashboard/?t=' + token);
 }
 
 /* ---------------- helpers ---------------- */
