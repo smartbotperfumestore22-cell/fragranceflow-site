@@ -47,6 +47,7 @@ function doGet(e) {
   if (p.action === 'catalog') return json_(catalog_());
   if (p.action === 'analytics') return text_(recordEvent_(p));
   if (p.action === 'stats') return json_(storeStats_(p.t, p.days));
+  if (p.action === 'admin') return json_(adminStats_(p.t, p.days));
   return text_('FragranceFlow');
 }
 
@@ -149,6 +150,7 @@ function onOpen() {
     .addItem('📊 الإحصائيات: حساب يومي أوتوماتيكي: شعل', 'enableDailyStats')
     .addItem('📊 الإحصائيات: عاود الحساب من نهار…', 'rebuildStatsPrompt')
     .addItem('🔑 رابط الإحصائيات ديال متجر', 'dashboardLinkPrompt')
+    .addItem('🔐 رابط لوحة الـ admin', 'adminLinkPrompt')
     .addSeparator()
     .addItem('🔑 بدل رابط النشر (Deploy Hook)', 'setDeployHook')
     .addToUi();
@@ -441,7 +443,7 @@ function showLink_(id, url) {
   var safe = String(url).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; });
   var html = HtmlService.createHtmlOutput(
     '<div dir="rtl" style="font-family:sans-serif;font-size:14px">' +
-    '<p>الرابط ديال <b>' + id + '</b>. صيفطو للتاجر، وما تنشروش:</p>' +
+    (id === 'admin' ? '<p>الرابط ديال <b>لوحة الـ admin</b>. خليه عندك بوحدك، ما تصيفطو لحتى واحد:</p>' : '<p>الرابط ديال <b>' + id + '</b>. صيفطو للتاجر، وما تنشروش:</p>') +
     '<input id="l" readonly value="' + safe + '" style="width:100%;padding:8px;font-size:12px;direction:ltr" onclick="this.select()">' +
     '<p><button onclick="var i=document.getElementById(\'l\');i.select();document.execCommand(\'copy\');this.textContent=\'تنسخ ✓\'" ' +
     'style="padding:8px 16px;background:#5B35C8;color:#fff;border:0;border-radius:8px;cursor:pointer">نسخ الرابط</button></p></div>'
@@ -471,6 +473,85 @@ function dashboardLinkPrompt() {
   var token = (Utilities.getUuid() + Utilities.getUuid()).replace(/-/g, '');   // 64 random hex characters
   sh.getRange(row + 1, col + 1).setValue(token);
   showLink_(id, SITE_URL + '/dashboard/?t=' + token);
+}
+
+/* ---------------- admin dashboard (for FragranceFlow only) ----------------
+ * /admin/?t=<admin token>. The token lives in Script Properties (ADMIN_TOKEN), never in the Sheet, and is not
+ * related to the store tokens. Read only: aggregated numbers per store, store links, and data alerts.
+ */
+var INACTIVE_DAYS = 7;
+
+function adminStats_(token, daysParam) {
+  var want = PropertiesService.getScriptProperties().getProperty('ADMIN_TOKEN') || '';
+  if (!want || String(token || '') !== want) return { error: 'invalid' };
+  var n = Math.max(1, Math.min(90, Number(daysParam) || 7));
+  var now = new Date(), today = day_(now), from = day_(new Date(now.getTime() - (n - 1) * 864e5));
+  var len = n;
+  var prevFrom = day_(new Date(new Date(from + 'T12:00:00Z').getTime() - len * 864e5));
+  if (from < STATS_START) from = STATS_START;
+
+  var stores = rows_(TAB.stores).filter(function (s) { return String(s.store_id || '').trim(); }).map(function (s) {
+    return { id: String(s.store_id).trim().toLowerCase(), name: String(s.name || s.store_id), active: String(s.active).toUpperCase() !== 'FALSE',
+      token: String(s.dash_token || '').trim(), perfumes: 0, experiences: 0, completed: 0, whatsapp: 0, last: '' };
+  });
+  var byId = {}; stores.forEach(function (s) { byId[s.id] = s; });
+  var activeIds = {};
+  rows_(TAB.perfumes).forEach(function (p) { if (String(p.active).toUpperCase() !== 'FALSE') activeIds[String(p.perfume_id).trim()] = 1; });
+  rows_(TAB.offers).forEach(function (o) {
+    var s = byId[String(o.store_id || '').trim().toLowerCase()];
+    if (s && activeIds[String(o.perfume_id).trim()] && String(o.in_stock).toUpperCase() !== 'FALSE') s.perfumes++;
+  });
+
+  var site = { experiences: 0, completed: 0, whatsapp: 0 }, prev = { experiences: 0, completed: 0, whatsapp: 0 };
+  var take = function (storeId, metric, v, d, inPeriod, inPrev) {
+    var s = byId[storeId];
+    if (metric === 'experiences' && v > 0 && s && d > s.last) s.last = d;
+    var key = metric === 'whatsapp' ? 'whatsapp' : metric;
+    if (['experiences', 'completed', 'whatsapp'].indexOf(key) === -1) return;
+    if (inPeriod) { if (s) s[key] += v; else if (storeId === '_site') site[key] += v; }
+    if (inPrev && s) prev[key] += v;
+  };
+  var sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(TAB.stats);
+  if (sh && sh.getLastRow() > 1) sh.getDataRange().getValues().slice(1).forEach(function (r) {
+    if (String(r[3]) !== 'all') return;
+    var d = r[0] instanceof Date ? day_(r[0]) : String(r[0]);
+    if (d >= today) return;
+    take(String(r[1]), String(r[2]), Number(r[4]) || 0, d, d >= from, d >= prevFrom && d < from && d >= STATS_START);
+  });
+  statsOfDay_(today, eventsFor_([today])).forEach(function (r) { if (r[3] === 'all') take(r[1], r[2], r[4], today, true, false); });
+
+  var totals = { experiences: 0, completed: 0, whatsapp: 0 };
+  stores.forEach(function (s) { totals.experiences += s.experiences; totals.completed += s.completed; totals.whatsapp += s.whatsapp; });
+  var withActivity = stores.filter(function (s) { return s.experiences > 0; }).length;
+
+  var alerts = [];
+  var limit = day_(new Date(now.getTime() - INACTIVE_DAYS * 864e5));
+  stores.forEach(function (s) {
+    if (!s.active) return;
+    if (!s.last) alerts.push({ type: 'inactive', store: s.name, text: 'ما كاين حتى نشاط من ' + STATS_START });
+    else if (s.last < limit) alerts.push({ type: 'inactive', store: s.name, text: 'آخر نشاط نهار ' + s.last + ' (أكثر من ' + INACTIVE_DAYS + ' أيام)' });
+    if (!s.token) alerts.push({ type: 'token', store: s.name, text: 'ما عندوش رابط الإحصائيات' });
+    if (!s.perfumes) alerts.push({ type: 'catalog', store: s.name, text: 'ما عندو حتى عطر متوفر ف Offers' });
+  });
+  problems_().slice(0, 30).forEach(function (p) { alerts.push({ type: 'data', store: '', text: p }); });
+
+  stores.forEach(function (s) { s.dashboard = s.token ? SITE_URL + '/dashboard/?t=' + s.token : ''; s.hasToken = !!s.token; delete s.token; });
+  stores.sort(function (a, b) { return (b.active - a.active) || (b.experiences - a.experiences); });
+  return { from: from, to: today, days: n, totals: totals, prev: prevFrom >= STATS_START ? prev : null, site: site,
+    storesActive: stores.filter(function (s) { return s.active; }).length, storesWithActivity: withActivity, stores: stores, alerts: alerts };
+}
+
+// menu: make (or show) the admin link
+function adminLinkPrompt() {
+  var props = PropertiesService.getScriptProperties(), t = props.getProperty('ADMIN_TOKEN');
+  var ui = SpreadsheetApp.getUi();
+  if (t) {
+    var again = ui.alert('رابط الـ admin', 'عندك رابط من قبل. نصاوب واحد جديد؟ (القديم غادي يوقف)', ui.ButtonSet.YES_NO);
+    if (again !== ui.Button.YES) { showLink_('admin', SITE_URL + '/admin/?t=' + t); return; }
+  }
+  t = (Utilities.getUuid() + Utilities.getUuid()).replace(/-/g, '');
+  props.setProperty('ADMIN_TOKEN', t);
+  showLink_('admin', SITE_URL + '/admin/?t=' + t);
 }
 
 /* ---------------- helpers ---------------- */
