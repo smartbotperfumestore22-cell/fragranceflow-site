@@ -46,6 +46,7 @@ function doGet(e) {
   var p = (e && e.parameter) || {};
   if (p.action === 'catalog') return json_(catalog_());
   if (p.action === 'analytics') return text_(recordEvent_(p));
+  if (p.action === 'stats') return json_(storeStats_(p.t, p.days));
   return text_('FragranceFlow');
 }
 
@@ -147,6 +148,7 @@ function onOpen() {
     .addSeparator()
     .addItem('📊 الإحصائيات: حساب يومي أوتوماتيكي: شعل', 'enableDailyStats')
     .addItem('📊 الإحصائيات: عاود الحساب من نهار…', 'rebuildStatsPrompt')
+    .addItem('🔑 رابط الإحصائيات ديال متجر', 'dashboardLinkPrompt')
     .addSeparator()
     .addItem('🔑 بدل رابط النشر (Deploy Hook)', 'setDeployHook')
     .addToUi();
@@ -364,6 +366,91 @@ function rebuildStatsPrompt() {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(from)) { ui.alert('كتب التاريخ بهاد الشكل: 2026-10-26'); return; }
   var n = rebuildStats(from, day_(new Date()));
   ui.alert('✅ تعاود الحساب: ' + n + ' سطر.');
+}
+
+/* ---------------- store dashboard: secret link ----------------
+ * Each store gets a long random token (Stores → column dash_token). The dashboard sends only this token;
+ * the script finds the store from it, so a store can never ask for another store's numbers by changing an id.
+ * Only aggregated numbers are returned, never the raw Events.
+ */
+var SITE_URL = 'https://fragranceflow-site-three.vercel.app';
+
+function storeByToken_(t) {
+  t = String(t || '').trim();
+  if (!/^[A-Za-z0-9]{32,80}$/.test(t)) return null;
+  var cache = CacheService.getScriptCache(), hit = cache.get('ff_tok_' + t);
+  if (hit) return JSON.parse(hit);
+  var found = null;
+  rows_(TAB.stores).forEach(function (s) {
+    if (!found && String(s.dash_token || '').trim() === t && String(s.active).toUpperCase() !== 'FALSE')
+      found = { id: String(s.store_id).trim().toLowerCase(), name: String(s.name || s.store_id) };
+  });
+  if (found) cache.put('ff_tok_' + t, JSON.stringify(found), 600);
+  return found;
+}
+
+function storeStats_(token, daysParam) {
+  var store = storeByToken_(token);
+  if (!store) return { error: 'invalid' };
+  var n = Math.max(7, Math.min(90, Number(daysParam) || 30));
+  var now = new Date(), today = day_(now), from = day_(new Date(now.getTime() - (n - 1) * 864e5));
+  if (from < STATS_START) from = STATS_START;
+  var lines = [];
+  var sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(TAB.stats);
+  if (sh && sh.getLastRow() > 1) sh.getDataRange().getValues().slice(1).forEach(function (r) {
+    var d = r[0] instanceof Date ? day_(r[0]) : String(r[0]);
+    if (String(r[1]) === store.id && d >= from && d < today) lines.push([d, r[2], String(r[3]), Number(r[4]) || 0]);
+  });
+  // today is not in Daily_Stats yet (built at night): count it from today's events
+  statsOfDay_(today, eventsFor_([today])).forEach(function (r) { if (r[1] === store.id) lines.push([r[0], r[2], r[3], r[4]]); });
+
+  var days = [], d = new Date(from + 'T12:00:00Z'), end = new Date(today + 'T12:00:00Z');
+  while (d <= end) { days.push(Utilities.formatDate(d, 'UTC', 'yyyy-MM-dd')); d = new Date(d.getTime() + 864e5); }
+  var idx = {}; days.forEach(function (x, i) { idx[x] = i; });
+  var series = {}, totals = {}, dims = {};
+  ['experiences', 'completed', 'whatsapp', 'shares'].forEach(function (m) { series[m] = days.map(function () { return 0; }); });
+  lines.forEach(function (l) {
+    var day = l[0], metric = l[1], dim = l[2], v = l[3];
+    if (dim === 'all') {
+      totals[metric] = (totals[metric] || 0) + v;
+      if (series[metric] && idx[day] != null) series[metric][idx[day]] += v;
+    } else {
+      dims[metric] = dims[metric] || {};
+      dims[metric][dim] = (dims[metric][dim] || 0) + v;
+    }
+  });
+  var names = {};
+  rows_(TAB.perfumes).forEach(function (p) { if (p.perfume_id) names[String(p.perfume_id).trim().toUpperCase()] = { name: String(p.name || ''), brand: String(p.brand || '') }; });
+  var shown = dims.perfume || {}, wa = dims.whatsapp_perfume || {};
+  var perfumes = Object.keys(shown).concat(Object.keys(wa)).filter(function (x, i, a) { return a.indexOf(x) === i; })
+    .map(function (id) { var m = names[id] || {}; return { id: id, name: m.name || id, brand: m.brand || '', shown: shown[id] || 0, whatsapp: wa[id] || 0 }; })
+    .sort(function (a, b) { return b.shown - a.shown || b.whatsapp - a.whatsapp; }).slice(0, 10);
+  return { store: store, from: from, to: today, days: days, series: series, totals: totals,
+    source: dims.source || {}, family: dims.family || {}, impression: dims.impression || {}, perfumes: perfumes };
+}
+
+// menu: make (or replace) the secret dashboard link of a store
+function dashboardLinkPrompt() {
+  var ui = SpreadsheetApp.getUi();
+  var r = ui.prompt('رابط الإحصائيات', 'store_id ديال المتجر (مثلا ada-parfum):', ui.ButtonSet.OK_CANCEL);
+  if (r.getSelectedButton() !== ui.Button.OK) return;
+  var id = r.getResponseText().trim().toLowerCase();
+  var sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(TAB.stores);
+  var values = sh.getDataRange().getValues(), head = values[0].map(function (h) { return String(h).trim(); });
+  var col = head.indexOf('dash_token');
+  if (col === -1) { col = head.length; sh.getRange(1, col + 1).setValue('dash_token'); }
+  var row = -1, idCol = head.indexOf('store_id');
+  for (var i = 1; i < values.length; i++) if (String(values[i][idCol]).trim().toLowerCase() === id) { row = i; break; }
+  if (row === -1) { ui.alert('ما لقيتش متجر بهاد store_id ف Stores.'); return; }
+  var old = col < values[row].length ? String(values[row][col] || '').trim() : '';
+  if (old) {
+    var again = ui.alert('هاد المتجر عندو رابط من قبل', 'نصاوب رابط جديد؟ الرابط القديم غادي يوقف.', ui.ButtonSet.YES_NO);
+    if (again !== ui.Button.YES) { ui.alert('الرابط ديال ' + id + ':\n\n' + SITE_URL + '/dashboard/?t=' + old); return; }
+    CacheService.getScriptCache().remove('ff_tok_' + old);
+  }
+  var token = (Utilities.getUuid() + Utilities.getUuid()).replace(/-/g, '');   // 64 random hex characters
+  sh.getRange(row + 1, col + 1).setValue(token);
+  ui.alert('✅ الرابط ديال ' + id + ' (صيفطو للتاجر، وما تنشروش):\n\n' + SITE_URL + '/dashboard/?t=' + token);
 }
 
 /* ---------------- helpers ---------------- */

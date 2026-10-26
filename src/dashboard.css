@@ -1,0 +1,51 @@
+:root { color-scheme: only light; --v: #5B35C8; --v-deep: #3E1F9C; --v-soft: #F3EFFF; --line: #E5DCFB; --ink: #1D1430; --muted: #5F5873;
+  --font: "Manrope", "IBM Plex Sans Arabic", system-ui, -apple-system, "Segoe UI", sans-serif; }
+* { box-sizing: border-box; margin: 0; }
+body { font-family: var(--font); background: #FAF8FF; color: var(--ink); line-height: 1.6; }
+.dw { width: min(1140px, 100% - 32px); margin-inline: auto; }
+.dh { background: #FFF; border-bottom: 1px solid var(--line); position: sticky; top: 0; z-index: 2; }
+.dh-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 64px; flex-wrap: wrap; padding-block: 8px; }
+.dh-logo { height: 32px; width: auto; display: block; }
+.dh-range { display: inline-flex; padding: 3px; border: 1px solid var(--line); border-radius: 999px; background: #FFF; }
+.dh-range button { border: 0; background: none; padding: 6px 14px; border-radius: 999px; font: inherit; font-size: .86rem; font-weight: 700; color: var(--muted); cursor: pointer; }
+.dh-range button[aria-pressed="true"] { background: var(--v); color: #FFF; }
+.dh-range button:focus-visible { outline: 2px solid var(--v); outline-offset: 2px; }
+main { padding-block: 24px 48px; display: grid; gap: 16px; }
+main[aria-busy="true"] { opacity: .55; }
+.d-msg { padding: 40px 0; text-align: center; color: var(--muted); font-size: 1.05rem; }
+.d-head h1 { font-size: clamp(1.6rem, 5vw, 2.2rem); font-weight: 800; }
+.d-head p { color: var(--muted); font-size: .92rem; }
+.d-kpis { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.d-card { background: #FFF; border: 1px solid var(--line); border-radius: 18px; padding: 16px; box-shadow: 0 10px 26px -22px rgba(60, 30, 140, .55); min-width: 0; }
+.d-kpis .d-card { display: flex; flex-direction: column; gap: 2px; }
+.d-kpis small { font-size: .82rem; color: var(--muted); font-weight: 700; }
+.d-kpis b { font-size: 1.9rem; font-weight: 800; line-height: 1.2; font-variant-numeric: lining-nums tabular-nums; }
+.d-kpis span { font-size: .78rem; color: var(--v); font-weight: 600; }
+.d-grid { display: grid; gap: 12px; }
+.d-card h2 { font-size: 1rem; font-weight: 800; margin-bottom: 12px; }
+.d-legend { display: flex; gap: 16px; font-size: .8rem; color: var(--muted); margin: -6px 0 6px; }
+.d-legend i { display: inline-block; width: 14px; height: 3px; border-radius: 2px; margin-inline-end: 6px; vertical-align: middle; background: var(--v); }
+.d-legend i.is-b { background: #B9A3F7; }
+.d-line { width: 100%; height: auto; display: block; }
+.d-bars, .d-funnel { list-style: none; padding: 0; display: grid; gap: 10px; }
+.d-bars li, .d-funnel li { display: grid; grid-template-columns: minmax(90px, 40%) 1fr 44px; align-items: center; gap: 10px; font-size: .88rem; }
+.d-bar-name { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.d-bar { display: block; height: 8px; border-radius: 6px; background: var(--v-soft); overflow: hidden; }
+.d-bar i { display: block; height: 100%; border-radius: 6px; background: linear-gradient(90deg, #8E6CF0, var(--v)); }
+.d-bars b, .d-funnel b { text-align: end; font-variant-numeric: tabular-nums; }
+.d-note { margin-top: 12px; padding: 10px 12px; border-radius: 12px; background: var(--v-soft); font-size: .82rem; color: #3A3150; }
+.d-note code { font-size: .8rem; background: #FFF; padding: 1px 6px; border-radius: 6px; }
+.d-empty { color: var(--muted); font-size: .9rem; padding: 8px 0; }
+.d-table { width: 100%; border-collapse: collapse; font-size: .88rem; }
+.d-table th { text-align: start; font-size: .78rem; color: var(--muted); font-weight: 700; padding: 0 8px 8px; border-bottom: 1px solid var(--line); }
+.d-table td { padding: 10px 8px; border-bottom: 1px solid #F1ECFA; vertical-align: middle; }
+.d-table td small { display: block; color: var(--muted); font-size: .74rem; text-align: end; }
+.d-table td b { display: block; text-align: end; }
+.d-table td:nth-child(2) { width: 45%; }
+.d-table td:nth-child(2) .d-bar { display: inline-block; width: calc(100% - 44px); margin-inline-end: 8px; vertical-align: middle; }
+.d-foot { text-align: center; font-size: .8rem; color: var(--muted); }
+@media (min-width: 760px) {
+  .d-kpis { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .d-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .d-wide { grid-column: 1 / -1; }
+}
