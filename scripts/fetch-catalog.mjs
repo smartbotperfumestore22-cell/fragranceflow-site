@@ -1,9 +1,11 @@
-// Runs before every build (npm run build). Reads the perfumes from the FragranceFlow Google Sheet
-// through its Apps Script (?action=catalog) and writes src/data/catalog.json for the site.
+// Runs before every build (npm run build). Reads perfumes, stores and offers from Supabase (the merchant portal
+// writes there) and the popularity scores from the Google Sheet's Apps Script (?action=catalog), then writes
+// src/data/catalog.json for the site. If Supabase cannot be read, it falls back to the Sheet as before.
 // It never breaks the build: if the Sheet is not set up, unreachable or looks wrong, it writes null
 // and the site keeps its built-in list (src/data/perfumes.js).
 import { writeFileSync } from "node:fs";
 import { FF_SCRIPT_URL } from "../src/ff-script-url.js";
+import { SUPABASE_URL, SUPABASE_KEY } from "../src/supabase-config.js";
 
 const OUT = new URL("../src/data/catalog.json", import.meta.url);
 // what happened at the last build, readable at <site>/catalog-status.json (no data, no URLs)
@@ -20,7 +22,7 @@ const str = (v) => String(v ?? "").trim();
 const isOff = (v) => ["false", "0", "no", "non", "لا"].includes(str(v).toLowerCase());
 const num = (v) => { const n = Number(String(v ?? "").replace(/[^\d.]/g, "")); return Number.isFinite(n) && n > 0 ? n : 0; };
 
-let WARN = [], POP = null, STORES = null;
+let WARN = [], POP = null, STORES = null, SOURCE = "sheet", COMPARE = null;
 // Offers → size_type: "full", "decant" or "both" (Arabic / French words accepted). Empty = not said (nothing shown); null = not understood.
 function offerFormat(v) {
   const t = str(v).toLowerCase();
@@ -36,7 +38,7 @@ function keep(value, why) {
   console.log("[catalog] " + why);
   try {
     writeFileSync(STATUS, JSON.stringify({
-      source: Array.isArray(value) ? "sheet" : "built-in list",
+      source: Array.isArray(value) ? SOURCE : "built-in list", compare_with_sheet: COMPARE,
       perfumes: Array.isArray(value) ? value.length : null,
       message: why, stores: STORES, popular: POP, warnings: WARN.slice(0, 50), built_at: new Date().toISOString(),
     }, null, 1) + "\n");
@@ -135,28 +137,71 @@ function build(data) {
   return { perfumes: out, warn, popInfo, storeInfo };
 }
 
+// Supabase: only what the public may read (row-level security): active perfumes, live stores, their active offers
+async function sbAll(table, select, order) {
+  const rows = [];
+  for (let from = 0; ; from += 1000) {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}?select=${select}&order=${order}`, {
+      headers: { apikey: SUPABASE_KEY, Range: `${from}-${from + 999}`, "Range-Unit": "items" }, signal: AbortSignal.timeout(20000) });
+    if (!res.ok) throw new Error(`${table}: ${res.status}`);
+    const page = await res.json();
+    rows.push(...page);
+    if (page.length < 1000) return rows;
+  }
+}
+async function readSupabase() {
+  const [perfumes, stores, offers] = await Promise.all([
+    sbAll("perfumes", "*", "perfume_id"),
+    sbAll("stores", "id,name,city,website,whatsapp,instagram,logo_url,color,active", "id"),
+    sbAll("offers", "store_id,perfume_id,size,size_type,price,url,in_stock", "id"),
+  ]);
+  return { perfumes, stores: stores.map((s) => ({ ...s, store_id: s.id })), offers };
+}
+async function readSheet() {
+  const res = await fetch(BASE + (BASE.includes("?") ? "&" : "?") + "action=catalog", { redirect: "follow", signal: AbortSignal.timeout(20000) });
+  if (!res.ok) throw new Error(`Sheet answered ${res.status}`);
+  const body = await res.text();
+  try { return JSON.parse(body); }
+  catch (e) {
+    throw new Error(/accounts\.google\.com|ServiceLogin|<html/i.test(body)
+      ? "the Sheet script asked for a Google login: in Apps Script, the deployment must have Who has access = Anyone (Tout le monde)"
+      : "the Sheet script did not answer with data (check the /exec URL and that ?action=catalog shows the perfumes)");
+  }
+}
+// while moving to Supabase: say whether the quiz would get the same perfumes and offers as from the Sheet
+function compare(a, b) {
+  const key = (p) => JSON.stringify({ ...p, pop: undefined, stores: (p.stores || []).map((o) => [o.storeId, o.price, o.size, o.formats.join("+"), o.url]) });
+  const A = new Map(a.map((p) => [p.id, key(p)])), B = new Map(b.map((p) => [p.id, key(p)]));
+  const diff = [...new Set([...A.keys(), ...B.keys()])].filter((id) => A.get(id) !== B.get(id));
+  return { same: diff.length === 0, sheet_perfumes: a.length, supabase_perfumes: b.length, different: diff.slice(0, 20) };
+}
+
 async function main() {
-  if (!BASE) return keep(null, "no Sheet script URL: using the built-in list");
+  let sheet = null, sheetErr = "";
+  if (BASE) { try { sheet = await readSheet(); } catch (e) { sheetErr = e.message; } }
+  let data = null;
   try {
-    const res = await fetch(BASE + (BASE.includes("?") ? "&" : "?") + "action=catalog", { redirect: "follow", signal: AbortSignal.timeout(20000) });
-    if (!res.ok) return keep(null, `Sheet answered ${res.status}: using the built-in list`);
-    const body = await res.text();
-    let data;
-    try { data = JSON.parse(body); }
-    catch (e) {
-      const login = /accounts\.google\.com|ServiceLogin|<html/i.test(body);
-      return keep(null, login
-        ? "the Sheet script asked for a Google login: in Apps Script, the deployment must have Who has access = Anyone (Tout le monde)"
-        : "the Sheet script did not answer with data (check the /exec URL and that ?action=catalog shows the perfumes)");
-    }
+    const sb = await readSupabase();
+    if (sb.perfumes.length >= MIN_PERFUMES) { data = { ...sb, popular: (sheet && sheet.popular) || {} }; SOURCE = "supabase"; }
+    else console.warn(`[catalog] Supabase has only ${sb.perfumes.length} perfumes: using the Sheet`);
+  } catch (e) { console.warn("[catalog] could not read Supabase (" + e.message + "): using the Sheet"); }
+  if (!data) {
+    if (!BASE) return keep(null, "no Supabase and no Sheet script URL: using the built-in list");
+    if (!sheet) return keep(null, "could not read the Sheet (" + sheetErr + "): using the built-in list");
+    data = sheet; SOURCE = "sheet";
+  }
+  try {
     if (!data || !Array.isArray(data.perfumes)) return keep(null, "the Sheet script answered without a perfumes list (is the code pasted and deployed as a new version?)");
     const { perfumes, warn, popInfo, storeInfo } = build(data);
     WARN = warn; POP = popInfo; STORES = storeInfo;
+    if (SOURCE === "supabase" && sheet && Array.isArray(sheet.perfumes)) {
+      try { COMPARE = compare(build(sheet).perfumes, perfumes); console.log("[catalog] compared with the Sheet: " + JSON.stringify(COMPARE)); } catch (e) {}
+    }
     warn.forEach((w) => console.warn("[catalog] " + w));
-    if (perfumes.length < MIN_PERFUMES) return keep(null, `only ${perfumes.length} valid perfumes in the Sheet: using the built-in list`);
-    keep(perfumes, `${perfumes.length} perfumes from the Sheet (${warn.length} warning(s))`);
+    if (perfumes.length < MIN_PERFUMES) return keep(null, `only ${perfumes.length} valid perfumes: using the built-in list`);
+    keep(perfumes, `${perfumes.length} perfumes from ${SOURCE === "supabase" ? "Supabase" : "the Sheet"} (${warn.length} warning(s))`);
   } catch (e) {
-    keep(null, "could not read the Sheet (" + e.message + "): using the built-in list");
+    keep(null, "could not build the catalogue (" + e.message + "): using the built-in list");
   }
 }
 main();
