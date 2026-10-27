@@ -149,6 +149,7 @@ function render() {
   const s = S.store, live = S.offers.filter((o) => o.active), off = live.filter((o) => !o.in_stock).length;
   const pending = S.requests.filter((r) => r.status === "pending").length;
   const tabs = [["offers", `عطوري <small>${live.length}</small>`], ["add", "زيد عطر"], ["requests", `طلب عطر جديد${pending ? ` <small>${pending}</small>` : ""}`]];
+  tabs.push(["settings", "⚙️ إعدادات المتجر"]);
   if (S.admin) tabs.push(["review", "مراجعة الطلبات"]);
   app.innerHTML = `
     <section class="d-head p-head">
@@ -164,7 +165,7 @@ function render() {
   app.querySelectorAll(".p-tabs button").forEach((b) => b.addEventListener("click", () => { S.tab = b.dataset.tab; S.q = ""; render(); }));
   const pick = document.getElementById("s-store");
   if (pick) pick.addEventListener("change", () => { S.store = S.stores.find((x) => x.id === pick.value); loadStore(); });
-  ({ offers: tabOffers, add: tabAdd, requests: tabRequests, review: tabReview }[S.tab] || tabOffers)();
+  ({ offers: tabOffers, add: tabAdd, requests: tabRequests, settings: tabSettings, review: tabReview }[S.tab] || tabOffers)();
 }
 
 const search = (ph) => `<div class="p-search"><input type="search" id="q" placeholder="${ph}" value="${esc(S.q)}" autocomplete="off"></div>`;
@@ -278,6 +279,42 @@ function tabRequests() {
     b.disabled = false;
     if (error) return toast(errText(error), true);
     S.requests.unshift(data); toast("تصيفط الطلب ✓. غادي نراجعوه."); render();
+  });
+}
+
+// store details the merchant may change (contact and branding); the rest is set by FragranceFlow
+function tabSettings() {
+  const s = S.store, el = document.getElementById("tab");
+  const wa = String(s.whatsapp || "");
+  el.innerHTML = `<form id="f-set" class="p-form" novalidate>
+    <p class="p-small">هاد المعلومات كتبان للزبون فالكويز ديال متجرك. السمية والاشتراك كيبدلهم FragranceFlow.</p>
+    <div class="p-grid2">
+      <label>نمرة الواتساب<input name="whatsapp" inputmode="tel" dir="ltr" placeholder="0612345678" value="${esc(wa.startsWith("212") ? "0" + wa.slice(3) : wa)}"><small class="p-small">فين كيوصلوك طلبات الزبناء.</small></label>
+      <label>المدينة<input name="city" maxlength="60" value="${esc(s.city || "")}"></label>
+      <label>Instagram<input name="instagram" dir="ltr" placeholder="https://instagram.com/…" value="${esc(s.instagram || "")}"></label>
+      <label>الموقع ديالك<input name="website" dir="ltr" placeholder="https://…" value="${esc(s.website || "")}"></label>
+      <label>رابط اللوگو (صورة)<input name="logo_url" dir="ltr" placeholder="https://…/logo.png" value="${esc(s.logo_url || "")}"></label>
+      <label>اللون ديال المتجر<span class="p-color"><input type="color" name="color" value="${/^#[0-9a-f]{6}$/i.test(s.color || "") ? esc(s.color) : "#5b35c8"}"><button type="button" class="p-link" id="b-nocolor">بلا لون</button></span></label>
+    </div>
+    <button class="d-btn" type="submit">حفظ</button></form>`;
+  const f = document.getElementById("f-set");
+  let noColor = !s.color;
+  document.getElementById("b-nocolor").onclick = () => { noColor = true; toast("غادي يتحيد اللون ملي تحفظ."); };
+  f.color.addEventListener("input", () => { noColor = false; });
+  f.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const https = (v) => !v || /^https:\/\/\S+$/.test(v);
+    let w = f.whatsapp.value.replace(/\D/g, "").replace(/^00/, "");
+    if (/^0[5-7]\d{8}$/.test(w)) w = "212" + w.slice(1);
+    const row = { whatsapp: w, city: f.city.value.trim(), instagram: f.instagram.value.trim(), website: f.website.value.trim(),
+      logo_url: f.logo_url.value.trim(), color: noColor ? "" : f.color.value.toLowerCase() };
+    if (w && !/^\d{11,15}$/.test(w)) return toast("نمرة الواتساب ماشي صحيحة. مثال: 0612345678", true);
+    for (const k of ["instagram", "website", "logo_url"]) if (!https(row[k])) return toast("الروابط خاصهم يبداو بـ https://", true);
+    const b = f.querySelector("[type=submit]"); b.disabled = true;
+    const { data, error } = await sb.from("stores").update(row).eq("id", s.id).select("*").single();
+    b.disabled = false;
+    if (error) return toast(errText(error), true);
+    Object.assign(s, data); toast("تحفظات المعلومات ✓"); render();
   });
 }
 
