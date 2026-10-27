@@ -5,6 +5,15 @@ import "./dashboard.css";
 import "./portal.css";
 import { sb } from "./supabase.js";
 import { esc, fmt } from "./dash-common.js";
+import { FF_SCRIPT_URL } from "./ff-script-url.js";
+
+const API = import.meta.env.VITE_FF_SCRIPT_URL || FF_SCRIPT_URL;
+// team-only actions run in Apps Script (it holds the Supabase secret key); the login token proves who is asking
+async function teamCall(action, body = {}) {
+  const { data: { session } } = await sb.auth.getSession();
+  const res = await fetch(API, { method: "POST", body: JSON.stringify({ action, jwt: session && session.access_token, ...body }) });
+  return res.json();
+}
 
 const app = document.getElementById("app");
 const userBox = document.getElementById("p-user");
@@ -150,7 +159,7 @@ function render() {
   const pending = S.requests.filter((r) => r.status === "pending").length;
   const tabs = [["offers", `عطوري <small>${live.length}</small>`], ["add", "زيد عطر"], ["requests", `طلب عطر جديد${pending ? ` <small>${pending}</small>` : ""}`]];
   tabs.push(["settings", "⚙️ إعدادات المتجر"]);
-  if (S.admin) tabs.push(["review", "مراجعة الطلبات"]);
+  if (S.admin) tabs.push(["review", "مراجعة الطلبات"], ["accounts", "👥 الحسابات"]);
   app.innerHTML = `
     <section class="d-head p-head">
       <span class="d-seal" style="${s.color ? "background:" + esc(s.color) : ""}">${s.logo_url ? `<img src="${esc(s.logo_url)}" alt="">` : esc(s.name.slice(0, 2).toUpperCase())}</span>
@@ -165,7 +174,7 @@ function render() {
   app.querySelectorAll(".p-tabs button").forEach((b) => b.addEventListener("click", () => { S.tab = b.dataset.tab; S.q = ""; render(); }));
   const pick = document.getElementById("s-store");
   if (pick) pick.addEventListener("change", () => { S.store = S.stores.find((x) => x.id === pick.value); loadStore(); });
-  ({ offers: tabOffers, add: tabAdd, requests: tabRequests, settings: tabSettings, review: tabReview }[S.tab] || tabOffers)();
+  ({ offers: tabOffers, add: tabAdd, requests: tabRequests, settings: tabSettings, review: tabReview, accounts: tabAccounts }[S.tab] || tabOffers)();
 }
 
 const search = (ph) => `<div class="p-search"><input type="search" id="q" placeholder="${ph}" value="${esc(S.q)}" autocomplete="off"></div>`;
@@ -296,7 +305,21 @@ function tabSettings() {
       <label>رابط اللوگو (صورة)<input name="logo_url" dir="ltr" placeholder="https://…/logo.png" value="${esc(s.logo_url || "")}"></label>
       <label>اللون ديال المتجر<span class="p-color"><input type="color" name="color" value="${/^#[0-9a-f]{6}$/i.test(s.color || "") ? esc(s.color) : "#5b35c8"}"><button type="button" class="p-link" id="b-nocolor">بلا لون</button></span></label>
     </div>
-    <button class="d-btn" type="submit">حفظ</button></form>`;
+    <button class="d-btn" type="submit">حفظ</button></form>
+    <form id="f-pass" class="p-form p-pass" novalidate>
+      <h2 class="p-h2">بدل كلمة السر</h2>
+      <div class="p-grid2"><label>كلمة السر الجديدة (8 حروف ولا أكثر)<input type="password" name="p1" minlength="8" autocomplete="new-password" dir="ltr"></label>
+      <label>عاودها<input type="password" name="p2" minlength="8" autocomplete="new-password" dir="ltr"></label></div>
+      <button class="d-btn" type="submit">بدل كلمة السر</button></form>`;
+  const fp = document.getElementById("f-pass");
+  fp.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    if (fp.p1.value.length < 8) return toast("كلمة السر خاصها 8 حروف ولا أكثر.", true);
+    if (fp.p1.value !== fp.p2.value) return toast("جوج كلمات السر ما متشابهينش.", true);
+    const { error } = await sb.auth.updateUser({ password: fp.p1.value });
+    if (error) return toast(errText(error), true);
+    fp.reset(); toast("تبدلات كلمة السر ✓");
+  });
   const f = document.getElementById("f-set");
   let noColor = !s.color;
   document.getElementById("b-nocolor").onclick = () => { noColor = true; toast("غادي يتحيد اللون ملي تحفظ."); };
@@ -316,6 +339,79 @@ function tabSettings() {
     if (error) return toast(errText(error), true);
     Object.assign(s, data); toast("تحفظات المعلومات ✓"); render();
   });
+}
+
+// FragranceFlow team: create merchant logins (and new stores), new temporary passwords, remove access
+function shareBox(r) {
+  const url = location.origin + "/portal/";
+  const msg = `مرحبا 👋\nهادا الحساب ديالك ف FragranceFlow:\n${url}\nالإيميل: ${r.email}\nكلمة السر المؤقتة: ${r.password}\nملي تدخل، بدل كلمة السر من «⚙️ إعدادات المتجر».`;
+  return `<div class="p-share"><p><b>${esc(r.email)}</b></p>
+    <p>كلمة السر المؤقتة: <code dir="ltr">${esc(r.password)}</code></p>
+    <p class="p-small">ما غاديش تبان مرة أخرى. صيفطها للتاجر دابا.</p>
+    <div class="p-review"><button type="button" class="d-btn" data-copy="${esc(msg)}">نسخ الرسالة</button>
+    <a class="p-link" target="_blank" rel="noopener" href="https://wa.me/?text=${encodeURIComponent(msg)}">صيفط فالواتساب</a></div></div>`;
+}
+async function tabAccounts() {
+  const el = document.getElementById("tab");
+  el.innerHTML = `<form id="f-acc" class="p-form" novalidate>
+      <h2 class="p-h2">حساب تاجر جديد</h2>
+      <div class="p-grid2"><label>إيميل التاجر<input type="email" name="email" required dir="ltr" autocomplete="off"></label>
+      <label>المتجر<select name="store"><option value="">+ متجر جديد</option>${S.stores.map((x) => `<option value="${esc(x.id)}">${esc(x.name)} (${esc(x.id)})</option>`).join("")}</select></label></div>
+      <div class="p-grid2 p-newstore"><label>store_id (فالرابط)<input name="store_id" dir="ltr" placeholder="parfumerie-x" pattern="[a-z0-9][a-z0-9-]{1,40}"></label>
+        <label>سمية المتجر<input name="name" maxlength="80"></label>
+        <label>المدينة<input name="city" maxlength="60"></label>
+        <label>نمرة الواتساب<input name="whatsapp" inputmode="tel" dir="ltr" placeholder="0612345678"></label></div>
+      <p class="p-small">المتجر الجديد كيبدا بفترة تجريبية ديال 7 أيام. التاجر كياخد كلمة سر مؤقتة كتصيفطها ليه نتا.</p>
+      <button class="d-btn" type="submit">صاوب الحساب</button></form>
+    <div id="acc-result"></div>
+    <h2 class="p-h2">الحسابات</h2><ul class="p-reqs" id="acc-list"><li class="d-empty">كنجيبو الحسابات…</li></ul>`;
+  const f = document.getElementById("f-acc"), ns = el.querySelector(".p-newstore"), out = document.getElementById("acc-result");
+  const toggle = () => { ns.hidden = !!f.store.value; };
+  f.store.addEventListener("change", toggle); toggle();
+  f.name.addEventListener("input", () => { if (!f.store_id.dataset.touched) f.store_id.value = f.name.value.toLowerCase().normalize("NFKD").replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 40); });
+  f.store_id.addEventListener("input", () => { f.store_id.dataset.touched = "1"; });
+  el.addEventListener("click", async (e) => {
+    const t = e.target;
+    if (t.dataset.copy) { try { await navigator.clipboard.writeText(t.dataset.copy); toast("تنسخات ✓"); } catch (er) { toast("ما تنسخاتش. حددها بيدك.", true); } }
+    if (t.dataset.reset) {
+      t.disabled = true; const r = await teamCall("resetPassword", { user_id: t.dataset.reset }); t.disabled = false;
+      if (r.error) return toast(r.message || "ما تبدلاتش.", true);
+      out.innerHTML = shareBox(r); out.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+    if (t.dataset.unlink) {
+      const [uid, sid] = t.dataset.unlink.split("|");
+      if (t.dataset.sure !== "1") { t.dataset.sure = "1"; t.textContent = "متأكد؟"; return; }
+      const r = await teamCall("unlinkMerchant", { user_id: uid, store_id: sid });
+      if (r.error) return toast(r.message || "ما تحيدش.", true);
+      toast("تحيد الوصول ✓"); loadList();
+    }
+  });
+  f.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const body = { email: f.email.value.trim() };
+    if (f.store.value) body.store_id = f.store.value;
+    else Object.assign(body, { store_id: f.store_id.value.trim(), name: f.name.value.trim(), city: f.city.value.trim(), whatsapp: f.whatsapp.value.trim() });
+    if (!/^\S+@\S+\.\S+$/.test(body.email)) return toast("كتب إيميل صحيح.", true);
+    if (!/^[a-z0-9][a-z0-9-]{1,40}$/.test(body.store_id || "")) return toast("store_id: حروف صغار (a-z)، أرقام و - فقط.", true);
+    if (!f.store.value && !body.name) return toast("كتب سمية المتجر.", true);
+    const b = f.querySelector("[type=submit]"); b.disabled = true; b.textContent = "كنصاوبو…";
+    let r; try { r = await teamCall("createMerchant", body); } catch (er) { r = { error: "failed" }; }
+    b.disabled = false; b.textContent = "صاوب الحساب";
+    if (r.error) return toast(r.error === "invalid" ? "خاصك تكون admin." : (r.message || "ما تصاوبش الحساب."), true);
+    out.innerHTML = r.new_user ? shareBox(r) : `<div class="p-share"><p><b>${esc(r.email)}</b> كان عندو حساب من قبل، وتربط دابا بـ <b>${esc(r.store_id)}</b>. كيدخل بكلمة السر ديالو.</p></div>`;
+    if (r.store_created) { const all = await sb.from("stores").select("*").order("name"); if (!all.error) S.stores = all.data; }
+    f.reset(); toggle(); toast("تصاوب ✓"); loadList();
+  });
+  async function loadList() {
+    const ul = document.getElementById("acc-list");
+    const r = await teamCall("merchants");
+    if (r.error) { ul.innerHTML = `<li class="d-empty">${esc(r.message || "ما قدرناش نجيبو الحسابات. تأكد بلي Apps Script فيه المفتاح السري وتدار ليه New version.")}</li>`; return; }
+    ul.innerHTML = r.accounts.length ? r.accounts.map((a) => `<li><div><b dir="ltr">${esc(a.email)}</b><small>${esc(a.store)} · ${a.last_sign_in_at ? "آخر دخول " + dateAr(a.last_sign_in_at) : "مازال ما دخلش"}</small></div>
+      <div class="p-review"><button type="button" class="p-link" data-reset="${esc(a.user_id)}">كلمة سر جديدة</button>
+      <button type="button" class="p-link p-danger" data-unlink="${esc(a.user_id)}|${esc(a.store_id)}">حيد الوصول</button></div></li>`).join("")
+      : '<li class="d-empty">مازال ما كاين حتى حساب تاجر.</li>';
+  }
+  loadList();
 }
 
 // FragranceFlow team: review requests from every store

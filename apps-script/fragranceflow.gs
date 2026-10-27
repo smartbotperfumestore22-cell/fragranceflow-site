@@ -59,6 +59,11 @@ function doPost(e) {
     var store = storeByJwt_(b.jwt, b.store);
     return json_(store ? statsFor_(store, b.days, b.month) : { error: 'invalid' });
   }
+  if (/^(merchants|createMerchant|resetPassword|unlinkMerchant)$/.test(String(b.action))) {
+    if (!adminByJwt_(b.jwt)) return json_({ error: 'invalid' });
+    try { return json_(MERCHANT_ACTIONS[b.action](b)); }
+    catch (err) { return json_({ error: 'failed', message: String(err.message || err).slice(0, 300) }); }
+  }
   return json_({ error: 'bad' });
 }
 
@@ -656,6 +661,117 @@ function storeByJwt_(jwt, wanted) {
   cache.put(ck, found ? JSON.stringify(found) : 'none', 300);
   return found;
 }
+
+// ───────────── merchant accounts (portal → 👥 الحسابات, FragranceFlow team only) ─────────────
+// Accounts are made here (with the secret key) because a browser may never hold that key. No e-mail is sent:
+// the team gets a temporary password to pass on (WhatsApp); the merchant changes it in ⚙️ إعدادات المتجر.
+function sbHeaders_() {
+  var key = PropertiesService.getScriptProperties().getProperty('SUPABASE_SECRET');
+  if (!key) throw new Error('Supabase secret key is not set (menu 🗝)');
+  var h = { apikey: key }; if (/^eyJ/.test(key)) h.Authorization = 'Bearer ' + key;
+  return h;
+}
+function sbCall_(method, path, body) {
+  var o = { method: method, headers: sbHeaders_(), muteHttpExceptions: true, contentType: 'application/json' };
+  if (body !== undefined) o.payload = JSON.stringify(body);
+  if (method === 'post' && /^rest\//.test(path)) o.headers.Prefer = 'return=representation,resolution=merge-duplicates';
+  var r = UrlFetchApp.fetch(SUPABASE_URL + '/' + path, o), code = r.getResponseCode(), txt = r.getContentText();
+  var data = null; try { data = txt ? JSON.parse(txt) : null; } catch (e) { data = txt; }
+  return { code: code, data: data };
+}
+function adminByJwt_(jwt) {
+  jwt = String(jwt || '');
+  if (!/^[\w-]+\.[\w-]+\.[\w-]+$/.test(jwt) || jwt.length > 4000) return false;
+  try {
+    var u = UrlFetchApp.fetch(SUPABASE_URL + '/auth/v1/user', { headers: { apikey: SUPABASE_PUBLISHABLE, Authorization: 'Bearer ' + jwt }, muteHttpExceptions: true });
+    if (u.getResponseCode() !== 200) return false;
+    var uid = JSON.parse(u.getContentText()).id;
+    var a = sbCall_('get', 'rest/v1/admins?select=user_id&user_id=eq.' + encodeURIComponent(uid));
+    return a.code === 200 && a.data.length > 0;
+  } catch (e) { return false; }
+}
+function tempPassword_() {
+  var abc = 'abcdefghjkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789', bytes = Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256, Utilities.getUuid() + Utilities.getUuid());
+  var out = ''; for (var i = 0; i < 12; i++) out += abc.charAt((bytes[i] + 256) % abc.length);
+  return out;
+}
+function allUsers_() {
+  var users = [];
+  for (var page = 1; page <= 20; page++) {
+    var r = sbCall_('get', 'auth/v1/admin/users?page=' + page + '&per_page=200');
+    if (r.code !== 200) throw new Error('could not list accounts (' + r.code + ')');
+    var list = (r.data && r.data.users) || [];
+    users = users.concat(list);
+    if (list.length < 200) break;
+  }
+  return users;
+}
+var MERCHANT_ACTIONS = {
+  // every login linked to a store, with the store
+  merchants: function () {
+    var users = allUsers_(), byId = {};
+    users.forEach(function (u) { byId[u.id] = u; });
+    var m = sbCall_('get', 'rest/v1/store_members?select=user_id,store_id,created_at,stores(name)&order=created_at.desc');
+    var admins = sbCall_('get', 'rest/v1/admins?select=user_id').data || [];
+    return { accounts: (m.data || []).map(function (x) {
+      var u = byId[x.user_id] || {};
+      return { user_id: x.user_id, email: u.email || '?', store_id: x.store_id, store: (x.stores && x.stores.name) || x.store_id,
+        created_at: x.created_at, last_sign_in_at: u.last_sign_in_at || null };
+    }), admins: admins.length };
+  },
+  // new (or existing) store + new (or existing) login, linked together
+  createMerchant: function (b) {
+    var email = String(b.email || '').trim().toLowerCase();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || email.length > 120) throw new Error('الإيميل ماشي صحيح');
+    var sid = String(b.store_id || '').trim().toLowerCase();
+    if (!/^[a-z0-9][a-z0-9-]{1,40}$/.test(sid)) throw new Error('store_id: حروف صغار وأرقام و - فقط');
+    var exists = sbCall_('get', 'rest/v1/stores?select=id&id=eq.' + sid);
+    var created = false;
+    if (!(exists.data || []).length) {
+      if (!b.name) throw new Error('عطي سمية للمتجر الجديد');
+      var wa = String(b.whatsapp || '').replace(/\D/g, '').replace(/^00/, '');
+      if (/^0[5-7]\d{8}$/.test(wa)) wa = '212' + wa.slice(1);
+      var row = { id: sid, name: String(b.name).trim().slice(0, 80), city: String(b.city || '').trim().slice(0, 60), whatsapp: wa };
+      var ins = sbCall_('post', 'rest/v1/stores', row);
+      if (ins.code >= 300) throw new Error('المتجر ما تزادش: ' + JSON.stringify(ins.data).slice(0, 200));
+      created = true;
+      // the Sheet's Stores tab is still used for visit tracking and statistics: add the store there too
+      var sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(TAB.stores);
+      var head = sh.getRange(1, 1, 1, sh.getLastColumn()).getValues()[0].map(function (h) { return String(h).trim(); });
+      var vals = { store_id: sid, name: row.name, city: row.city, whatsapp: wa, active: 'TRUE' };
+      var known = rows_(TAB.stores).some(function (s) { return String(s.store_id).trim().toLowerCase() === sid; });
+      if (!known) sh.appendRow(head.map(function (h) { return vals[h] != null ? vals[h] : ''; }));
+      CacheService.getScriptCache().remove('ff_active_stores');
+    }
+    var password = tempPassword_(), newUser = true;
+    var u = sbCall_('post', 'auth/v1/admin/users', { email: email, password: password, email_confirm: true });
+    var uid;
+    if (u.code < 300) uid = u.data.id;
+    else {
+      var old = allUsers_().filter(function (x) { return String(x.email).toLowerCase() === email; })[0];
+      if (!old) throw new Error('الحساب ما تصاوبش: ' + JSON.stringify(u.data).slice(0, 200));
+      uid = old.id; newUser = false; password = '';
+    }
+    var link = sbCall_('post', 'rest/v1/store_members', { user_id: uid, store_id: sid });
+    if (link.code >= 300 && link.code !== 409) throw new Error('الربط ما تدارش: ' + JSON.stringify(link.data).slice(0, 200));
+    return { ok: true, email: email, store_id: sid, store_created: created, new_user: newUser, password: password };
+  },
+  // a new temporary password (when the merchant forgot theirs)
+  resetPassword: function (b) {
+    if (!/^[0-9a-f-]{36}$/.test(String(b.user_id))) throw new Error('bad user');
+    var password = tempPassword_();
+    var r = sbCall_('put', 'auth/v1/admin/users/' + b.user_id, { password: password });
+    if (r.code >= 300) throw new Error('ما تبدلاتش: ' + JSON.stringify(r.data).slice(0, 200));
+    return { ok: true, email: r.data.email, password: password };
+  },
+  // remove a login's access to a store (the login itself stays)
+  unlinkMerchant: function (b) {
+    if (!/^[0-9a-f-]{36}$/.test(String(b.user_id)) || !/^[a-z0-9-]{2,41}$/.test(String(b.store_id))) throw new Error('bad request');
+    var r = sbCall_('delete', 'rest/v1/store_members?user_id=eq.' + b.user_id + '&store_id=eq.' + b.store_id);
+    if (r.code >= 300) throw new Error('ما تحيدش: ' + r.code);
+    return { ok: true };
+  },
+};
 
 function sbBool_(v) { return String(v).trim().toUpperCase() !== 'FALSE'; }
 function sbNum_(v) { var n = Number(String(v == null ? '' : v).replace(/[\s,]/g, '')); return String(v).trim() === '' || isNaN(n) ? null : n; }
