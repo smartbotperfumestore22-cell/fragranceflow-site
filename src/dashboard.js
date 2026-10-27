@@ -1,11 +1,10 @@
 // Store dashboard: /dashboard/?t=<secret token>. The token is the only thing sent; Apps Script finds the store
 // from it and returns aggregated numbers only (see storeStats_ in apps-script/fragranceflow.gs).
 import "./dashboard.css";
-import { FF_SCRIPT_URL } from "./ff-script-url.js";
+import { fetchStats, linkToken, portalMode } from "./stats-api.js";
 import { FAMILY, IMPRESSION, SOURCE, esc, fmt, pct, sorted, bars, line, delta } from "./dash-common.js";
 
-const API = import.meta.env.VITE_FF_SCRIPT_URL || FF_SCRIPT_URL;
-const token = new URLSearchParams(location.search).get("t") || "";
+const token = linkToken;
 const root = document.getElementById("dash");
 
 // one plain sentence from the numbers, only when there are enough of them to say something
@@ -64,7 +63,7 @@ function render(d) {
       <span class="d-seal" style="${d.store.color ? "background:" + esc(d.store.color) : ""}">${d.store.logo ? `<img src="${esc(d.store.logo)}" alt="">` : esc(initials)}</span>
       <div><h1>${esc(d.store.name)}</h1>
       <p>من ${esc(d.from)} حتى ${esc(d.to)} · كيتحدث كل ليلة، والنهار ديال اليوم مباشر.${pv ? " النسب مقارنة مع الفترة اللي قبل." : ""}</p></div>
-      <a class="d-btn d-report" href="/dashboard/report.html?t=${encodeURIComponent(token)}">التقرير الشهري</a>
+      <a class="d-btn d-report" href="/dashboard/report.html${token ? "?t=" + encodeURIComponent(token) : ""}">التقرير الشهري</a>${portalMode ? '<a class="p-back" href="/portal/">رجوع لفضاء التاجر</a>' : ""}
     </section>
     <section class="d-kpis">${kpis.map(([l, v, s, dl]) => `<div class="d-card"><small>${l}</small><b>${v}${dl}</b><span>${s}</span></div>`).join("")}</section>
     ${tip ? `<p class="d-insight"><span aria-hidden="true">✦</span>${esc(tip)}</p>` : ""}
@@ -121,12 +120,11 @@ function wireLinks(store) {
 }
 
 async function load(days) {
-  if (!token) { root.innerHTML = '<p class="d-msg">هاد الرابط ناقص. استعمل الرابط اللي وصلك من FragranceFlow.</p>'; return; }
   root.setAttribute("aria-busy", "true");
   try {
-    const res = await fetch(`${API}?action=stats&t=${encodeURIComponent(token)}&days=${days}`);
-    const data = await res.json();
-    if (data.error) { root.innerHTML = '<p class="d-msg">هاد الرابط ما خدامش ولا تبدّل. تواصل مع FragranceFlow باش ياخد رابط جديد.</p>'; return; }
+    const data = await fetchStats({ days });
+    if (data.error === "login") { root.innerHTML = '<p class="d-msg">دخل لفضاء التاجر باش تشوف الإحصائيات. <a href="/portal/">دخول</a></p>'; return; }
+    if (data.error) { root.innerHTML = portalMode ? '<p class="d-msg">ما قدرناش نلقاو المتجر ديالك. خرج ودخل من جديد، ولا تواصل مع FragranceFlow.</p>' : '<p class="d-msg">هاد الرابط ما خدامش ولا تبدّل. تواصل مع FragranceFlow باش ياخد رابط جديد.</p>'; return; }
     render(data);
     wireLinks(data.store);
   } catch (e) {

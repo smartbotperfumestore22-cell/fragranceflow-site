@@ -19,7 +19,7 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--v); outline
 .p-pick { margin-inline-start: auto; min-width: 180px; }
 .p-banner { background: var(--v-soft); border: 1px solid var(--line); border-radius: 14px; padding: 12px 14px; font-size: .9rem; }
 .p-banner.is-bad { background: #FFF5EC; border-color: #FBD9B6; color: #8A3B00; }
-.p-tabs { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 2px; }
+.p-tabs { display: flex; flex-wrap: wrap; gap: 6px; }
 .p-tabs button { flex: none; border: 1px solid var(--line); background: #FFF; color: var(--muted); font: inherit; font-weight: 700; font-size: .9rem; padding: 9px 16px; border-radius: 999px; cursor: pointer; }
 .p-tabs button[aria-selected="true"] { background: var(--v); border-color: var(--v); color: #FFF; }
 .p-tabs small { display: inline-block; min-width: 20px; padding: 0 6px; margin-inline-start: 4px; border-radius: 999px; background: rgba(255,255,255,.25); font-size: .74rem; }
@@ -82,3 +82,5 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--v); outline
   .p-review { justify-content: flex-start; width: 100%; }
   .p-review input { width: 100%; }
 }
+.p-tablink { flex: none; display: inline-flex; align-items: center; border: 1px solid var(--line); background: var(--v-soft); color: var(--v); font-weight: 700; font-size: .9rem; padding: 9px 16px; border-radius: 999px; text-decoration: none; }
+.p-tablink:focus-visible { outline: 2px solid var(--v); outline-offset: 2px; }

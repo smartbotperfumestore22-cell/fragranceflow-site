@@ -157,7 +157,8 @@ function render() {
       ${S.stores.length > 1 ? `<label class="p-pick">المتجر<select id="s-store">${S.stores.map((x) => `<option value="${esc(x.id)}"${x.id === s.id ? " selected" : ""}>${esc(x.name)}</option>`).join("")}</select></label>` : ""}
     </section>
     ${trialBanner(s)}
-    <nav class="p-tabs" role="tablist">${tabs.map(([k, l]) => `<button role="tab" type="button" data-tab="${k}" aria-selected="${S.tab === k}">${l}</button>`).join("")}</nav>
+    <nav class="p-tabs" role="tablist">${tabs.map(([k, l]) => `<button role="tab" type="button" data-tab="${k}" aria-selected="${S.tab === k}">${l}</button>`).join("")}
+      <a class="p-tablink" href="/dashboard/">📊 الإحصائيات</a><a class="p-tablink" href="/dashboard/report.html">📄 التقرير الشهري</a></nav>
     <section id="tab" class="d-card p-panel"></section>
     <p class="d-foot">التبديلات كتبان للزبناء فالكويز من بعد التحديث ديال الموقع (مرة فالنهار).</p>`;
   app.querySelectorAll(".p-tabs button").forEach((b) => b.addEventListener("click", () => { S.tab = b.dataset.tab; S.q = ""; render(); }));

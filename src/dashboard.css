@@ -75,3 +75,4 @@ main > * { min-width: 0; }
 .d-links ul { grid-template-columns: minmax(0, 1fr); } .d-links li { min-width: 0; }
 .d-report { margin-inline-start: auto; flex: none; }
 @media (max-width: 640px) { .d-head { flex-wrap: wrap; } .d-report { margin-inline-start: 0; width: 100%; text-align: center; } }
+.p-back { flex: none; font-weight: 700; font-size: .85rem; color: var(--v); }

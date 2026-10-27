@@ -51,6 +51,17 @@ function doGet(e) {
   return text_('FragranceFlow');
 }
 
+// merchant portal (Supabase login): POST {action:'stats', jwt, store?, days?, month?} as text/plain
+function doPost(e) {
+  var b = {};
+  try { b = JSON.parse((e && e.postData && e.postData.contents) || '{}'); } catch (err) { return json_({ error: 'bad' }); }
+  if (b.action === 'stats') {
+    var store = storeByJwt_(b.jwt, b.store);
+    return json_(store ? statsFor_(store, b.days, b.month) : { error: 'invalid' });
+  }
+  return json_({ error: 'bad' });
+}
+
 // rows of a tab as objects keyed by the header row
 function rows_(name) {
   var sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(name);
@@ -404,6 +415,10 @@ function storeByToken_(t) {
 function storeStats_(token, daysParam, monthParam) {
   var store = storeByToken_(token);
   if (!store) return { error: 'invalid' };
+  return statsFor_(store, daysParam, monthParam);
+}
+
+function statsFor_(store, daysParam, monthParam) {
   var now = new Date(), today = day_(now), from, to, prevFrom, prevTo, month = '';
   if (/^\d{4}-\d{2}$/.test(String(monthParam || ''))) {
     // monthly report: one calendar month, compared with the whole month before
@@ -609,6 +624,37 @@ function sbUpsert_(table, conflict, rows) {
     method: 'post', contentType: 'application/json', headers: headers, payload: JSON.stringify(rows), muteHttpExceptions: true });
   if (res.getResponseCode() >= 300) throw new Error(table + ': ' + res.getResponseCode() + ' ' + res.getContentText().slice(0, 300));
   return rows.length;
+}
+
+var SUPABASE_PUBLISHABLE = 'sb_publishable_l6FVDheuxVbDSl-5644xGg_RheEQcyJ';   // public key, safe in code
+
+// which store a portal login may see: asks Supabase who the login is, then checks store_members (admins may see any store)
+function storeByJwt_(jwt, wanted) {
+  jwt = String(jwt || '');
+  if (!/^[\w-]+\.[\w-]+\.[\w-]+$/.test(jwt) || jwt.length > 4000) return null;
+  wanted = String(wanted || '').toLowerCase();
+  var cache = CacheService.getScriptCache(), ck = 'ff_jwt_' + Utilities.base64EncodeWebSafe(Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256, jwt)).slice(0, 40) + '_' + wanted;
+  var hit = cache.get(ck);
+  if (hit) return hit === 'none' ? null : JSON.parse(hit);
+  var found = null;
+  try {
+    var u = UrlFetchApp.fetch(SUPABASE_URL + '/auth/v1/user', { headers: { apikey: SUPABASE_PUBLISHABLE, Authorization: 'Bearer ' + jwt }, muteHttpExceptions: true });
+    if (u.getResponseCode() === 200) {
+      var uid = JSON.parse(u.getContentText()).id;
+      var key = PropertiesService.getScriptProperties().getProperty('SUPABASE_SECRET');
+      var h = { apikey: key }; if (/^eyJ/.test(key)) h.Authorization = 'Bearer ' + key;
+      var get = function (path) { var r = UrlFetchApp.fetch(SUPABASE_URL + '/rest/v1/' + path, { headers: h, muteHttpExceptions: true }); return r.getResponseCode() === 200 ? JSON.parse(r.getContentText()) : []; };
+      var mine = get('store_members?select=store_id&user_id=eq.' + encodeURIComponent(uid)).map(function (m) { return m.store_id; });
+      var admin = get('admins?select=user_id&user_id=eq.' + encodeURIComponent(uid)).length > 0;
+      var id = wanted && (admin || mine.indexOf(wanted) !== -1) ? wanted : mine[0];
+      if (id) rows_(TAB.stores).forEach(function (s) {
+        if (!found && String(s.store_id).trim().toLowerCase() === id)
+          found = { id: id, name: String(s.name || id), logo: /^https:\/\//.test(String(s.logo_url || '')) ? String(s.logo_url) : '', color: /^#[0-9a-f]{6}$/i.test(String(s.color || '')) ? String(s.color) : '' };
+      });
+    }
+  } catch (err) { found = null; }
+  cache.put(ck, found ? JSON.stringify(found) : 'none', 300);
+  return found;
 }
 
 function sbBool_(v) { return String(v).trim().toUpperCase() !== 'FALSE'; }

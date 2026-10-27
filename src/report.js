@@ -2,12 +2,11 @@
 // Same numbers as the dashboard (action=stats with month=), laid out as one printable page; "تحميل PDF" opens the print dialog.
 import "./dashboard.css";
 import "./report.css";
-import { FF_SCRIPT_URL } from "./ff-script-url.js";
+import { fetchStats, linkToken, portalMode } from "./stats-api.js";
 import { FAMILY, IMPRESSION, esc, fmt, pct, sorted, delta, dayLabel } from "./dash-common.js";
 
-const API = import.meta.env.VITE_FF_SCRIPT_URL || FF_SCRIPT_URL;
 const qs = new URLSearchParams(location.search);
-const token = qs.get("t") || "";
+const token = linkToken;
 const root = document.getElementById("dash");
 const select = document.getElementById("r-month");
 const MONTHS = ["يناير", "فبراير", "مارس", "أبريل", "ماي", "يونيو", "يوليوز", "غشت", "شتنبر", "أكتوبر", "نونبر", "دجنبر"];
@@ -137,15 +136,14 @@ function render(d) {
 }
 
 async function load(month) {
-  if (!token) { root.innerHTML = '<p class="d-msg">هاد الرابط ناقص. حل التقرير من صفحة الإحصائيات ديالك.</p>'; return; }
   root.setAttribute("aria-busy", "true");
   try {
-    const url = `${API}?action=stats&t=${encodeURIComponent(token)}&month=${encodeURIComponent(month)}`;
-    let data = await (await fetch(url)).json();
-    if (data.error === "invalid") { root.innerHTML = '<p class="d-msg">هاد الرابط ما خدامش ولا تبدّل. تواصل مع FragranceFlow باش ياخد رابط جديد.</p>'; return; }
+    const data = await fetchStats({ month });
+    if (data.error === "login") { root.innerHTML = '<p class="d-msg">دخل لفضاء التاجر باش تشوف التقرير. <a href="/portal/">دخول</a></p>'; return; }
+    if (data.error === "invalid") { root.innerHTML = portalMode ? '<p class="d-msg">ما قدرناش نلقاو المتجر ديالك. خرج ودخل من جديد، ولا تواصل مع FragranceFlow.</p>' : '<p class="d-msg">هاد الرابط ما خدامش ولا تبدّل. تواصل مع FragranceFlow باش ياخد رابط جديد.</p>'; return; }
     if (data.error) { root.innerHTML = '<p class="d-msg">ما كاين حتى رقم فهاد الشهر.</p>'; return; }
     select.innerHTML = data.months.map((m) => `<option value="${m}"${m === data.month ? " selected" : ""}>${monthName(m)}</option>`).join("");
-    history.replaceState(null, "", `?t=${encodeURIComponent(token)}&m=${data.month}`);
+    history.replaceState(null, "", `?${token ? "t=" + encodeURIComponent(token) + "&" : ""}m=${data.month}`);
     render(data);
   } catch (e) {
     root.innerHTML = '<p class="d-msg">ما قدرناش نجيبو التقرير دابا. عاود جرب من بعد شوية.</p>';
