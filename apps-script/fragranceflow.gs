@@ -159,6 +159,9 @@ function onOpen() {
     .addItem('🔐 رابط لوحة الـ admin', 'adminLinkPrompt')
     .addSeparator()
     .addItem('🔑 بدل رابط النشر (Deploy Hook)', 'setDeployHook')
+    .addSeparator()
+    .addItem('🗝 Supabase: حط المفتاح السري', 'setSupabaseKey')
+    .addItem('⬆️ Supabase: نقل المتاجر والعطور والعروض', 'pushToSupabase')
     .addToUi();
 }
 
@@ -582,6 +585,72 @@ function adminLinkPrompt() {
 /* ---------------- helpers ---------------- */
 
 // cut long values and neutralise spreadsheet formulas (a value starting with = + - @)
+// ───────────── Supabase (phase 1): copy Stores, Perfumes and Offers from this Sheet ─────────────
+// The secret key is typed once in a window and kept in Script Properties; it is never written in the Sheet or the code.
+var SUPABASE_URL = 'https://vnfuoqiqzzxbogppxxxl.supabase.co';
+
+function setSupabaseKey() {
+  var ui = SpreadsheetApp.getUi();
+  var r = ui.prompt('Supabase', 'لصق الـ secret key ديال Supabase (كيبدا بـ sb_secret_). كيتحفظ مخبي، وما كيبانش فالشيت:', ui.ButtonSet.OK_CANCEL);
+  if (r.getSelectedButton() !== ui.Button.OK) return;
+  var k = r.getResponseText().trim();
+  if (!/^(sb_secret_|eyJ)[\w.-]{20,}$/.test(k)) { ui.alert('هاد المفتاح ماشي secret key ديال Supabase.'); return; }
+  PropertiesService.getScriptProperties().setProperty('SUPABASE_SECRET', k);
+  ui.alert('تسجل ✅');
+}
+
+function sbUpsert_(table, conflict, rows) {
+  var key = PropertiesService.getScriptProperties().getProperty('SUPABASE_SECRET');
+  if (!key) throw new Error('حط المفتاح السري أولاً: FragranceFlow ← 🗝 Supabase: حط المفتاح السري');
+  if (!rows.length) return 0;
+  var headers = { apikey: key, Prefer: 'resolution=merge-duplicates,return=minimal' };
+  if (/^eyJ/.test(key)) headers.Authorization = 'Bearer ' + key;   // older service_role keys also need this header
+  var res = UrlFetchApp.fetch(SUPABASE_URL + '/rest/v1/' + table + '?on_conflict=' + conflict, {
+    method: 'post', contentType: 'application/json', headers: headers, payload: JSON.stringify(rows), muteHttpExceptions: true });
+  if (res.getResponseCode() >= 300) throw new Error(table + ': ' + res.getResponseCode() + ' ' + res.getContentText().slice(0, 300));
+  return rows.length;
+}
+
+function sbBool_(v) { return String(v).trim().toUpperCase() !== 'FALSE'; }
+function sbNum_(v) { var n = Number(String(v == null ? '' : v).replace(/[\s,]/g, '')); return String(v).trim() === '' || isNaN(n) ? null : n; }
+function sbText_(v) { return v == null ? '' : String(v).trim(); }
+
+// menu: copy (or update) everything to Supabase; running it again only updates, it never deletes
+function pushToSupabase() {
+  var ui = SpreadsheetApp.getUi();
+  try {
+    var stores = rows_(TAB.stores).filter(function (s) { return sbText_(s.store_id); }).map(function (s) {
+      var o = { id: sbText_(s.store_id).toLowerCase(), name: sbText_(s.name) || sbText_(s.store_id), city: sbText_(s.city), website: sbText_(s.website),
+        whatsapp: sbText_(s.whatsapp), instagram: sbText_(s.instagram), active: sbBool_(s.active) };
+      if (s.logo_url != null) o.logo_url = sbText_(s.logo_url);
+      if (s.color != null) o.color = sbText_(s.color);
+      return o;
+    });
+    var ids = {}; stores.forEach(function (s) { ids[s.id] = true; });
+    var perfumes = rows_(TAB.perfumes).filter(function (p) { return /^FF-\d{4,}$/i.test(sbText_(p.perfume_id)); }).map(function (p) {
+      return { perfume_id: sbText_(p.perfume_id).toUpperCase(), name: sbText_(p.name), brand: sbText_(p.brand), gender: sbText_(p.gender) || 'unisex',
+        character: sbText_(p.character), occasion: sbText_(p.occasion), season: sbText_(p.season), notes_top: sbText_(p.notes_top),
+        notes_mid: sbText_(p.notes_mid), notes_base: sbText_(p.notes_base), concentration: sbText_(p.concentration), size: sbText_(p.size),
+        size_type: sbText_(p.size_type) || 'full', ref_price: sbNum_(p.ref_price), world: sbText_(p.world), image_key: sbText_(p.image_key),
+        image_url: sbText_(p.image_url), active: sbBool_(p.active) };
+    });
+    var pids = {}; perfumes.forEach(function (p) { pids[p.perfume_id] = true; });
+    var skipped = 0, seen = {};
+    var offers = rows_(TAB.offers).map(function (o) {
+      var sid = sbText_(o.store_id).toLowerCase(), pid = sbText_(o.perfume_id).toUpperCase();
+      if (!ids[sid] || !pids[pid] || seen[sid + '|' + pid]) { skipped++; return null; }
+      seen[sid + '|' + pid] = true;
+      return { store_id: sid, perfume_id: pid, size: sbText_(o.size), size_type: sbText_(o.size_type) || 'full', price: sbNum_(o.price),
+        url: sbText_(o.url), in_stock: sbBool_(o.in_stock) };
+    }).filter(Boolean);
+    var n1 = sbUpsert_('stores', 'id', stores), n2 = sbUpsert_('perfumes', 'perfume_id', perfumes);
+    var n3 = 0; for (var i = 0; i < offers.length; i += 500) n3 += sbUpsert_('offers', 'store_id,perfume_id', offers.slice(i, i + 500));
+    ui.alert('تنقلو ✅', n1 + ' متجر، ' + n2 + ' عطر، ' + n3 + ' عرض.' + (skipped ? '\n' + skipped + ' عرض ما تنقلش (متجر ولا عطر ما كاينش، ولا مكرر).' : ''), ui.ButtonSet.OK);
+  } catch (e) {
+    ui.alert('ما تنقلش', String(e.message || e), ui.ButtonSet.OK);
+  }
+}
+
 function clip_(v, n) {
   var s = String(v == null ? '' : v).slice(0, n);
   return /^[=+\-@]/.test(s) ? "'" + s : s;
