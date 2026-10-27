@@ -65,7 +65,13 @@ function rows_(name) {
 }
 
 function catalog_() {
-  return { perfumes: rows_(TAB.perfumes), stores: rows_(TAB.stores), offers: rows_(TAB.offers), popular: popular_(), at: new Date().toISOString() };
+  // the catalog is public: never send secret columns (dashboard tokens or anything named like a key)
+  var stores = rows_(TAB.stores).map(function (r) {
+    var o = {};
+    Object.keys(r).forEach(function (k) { if (!/token|secret|key|pass/i.test(k)) o[k] = r[k]; });
+    return o;
+  });
+  return { perfumes: rows_(TAB.perfumes), stores: stores, offers: rows_(TAB.offers), popular: popular_(), at: new Date().toISOString() };
 }
 
 // counts only — never the raw events — so nothing about visitors leaves the Sheet
