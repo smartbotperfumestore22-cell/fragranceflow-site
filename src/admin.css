@@ -40,3 +40,5 @@
   .d-table.a-table th:last-child { width: 14%; }
   .d-table.a-table td:nth-child(n) { width: auto; }
 }
+.d-head { flex-wrap: wrap; }
+.a-portal { margin-inline-start: auto; flex: none; }

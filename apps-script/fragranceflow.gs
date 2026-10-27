@@ -59,6 +59,7 @@ function doPost(e) {
     var store = storeByJwt_(b.jwt, b.store);
     return json_(store ? statsFor_(store, b.days, b.month) : { error: 'invalid' });
   }
+  if (b.action === 'admin') return json_(adminByJwt_(b.jwt) ? adminStatsFor_(b.days) : { error: 'invalid' });
   if (/^(merchants|createMerchant|resetPassword|unlinkMerchant)$/.test(String(b.action))) {
     if (!adminByJwt_(b.jwt)) return json_({ error: 'invalid' });
     try { return json_(MERCHANT_ACTIONS[b.action](b)); }
@@ -532,6 +533,10 @@ var INACTIVE_DAYS = 7;
 function adminStats_(token, daysParam) {
   var want = PropertiesService.getScriptProperties().getProperty('ADMIN_TOKEN') || '';
   if (!want || String(token || '') !== want) return { error: 'invalid' };
+  return adminStatsFor_(daysParam);
+}
+
+function adminStatsFor_(daysParam) {
   var n = Math.max(1, Math.min(90, Number(daysParam) || 7));
   var now = new Date(), today = day_(now), from = day_(new Date(now.getTime() - (n - 1) * 864e5));
   var len = n;

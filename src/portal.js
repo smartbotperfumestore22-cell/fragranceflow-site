@@ -5,6 +5,7 @@ import "./dashboard.css";
 import "./portal.css";
 import { sb } from "./supabase.js";
 import { esc, fmt } from "./dash-common.js";
+import { adminHTML } from "./admin-view.js";
 import { FF_SCRIPT_URL } from "./ff-script-url.js";
 
 const API = import.meta.env.VITE_FF_SCRIPT_URL || FF_SCRIPT_URL;
@@ -17,7 +18,7 @@ async function teamCall(action, body = {}) {
 
 const app = document.getElementById("app");
 const userBox = document.getElementById("p-user");
-const S = { user: null, admin: false, stores: [], store: null, tab: "offers", offers: [], catalog: null, requests: [], q: "", flash: "" };
+const S = { user: null, admin: false, mode: "store", teamTab: "overview", days: 7, stores: [], store: null, tab: "offers", offers: [], catalog: null, requests: [], q: "", flash: "" };
 const GENDER = { men: "رجالي", women: "نسائي", unisex: "للجميع" };
 const STATUS = { pending: "كيتسنى", approved: "تقبل", rejected: "ما تقبلش" };
 const daysLeft = (d) => Math.ceil((new Date(d) - Date.now()) / 864e5);
@@ -116,10 +117,17 @@ async function start_() {
     const all = await sb.from("stores").select("*").order("name");
     if (!all.error) S.stores = all.data;
   }
+  if (S.admin) {
+    // the team starts on its own overview; a store is opened from there (and the choice is kept while the tab is open)
+    const saved = sessionStorage.getItem("ff_store");
+    S.store = S.stores.find((x) => x.id === saved) || null;
+    S.mode = sessionStorage.getItem("ff_mode") === "store" && S.store ? "store" : "team";
+    if (S.mode === "team") return renderTeam();
+    return loadStore();
+  }
   if (!S.stores.length) { app.innerHTML = '<section class="d-card p-auth"><h1>ما لقينا حتى متجر مربوط بهاد الحساب</h1><p class="p-sub">تواصل مع FragranceFlow باش يربطو الحساب ديالك بالمتجر.</p></section>'; return; }
   const saved = sessionStorage.getItem("ff_store");
   S.store = S.stores.find((s) => s.id === saved) || S.stores[0];
-  if (S.admin && !saved) S.tab = "review";
   await loadStore();
 }
 
@@ -155,16 +163,17 @@ function trialBanner(s) {
 }
 
 function render() {
+  if (S.mode === "team") return renderTeam();
   const s = S.store, live = S.offers.filter((o) => o.active), off = live.filter((o) => !o.in_stock).length;
   const pending = S.requests.filter((r) => r.status === "pending").length;
-  const tabs = [["offers", `عطوري <small>${live.length}</small>`], ["add", "زيد عطر"], ["requests", `طلب عطر جديد${pending ? ` <small>${pending}</small>` : ""}`]];
-  tabs.push(["settings", "⚙️ إعدادات المتجر"]);
-  if (S.admin) tabs.push(["review", "مراجعة الطلبات"], ["accounts", "👥 الحسابات"]);
+  const tabs = [["offers", `عطوري <small>${live.length}</small>`], ["add", "زيد عطر"], ["requests", `طلب عطر جديد${pending ? ` <small>${pending}</small>` : ""}`], ["settings", "⚙️ إعدادات المتجر"]];
+  if (!["offers", "add", "requests", "settings"].includes(S.tab)) S.tab = "offers";
   app.innerHTML = `
+    ${S.admin ? '<div class="p-backbar"><button type="button" class="p-link" id="b-team">← رجوع للوحة العامة</button><span>كتشوف المتجر بحال التاجر</span></div>' : ""}
     <section class="d-head p-head">
       <span class="d-seal" style="${s.color ? "background:" + esc(s.color) : ""}">${s.logo_url ? `<img src="${esc(s.logo_url)}" alt="">` : esc(s.name.slice(0, 2).toUpperCase())}</span>
       <div><h1>${esc(s.name)}</h1><p>${fmt(live.length)} عطر · ${fmt(off)} مقطوع</p></div>
-      ${S.stores.length > 1 ? `<label class="p-pick">المتجر<select id="s-store">${S.stores.map((x) => `<option value="${esc(x.id)}"${x.id === s.id ? " selected" : ""}>${esc(x.name)}</option>`).join("")}</select></label>` : ""}
+      ${!S.admin && S.stores.length > 1 ? `<label class="p-pick">المتجر<select id="s-store">${S.stores.map((x) => `<option value="${esc(x.id)}"${x.id === s.id ? " selected" : ""}>${esc(x.name)}</option>`).join("")}</select></label>` : ""}
     </section>
     ${trialBanner(s)}
     <nav class="p-tabs" role="tablist">${tabs.map(([k, l]) => `<button role="tab" type="button" data-tab="${k}" aria-selected="${S.tab === k}">${l}</button>`).join("")}
@@ -174,7 +183,41 @@ function render() {
   app.querySelectorAll(".p-tabs button").forEach((b) => b.addEventListener("click", () => { S.tab = b.dataset.tab; S.q = ""; render(); }));
   const pick = document.getElementById("s-store");
   if (pick) pick.addEventListener("change", () => { S.store = S.stores.find((x) => x.id === pick.value); loadStore(); });
-  ({ offers: tabOffers, add: tabAdd, requests: tabRequests, settings: tabSettings, review: tabReview, accounts: tabAccounts }[S.tab] || tabOffers)();
+  const back = document.getElementById("b-team");
+  if (back) back.addEventListener("click", () => { S.mode = "team"; sessionStorage.setItem("ff_mode", "team"); renderTeam(); });
+  ({ offers: tabOffers, add: tabAdd, requests: tabRequests, settings: tabSettings }[S.tab] || tabOffers)();
+}
+
+// the FragranceFlow team's own space: overview of every store, accounts, requests
+function openStore(id) {
+  S.store = S.stores.find((x) => x.id === id); if (!S.store) return;
+  S.mode = "store"; S.tab = "offers"; sessionStorage.setItem("ff_mode", "store");
+  loadStore();
+}
+function renderTeam() {
+  const tabs = [["overview", "🌐 اللوحة العامة"], ["accounts", "👥 الحسابات"], ["review", "📝 الطلبات"]];
+  app.innerHTML = `
+    <section class="d-head p-head"><div><h1>لوحة FragranceFlow</h1><p>${fmt(S.stores.length)} متجر · غير لفريق FragranceFlow</p></div></section>
+    <nav class="p-tabs" role="tablist">${tabs.map(([k, l]) => `<button role="tab" type="button" data-team="${k}" aria-selected="${S.teamTab === k}">${l}</button>`).join("")}</nav>
+    <section id="tab" class="${S.teamTab === "overview" ? "p-overview" : "d-card p-panel"}"></section>`;
+  app.querySelectorAll("[data-team]").forEach((b) => b.addEventListener("click", () => { S.teamTab = b.dataset.team; renderTeam(); }));
+  ({ overview: tabOverview, accounts: tabAccounts, review: tabReview }[S.teamTab] || tabOverview)();
+}
+async function tabOverview() {
+  const el = document.getElementById("tab");
+  const range = `<div class="p-range dh-range" role="group" aria-label="المدة">${[[1, "اليوم"], [7, "7 أيام"], [30, "30 يوم"]].map(([d, l]) => `<button type="button" data-days="${d}" aria-pressed="${S.days === d}">${l}</button>`).join("")}</div>`;
+  el.innerHTML = range + '<p class="d-msg">كنجيبو الأرقام…</p>';
+  const wire = () => el.querySelectorAll("[data-days]").forEach((b) => b.addEventListener("click", () => { S.days = Number(b.dataset.days); tabOverview(); }));
+  wire();
+  let d; try { d = await teamCall("admin", { days: S.days }); } catch (e) { d = { error: "net" }; }
+  if (d.error) { el.innerHTML = range + '<p class="d-msg">ما قدرناش نجيبو الأرقام. تأكد بلي Apps Script الجديد تدار ليه New version وفيه المفتاح السري.</p>'; wire(); return; }
+  // stores that exist in Supabase but have no numbers yet still appear, so every store can be opened from here
+  const known = new Set(d.stores.map((x) => x.id));
+  S.stores.forEach((x) => { if (!known.has(x.id)) d.stores.push({ id: x.id, name: x.name, active: x.active !== false, perfumes: 0, experiences: 0, completed: 0, whatsapp: 0, last: "" }); });
+  el.innerHTML = range + adminHTML({ ...d, title: "اللوحة العامة" }, (x) => S.stores.some((y) => y.id === x.id)
+    ? `<button type="button" class="d-btn a-open" data-manage="${esc(x.id)}">إدارة المتجر</button>` : "<small>ما كاينش ف Supabase</small>", "الأرقام من Google Sheets، والمتاجر والحسابات من Supabase.");
+  wire();
+  el.querySelectorAll("[data-manage]").forEach((b) => b.addEventListener("click", () => openStore(b.dataset.manage)));
 }
 
 const search = (ph) => `<div class="p-search"><input type="search" id="q" placeholder="${ph}" value="${esc(S.q)}" autocomplete="off"></div>`;

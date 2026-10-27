@@ -91,3 +91,10 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--v); outline
 .p-danger { color: #B42318; }
 .p-pass { border-top: 1px solid var(--line); padding-top: 14px; margin-top: 6px; }
 .p-newstore[hidden] { display: none; }
+.p-tablink-admin { background: #1D1430; border-color: #1D1430; color: #FFF; }
+.p-backbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; padding: 10px 14px; border-radius: 14px; background: #1D1430; color: #D9D2EC; font-size: .85rem; }
+.p-backbar .p-link { color: #FFF; }
+.p-overview { display: grid; gap: 16px; min-width: 0; }
+.p-overview > * { min-width: 0; }
+.p-range { justify-self: start; }
+.p-overview .d-head h1 { font-size: 1.4rem; }
