@@ -3,7 +3,7 @@
 import "./dashboard.css";
 import "./report.css";
 import { FF_SCRIPT_URL } from "./ff-script-url.js";
-import { FAMILY, IMPRESSION, esc, fmt, pct, sorted, bars, line, delta } from "./dash-common.js";
+import { FAMILY, IMPRESSION, esc, fmt, pct, sorted, delta, dayLabel } from "./dash-common.js";
 
 const API = import.meta.env.VITE_FF_SCRIPT_URL || FF_SCRIPT_URL;
 const qs = new URLSearchParams(location.search);
@@ -40,53 +40,100 @@ function ideas(d) {
   return out;
 }
 
+const ICON = {
+  users: '<path d="M16 19v-1a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v1"/><circle cx="9.5" cy="7.5" r="3.5"/><path d="M21 19v-1a4 4 0 0 0-3-3.9M15.5 4.2a3.5 3.5 0 0 1 0 6.6"/>',
+  check: '<rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4V3h6v1M9 13l2 2 4-4"/>',
+  wa: '<path d="M4 20l1.3-3.9A8 8 0 1 1 8 18.8L4 20z"/><path d="M9.5 9.5c.3 2 2 3.7 4 4l1-1 1.8.8-.4 1.4c-3.3.2-6.4-2.9-6.2-6.2l1.4-.4.8 1.8-1 1z"/>',
+  pct: '<path d="M19 5L5 19"/><circle cx="7" cy="7" r="2.5"/><circle cx="17" cy="17" r="2.5"/>',
+  cal: '<rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 10h16M9 3v4M15 3v4"/>',
+  spark: '<path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z"/>',
+  bulb: '<path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2.1h5c0-.9.4-1.6 1-2.1A6 6 0 0 0 12 3z"/>',
+};
+const icon = (k) => `<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${ICON[k]}</svg>`;
+
+// three daily series with a light grid; oldest day on the left
+function chart(days, series) {
+  const W = 600, H = 230, L = 34, R = 10, T = 12, B = 26, n = days.length;
+  const max = Math.max(4, ...series.flatMap((s) => s.v));
+  const step = Math.ceil(max / 4), top = step * 4;
+  const x = (i) => (n === 1 ? (L + W - R) / 2 : L + (i * (W - L - R)) / (n - 1));
+  const y = (v) => T + (1 - v / top) * (H - T - B);
+  const path = (v) => v.map((p, i) => (i ? "L" : "M") + x(i).toFixed(1) + " " + y(p).toFixed(1)).join(" ");
+  const grid = [0, 1, 2, 3, 4].map((k) => `<line x1="${L}" x2="${W - R}" y1="${y(k * step)}" y2="${y(k * step)}" stroke="#EEE8FB"/><text x="${L - 8}" y="${y(k * step) + 4}" text-anchor="end">${k * step}</text>`).join("");
+  const ticks = [...new Set([0, Math.round((n - 1) / 3), Math.round((2 * (n - 1)) / 3), n - 1])];
+  const first = series[0].v;
+  const area = path(first) + ` L${x(n - 1).toFixed(1)} ${y(0)} L${x(0).toFixed(1)} ${y(0)} Z`;
+  return `<svg class="r-chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="التجارب والمكملة والواتساب يوم بيوم" dir="ltr">${grid}
+    <path d="${area}" fill="url(#rg)"/><defs><linearGradient id="rg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#C9B8FA" stop-opacity=".45"/><stop offset="1" stop-color="#C9B8FA" stop-opacity="0"/></linearGradient></defs>
+    ${series.map((s) => `<path d="${path(s.v)}" fill="none" stroke="${s.c}" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round"/>`).join("")}
+    ${ticks.map((i) => `<text x="${x(i)}" y="${H - 6}" text-anchor="middle">${dayLabel(days[i])}</text>`).join("")}</svg>`;
+}
+
 function render(d) {
-  const t = d.totals || {}, pv = d.prev, exp = t.experiences || 0, done = t.completed || 0;
+  const t = d.totals || {}, pv = d.prev, exp = t.experiences || 0, done = t.completed || 0, wa = t.whatsapp || 0, waV = t.whatsapp_visits || 0;
+  const rate = pct(done, exp), prevRate = pv && pv.experiences ? pct(pv.completed || 0, pv.experiences) : null;
   const name = monthName(d.month);
   document.title = `${d.store.name} | تقرير ${name}`;
   const initials = d.store.name.split(/\s+/).map((w) => w[0]).join("").slice(0, 2).toUpperCase();
-  const kpis = [
-    ["تجربة", exp, "زيارات حلّو الكويز", pv && pv.experiences],
-    ["كمّلو الكويز", done, pct(done, exp) + "% من التجارب", pv && pv.completed],
-    ["نقرات الواتساب", t.whatsapp || 0, fmt(t.whatsapp_visits || 0) + " زبون كليكا", pv && pv.whatsapp],
-    ["بصمات تبارطاجات", t.shares || 0, "فالشبكات ولا تنسخات", pv && pv.shares],
-  ];
-  const sum = summary(d), tips = ideas(d), perf = (d.perfumes || []).slice(0, 5);
+  const kpi = (ic, label, val, before, shown, shownBefore) => `<div class="r-kpi"><span class="r-ic">${icon(ic)}</span><small>${label}</small>
+      <b>${shown}</b>${before != null ? delta(val, before) + `<span class="r-was">الشهر اللي قبل: ${shownBefore}</span>` : ""}</div>`;
+  const sum = summary(d), tips = ideas(d), perf = (d.perfumes || []).slice(0, 5), topShown = Math.max(1, ...perf.map((p) => p.shown));
+  const fam = sorted(d.family).slice(0, 6), famT = sorted(d.family).reduce((a, x) => a + x[1], 0) || 1, famTop = fam.length ? fam[0][1] : 1;
+  const imp = sorted(d.impression).slice(0, 5), impT = sorted(d.impression).reduce((a, x) => a + x[1], 0) || 1;
   const notes = [];
-  if (d.partial && d.to === new Date().toISOString().slice(0, 10)) notes.push("الشهر مازال ما سالاش، والأرقام كتزاد كل نهار.");
-  if (d.from > d.month + "-01") notes.push(`الأرقام كتبدا من ${dateAr(d.from)}، النهار اللي بدا فيه الحساب.`);
+  if (d.partial && d.to === new Date().toISOString().slice(0, 10)) notes.push("الشهر مازال ما سالاش.");
+  if (d.from > d.month + "-01") notes.push(`الأرقام كتبدا من ${dateAr(d.from)}.`);
+  const funnel = [["بداو التجربة", exp, 100], ["كمّلو الكويز", done, rate], ["كليكاو على الواتساب", waV, pct(waV, done)]];
+  const empty = '<p class="d-empty">مازال ما كاين حتى معلومة.</p>';
   root.innerHTML = `
-    <article class="r-page">
-      <header class="r-top">
-        <span class="d-seal" style="${d.store.color ? "background:" + esc(d.store.color) : ""}">${d.store.logo ? `<img src="${esc(d.store.logo)}" alt="">` : esc(initials)}</span>
-        <div><p class="r-kicker">التقرير الشهري · ${esc(d.store.name)}</p><h1>${esc(name)}</h1>
-          <p class="r-period">من ${dateAr(d.from)} حتى ${dateAr(d.to)}${pv ? ` · النسب مقارنة مع ${esc(monthName(prevMonth(d.month)))}` : ""}</p></div>
-      </header>
-      ${notes.length ? `<p class="r-note">${notes.map(esc).join(" ")}</p>` : ""}
-      <section class="d-kpis r-kpis">${kpis.map(([l, v, s, b]) => `<div class="d-card"><small>${l}</small><b>${fmt(v)}${delta(v, b)}</b><span>${s}</span></div>`).join("")}</section>
-      <section class="r-block">
-        <h2>ملخص الشهر</h2>
-        ${sum.length ? `<p class="r-summary">${sum.map(esc).join(" ")}</p>` : `<p class="d-empty">الأرقام ديال هاد الشهر مازال قليلة (أقل من ${ENOUGH} تجربة) باش نخرجو منها خلاصات.</p>`}
-      </section>
-      ${d.days.length > 1 ? `<section class="r-block"><h2>التجارب يوم بيوم</h2>
-        <p class="d-legend"><span><i class="is-a"></i>التجارب</span><span><i class="is-b"></i>المكملة</span></p>
-        ${line(d.days, d.series.experiences, d.series.completed)}</section>` : ""}
-      <section class="r-block">
-        <h2>أكثر 5 عطور طلعو فالنتائج</h2>
-        ${perf.length ? `<table class="d-table r-table"><thead><tr><th>العطر</th><th>طلع فالنتائج</th><th>واتساب</th></tr></thead><tbody>
-          ${perf.map((p, i) => `<tr><td><span class="r-rank">${i + 1}</span><span><b dir="ltr">${esc(p.name)}</b><small dir="ltr">${esc(p.brand)}</small></span></td><td>${fmt(p.shown)}</td><td>${fmt(p.whatsapp)}</td></tr>`).join("")}
-        </tbody></table>` : '<p class="d-empty">مازال ما كاين حتى عطر.</p>'}
-      </section>
-      <section class="r-two">
-        <div class="r-block"><h2>العائلات اللي كيختارو</h2>${bars(d.family, FAMILY, 5)}</div>
-        <div class="r-block"><h2>الانطباع اللي باغيين</h2>${bars(d.impression, IMPRESSION, 5)}</div>
-      </section>
-      ${tips.length ? `<section class="r-block r-ideas"><h2>أفكار للشهر الجاي</h2><ul>${tips.map((x) => `<li>${esc(x)}</li>`).join("")}</ul></section>` : ""}
-      <footer class="r-foot">
-        <img src="/images/brand/logo-lockup.webp" alt="FragranceFlow" width="720" height="161">
-        <span>كنحسبو غير الاختيارات والنقرات، بلا حتى معلومة شخصية على الزبناء.</span>
-      </footer>
-    </article>`;
+  <article class="r-sheet">
+    <header class="r-hero">
+      <div class="r-title"><img class="r-logo" src="/images/brand/logo-lockup.webp" alt="FragranceFlow" width="720" height="161">
+        <h1>التقرير الشهري</h1><p>أداء متجرك مع FragranceFlow</p></div>
+      <div class="r-visual" aria-hidden="true"><img src="/images/hero-bottles.webp" alt=""></div>
+      <div class="r-meta">
+        <div class="r-chip"><span class="d-seal" style="${d.store.color ? "background:" + esc(d.store.color) : ""}">${d.store.logo ? `<img src="${esc(d.store.logo)}" alt="">` : esc(initials)}</span>
+          <div><b>${esc(d.store.name)}</b><small>متجر عطور</small></div></div>
+        <div class="r-chip"><span class="r-ic">${icon("cal")}</span><div><b>${esc(name)}</b><small>من ${dateAr(d.from)} حتى ${dateAr(d.to)}</small></div></div>
+      </div>
+    </header>
+    ${notes.length ? `<p class="r-note">${notes.map(esc).join(" ")}</p>` : ""}
+    <section class="r-kpis">
+      ${kpi("users", "التجارب", exp, pv && pv.experiences, fmt(exp), fmt(pv && pv.experiences))}
+      ${kpi("check", "كمّلو الكويز", done, pv && pv.completed, fmt(done), fmt(pv && pv.completed))}
+      ${kpi("wa", "نقرات الواتساب", wa, pv && pv.whatsapp, fmt(wa), fmt(pv && pv.whatsapp))}
+      ${kpi("pct", "نسبة الإكمال", rate, prevRate, rate + "%", prevRate + "%")}
+    </section>
+    <section class="r-row r-row-a">
+      <div class="r-box"><h2>الأداء خلال الشهر</h2>
+        <p class="r-legend"><span><i style="background:#C9B8FA"></i>التجارب</span><span><i style="background:#8B5CF6"></i>كمّلو الكويز</span><span><i style="background:#4C1D95"></i>واتساب</span></p>
+        ${chart(d.days, [{ v: d.series.experiences, c: "#B59CF8" }, { v: d.series.completed, c: "#8B5CF6" }, { v: d.series.whatsapp, c: "#4C1D95" }])}</div>
+      <div class="r-box"><h2>رحلة الزبون</h2>
+        <ol class="r-funnel">${funnel.map(([l, v, p], i) => `<li style="--w:${100 - i * 12}%"><div><b>${fmt(v)}</b><small>${l}</small></div><em>${p}%</em></li>`).join("")}</ol>
+        ${t.shares ? `<p class="r-small">${fmt(t.shares)} مرة تبارطاجات البصمة العطرية.</p>` : ""}</div>
+    </section>
+    <section class="r-row r-row-b">
+      <div class="r-box"><h2>أكثر العطور ظهوراً فالنتائج</h2>
+        ${perf.length ? `<ol class="r-perf">${perf.map((p, i) => `<li><span class="r-rank">${String(i + 1).padStart(2, "0")}</span>
+          ${p.image ? `<img src="${esc(p.image)}" alt="" loading="lazy">` : '<span class="r-bottle" aria-hidden="true"></span>'}
+          <div><b dir="ltr">${esc(p.brand ? p.brand + " " : "")}${esc(p.name)}</b><span class="d-bar"><i style="width:${Math.max(4, (p.shown / topShown) * 100)}%"></i></span></div>
+          <small>${fmt(p.shown)} مرة</small></li>`).join("")}</ol>` : empty}</div>
+      <div class="r-box"><h2>العائلات الأكثر طلباً</h2>
+        ${fam.length ? `<ul class="r-fam">${fam.map(([k, v]) => `<li><span>${esc(FAMILY[k] || k)}</span><span class="d-bar"><i style="width:${Math.max(4, (v / famTop) * 100)}%"></i></span><b>${pct(v, famT)}%</b></li>`).join("")}</ul>` : empty}</div>
+      <div class="r-box"><h2>الانطباعات الأكثر تكراراً</h2>
+        ${imp.length ? `<ul class="r-imp">${imp.map(([k, v]) => `<li><span>${esc(IMPRESSION[k] || k)}</span><b>${pct(v, impT)}%</b></li>`).join("")}</ul>` : empty}</div>
+    </section>
+    <section class="r-row r-row-c">
+      <div class="r-box r-insight"><h2><span class="r-ic">${icon("spark")}</span>خلاصة الشهر</h2>
+        <p>${sum.length ? esc(sum.slice(1).join(" ") || sum[0]) : `الأرقام ديال هاد الشهر مازال قليلة (أقل من ${ENOUGH} تجربة) باش نخرجو منها خلاصات.`}</p></div>
+      <div class="r-box r-tip"><h2><span class="r-ic">${icon("bulb")}</span>فكرة لهاد الشهر</h2>
+        ${tips.length ? `<ul>${tips.slice(0, 2).map((x) => `<li>${esc(x)}</li>`).join("")}</ul>` : "<p>غادي تبان هنا فكرة عملية ملي تكون الأرقام كافية.</p>"}</div>
+    </section>
+    <footer class="r-foot">
+      <div><img src="/images/brand/logo-lockup.webp" alt="FragranceFlow" width="720" height="161"><small>من الذوق للطلب</small></div>
+      <ul><li>${icon("cal")}تقرير ${esc(name)}</li><li>${esc(d.store.name)}</li><li dir="ltr">${esc(location.host.includes("vercel.app") ? "FragranceFlow" : location.host)}</li></ul>
+    </footer>
+  </article>`;
 }
 
 async function load(month) {

@@ -443,10 +443,10 @@ function storeStats_(token, daysParam, monthParam) {
     }
   });
   var names = {};
-  rows_(TAB.perfumes).forEach(function (p) { if (p.perfume_id) names[String(p.perfume_id).trim().toUpperCase()] = { name: String(p.name || ''), brand: String(p.brand || '') }; });
+  rows_(TAB.perfumes).forEach(function (p) { if (p.perfume_id) names[String(p.perfume_id).trim().toUpperCase()] = { name: String(p.name || ''), brand: String(p.brand || ''), image: /^https:\/\//.test(String(p.image_url || '')) ? String(p.image_url) : '' }; });
   var shown = dims.perfume || {}, wa = dims.whatsapp_perfume || {};
   var perfumes = Object.keys(shown).concat(Object.keys(wa)).filter(function (x, i, a) { return a.indexOf(x) === i; })
-    .map(function (id) { var m = names[id] || {}; return { id: id, name: m.name || id, brand: m.brand || '', shown: shown[id] || 0, whatsapp: wa[id] || 0 }; })
+    .map(function (id) { var m = names[id] || {}; return { id: id, name: m.name || id, brand: m.brand || '', image: m.image || '', shown: shown[id] || 0, whatsapp: wa[id] || 0 }; })
     .sort(function (a, b) { return b.shown - a.shown || b.whatsapp - a.whatsapp; }).slice(0, 10);
   // months that have numbers (for the report's month list), newest first
   var months = [], m = STATS_START.slice(0, 7);
