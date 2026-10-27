@@ -1,0 +1,39 @@
+.r-tools { display: flex; gap: 8px; align-items: center; }
+.r-month select { font: inherit; font-size: .85rem; font-weight: 700; padding: 8px 12px; border: 1px solid var(--line); border-radius: 999px; background: #fff; color: var(--ink); }
+.r-tools .d-btn { padding: 9px 16px; font-size: .85rem; }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+.r-page { max-width: 860px; margin: 24px auto 40px; background: #fff; border: 1px solid var(--line); border-radius: 22px; padding: 32px; display: grid; gap: 22px; }
+.r-top { display: flex; gap: 16px; align-items: center; padding-bottom: 18px; border-bottom: 1px solid var(--line); }
+.r-kicker { font-size: .85rem; color: var(--muted); font-weight: 600; }
+.r-top h1 { font-size: clamp(1.7rem, 5vw, 2.4rem); line-height: 1.2; }
+.r-period { font-size: .85rem; color: var(--muted); }
+.r-note { font-size: .85rem; background: #F6F2FF; border: 1px solid #E5DCFB; border-radius: 12px; padding: 10px 14px; }
+.r-kpis .d-card { box-shadow: none; }
+.r-block h2 { font-size: 1.05rem; margin-bottom: 10px; }
+.r-summary { font-size: 1.02rem; line-height: 1.9; }
+.r-two { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px; }
+.r-table td:first-child { display: flex; gap: 10px; align-items: center; }
+.r-table td:first-child b, .r-table td:first-child small { text-align: right; }
+.d-table.r-table td:nth-child(2) { width: 22%; }
+.r-rank { display: inline-grid; place-items: center; width: 26px; height: 26px; flex: none; border-radius: 50%; background: #F1ECFA; color: #5B35C8; font-weight: 700; font-size: .8rem; }
+.r-ideas ul { padding-inline-start: 20px; display: grid; gap: 8px; line-height: 1.8; }
+.r-ideas { background: #FBFAFE; border-radius: 16px; padding: 18px 20px; }
+.r-foot { display: flex; justify-content: space-between; align-items: center; gap: 16px; padding-top: 16px; border-top: 1px solid var(--line); font-size: .78rem; color: var(--muted); }
+.r-foot img { height: 26px; width: auto; }
+@media (max-width: 640px) {
+  .r-page { padding: 20px 16px; border-radius: 18px; margin-top: 16px; }
+  .r-two { grid-template-columns: minmax(0, 1fr); }
+  .r-foot { flex-direction: column; align-items: flex-start; }
+  .r-tools .d-btn { padding: 8px 12px; }
+  .r-month select { padding: 8px 10px; }
+}
+@media print {
+  @page { size: A4; margin: 12mm; }
+  body { background: #fff !important; }
+  .dh { display: none !important; }
+  .dw { max-width: none; padding: 0; }
+  .r-page { border: 0; margin: 0; padding: 0; max-width: none; gap: 16px; }
+  .r-block, .d-card, .r-two > div, tr { break-inside: avoid; }
+  .r-kpis { grid-template-columns: repeat(4, 1fr) !important; }
+  * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+}

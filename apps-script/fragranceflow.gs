@@ -46,7 +46,7 @@ function doGet(e) {
   var p = (e && e.parameter) || {};
   if (p.action === 'catalog') return json_(catalog_());
   if (p.action === 'analytics') return text_(recordEvent_(p));
-  if (p.action === 'stats') return json_(storeStats_(p.t, p.days));
+  if (p.action === 'stats') return json_(storeStats_(p.t, p.days, p.month));
   if (p.action === 'admin') return json_(adminStats_(p.t, p.days));
   return text_('FragranceFlow');
 }
@@ -392,27 +392,42 @@ function storeByToken_(t) {
   return found;
 }
 
-function storeStats_(token, daysParam) {
+function storeStats_(token, daysParam, monthParam) {
   var store = storeByToken_(token);
   if (!store) return { error: 'invalid' };
-  var n = Math.max(7, Math.min(90, Number(daysParam) || 30));
-  var now = new Date(), today = day_(now), from = day_(new Date(now.getTime() - (n - 1) * 864e5));
-  if (from < STATS_START) from = STATS_START;
+  var now = new Date(), today = day_(now), from, to, prevFrom, prevTo, month = '';
+  if (/^\d{4}-\d{2}$/.test(String(monthParam || ''))) {
+    // monthly report: one calendar month, compared with the whole month before
+    month = String(monthParam);
+    var y = Number(month.slice(0, 4)), mo = Number(month.slice(5, 7));
+    var first = month + '-01', last = Utilities.formatDate(new Date(Date.UTC(y, mo, 0, 12)), 'UTC', 'yyyy-MM-dd');
+    if (first > today || last < STATS_START) return { error: 'month' };
+    from = first < STATS_START ? STATS_START : first;
+    to = last > today ? today : last;
+    var pm = Utilities.formatDate(new Date(Date.UTC(y, mo - 2, 1, 12)), 'UTC', 'yyyy-MM');
+    prevFrom = pm + '-01';
+    prevTo = Utilities.formatDate(new Date(Date.UTC(y, mo - 1, 0, 12)), 'UTC', 'yyyy-MM-dd');
+  } else {
+    var n = Math.max(7, Math.min(90, Number(daysParam) || 30));
+    to = today; from = day_(new Date(now.getTime() - (n - 1) * 864e5));
+    if (from < STATS_START) from = STATS_START;
+    // the period just before, same length, for the "compared with before" figures (never before STATS_START)
+    var len = Math.round((new Date(today + 'T12:00:00Z') - new Date(from + 'T12:00:00Z')) / 864e5) + 1;
+    prevFrom = day_(new Date(new Date(from + 'T12:00:00Z').getTime() - len * 864e5));
+    prevTo = day_(new Date(new Date(from + 'T12:00:00Z').getTime() - 864e5));
+  }
   var lines = [], prev = {};
-  // the period just before, same length, for the "compared with before" figures (never before STATS_START)
-  var len = Math.round((new Date(today + 'T12:00:00Z') - new Date(from + 'T12:00:00Z')) / 864e5) + 1;
-  var prevFrom = day_(new Date(new Date(from + 'T12:00:00Z').getTime() - len * 864e5));
   var sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(TAB.stats);
   if (sh && sh.getLastRow() > 1) sh.getDataRange().getValues().slice(1).forEach(function (r) {
     var d = r[0] instanceof Date ? day_(r[0]) : String(r[0]);
     if (String(r[1]) !== store.id) return;
-    if (d >= from && d < today) lines.push([d, r[2], String(r[3]), Number(r[4]) || 0]);
-    else if (d >= prevFrom && d < from && d >= STATS_START && String(r[3]) === 'all') prev[r[2]] = (prev[r[2]] || 0) + (Number(r[4]) || 0);
+    if (d >= from && d <= to && d < today) lines.push([d, r[2], String(r[3]), Number(r[4]) || 0]);
+    else if (d >= prevFrom && d <= prevTo && d >= STATS_START && String(r[3]) === 'all') prev[r[2]] = (prev[r[2]] || 0) + (Number(r[4]) || 0);
   });
   // today is not in Daily_Stats yet (built at night): count it from today's events
-  statsOfDay_(today, eventsFor_([today])).forEach(function (r) { if (r[1] === store.id) lines.push([r[0], r[2], r[3], r[4]]); });
+  if (to === today) statsOfDay_(today, eventsFor_([today])).forEach(function (r) { if (r[1] === store.id) lines.push([r[0], r[2], r[3], r[4]]); });
 
-  var days = [], d = new Date(from + 'T12:00:00Z'), end = new Date(today + 'T12:00:00Z');
+  var days = [], d = new Date(from + 'T12:00:00Z'), end = new Date(to + 'T12:00:00Z');
   while (d <= end) { days.push(Utilities.formatDate(d, 'UTC', 'yyyy-MM-dd')); d = new Date(d.getTime() + 864e5); }
   var idx = {}; days.forEach(function (x, i) { idx[x] = i; });
   var series = {}, totals = {}, dims = {};
@@ -433,7 +448,11 @@ function storeStats_(token, daysParam) {
   var perfumes = Object.keys(shown).concat(Object.keys(wa)).filter(function (x, i, a) { return a.indexOf(x) === i; })
     .map(function (id) { var m = names[id] || {}; return { id: id, name: m.name || id, brand: m.brand || '', shown: shown[id] || 0, whatsapp: wa[id] || 0 }; })
     .sort(function (a, b) { return b.shown - a.shown || b.whatsapp - a.whatsapp; }).slice(0, 10);
-  return { store: store, from: from, to: today, days: days, series: series, totals: totals,
+  // months that have numbers (for the report's month list), newest first
+  var months = [], m = STATS_START.slice(0, 7);
+  while (m <= today.slice(0, 7)) { months.unshift(m); m = Utilities.formatDate(new Date(Date.UTC(Number(m.slice(0, 4)), Number(m.slice(5, 7)), 1, 12)), 'UTC', 'yyyy-MM'); }
+  return { store: store, from: from, to: to, days: days, series: series, totals: totals, month: month, months: months,
+    partial: month ? (to === today || from > month + '-01') : false,
     prev: prevFrom >= STATS_START ? prev : null,
     source: dims.source || {}, family: dims.family || {}, impression: dims.impression || {}, perfumes: perfumes };
 }

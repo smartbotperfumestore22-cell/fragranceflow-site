@@ -73,3 +73,5 @@ main[aria-busy="true"] { opacity: .55; }
 main > * { min-width: 0; }
 @media (max-width: 459px) { .d-qr { flex-direction: column; align-items: flex-start; } }
 .d-links ul { grid-template-columns: minmax(0, 1fr); } .d-links li { min-width: 0; }
+.d-report { margin-inline-start: auto; flex: none; }
+@media (max-width: 640px) { .d-head { flex-wrap: wrap; } .d-report { margin-inline-start: 0; width: 100%; text-align: center; } }
