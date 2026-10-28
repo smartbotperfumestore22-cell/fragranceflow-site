@@ -523,6 +523,7 @@ function dashboardLinkPrompt() {
   }
   var token = (Utilities.getUuid() + Utilities.getUuid()).replace(/-/g, '');   // 64 random hex characters
   sh.getRange(row + 1, col + 1).setValue(token);
+  try { sbUpsert_('store_tokens', 'store_id', [{ store_id: id, token: token }]); } catch (e) { /* Supabase not set up: the Sheet link still works */ }
   showLink_(id, SITE_URL + '/dashboard/?t=' + token);
 }
 
@@ -870,6 +871,10 @@ function pushToSupabase() {
         url: sbText_(o.url), in_stock: sbBool_(o.in_stock) };
     }).filter(Boolean);
     var n1 = sbUpsert_('stores', 'id', stores), n2 = sbUpsert_('perfumes', 'perfume_id', perfumes);
+    // the secret dashboard links (Phase 2: the statistics are read from Supabase)
+    var tokens = rows_(TAB.stores).filter(function (s) { return /^[A-Za-z0-9]{32,80}$/.test(sbText_(s.dash_token)) && ids[sbText_(s.store_id).toLowerCase()]; })
+      .map(function (s) { return { store_id: sbText_(s.store_id).toLowerCase(), token: sbText_(s.dash_token) }; });
+    try { sbUpsert_('store_tokens', 'store_id', tokens); } catch (e) { /* 007_stats.sql not run yet */ }
     var n3 = 0; for (var i = 0; i < offers.length; i += 500) n3 += sbUpsert_('offers', 'store_id,perfume_id', offers.slice(i, i + 500));
     ui.alert('تنقلو ✅', n1 + ' متجر، ' + n2 + ' عطر، ' + n3 + ' عرض.' + (skipped ? '\n' + skipped + ' عرض ما تنقلش (متجر ولا عطر ما كاينش، ولا مكرر).' : ''), ui.ButtonSet.OK);
   } catch (e) {

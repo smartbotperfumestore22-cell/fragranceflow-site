@@ -209,13 +209,16 @@ async function tabOverview() {
   el.innerHTML = range + '<p class="d-msg">كنجيبو الأرقام…</p>';
   const wire = () => el.querySelectorAll("[data-days]").forEach((b) => b.addEventListener("click", () => { S.days = Number(b.dataset.days); tabOverview(); }));
   wire();
-  let d; try { d = await teamCall("admin", { days: S.days }); } catch (e) { d = { error: "net" }; }
+  // Supabase first (Phase 2); the Apps Script answers if Supabase cannot
+  let d = null;
+  try { const r = await sb.rpc("admin_stats", { p_days: S.days }); if (!r.error && r.data && !r.data.error) d = r.data; } catch (e) {}
+  if (!d) { try { d = await teamCall("admin", { days: S.days }); } catch (e) { d = { error: "net" }; } }
   if (d.error) { el.innerHTML = range + '<p class="d-msg">ما قدرناش نجيبو الأرقام. تأكد بلي Apps Script الجديد تدار ليه New version وفيه المفتاح السري.</p>'; wire(); return; }
   // stores that exist in Supabase but have no numbers yet still appear, so every store can be opened from here
   const known = new Set(d.stores.map((x) => x.id));
   S.stores.forEach((x) => { if (!known.has(x.id)) d.stores.push({ id: x.id, name: x.name, active: x.active !== false, perfumes: 0, experiences: 0, completed: 0, whatsapp: 0, last: "" }); });
   el.innerHTML = range + adminHTML({ ...d, title: "اللوحة العامة" }, (x) => S.stores.some((y) => y.id === x.id)
-    ? `<button type="button" class="d-btn a-open" data-manage="${esc(x.id)}">إدارة المتجر</button>` : "<small>ما كاينش ف Supabase</small>", "الأرقام من Google Sheets، والمتاجر والحسابات من Supabase.");
+    ? `<button type="button" class="d-btn a-open" data-manage="${esc(x.id)}">إدارة المتجر</button>` : "<small>ما كاينش ف Supabase</small>", "الأرقام والمتاجر والحسابات من Supabase.");
   wire();
   el.querySelectorAll("[data-manage]").forEach((b) => b.addEventListener("click", () => openStore(b.dataset.manage)));
 }
