@@ -1,7 +1,7 @@
 // FragranceFlow admin: /admin/?t=<admin token> (the token is kept in Apps Script's Script Properties).
 // Read only: totals across stores, the list of stores with their numbers and dashboard links, and alerts.
 import "./dashboard.css";
-import { adminHTML } from "./admin-view.js";
+import { adminHTML, wireStoreSearch } from "./admin-view.js";
 import { FF_SCRIPT_URL } from "./ff-script-url.js";
 
 const API = import.meta.env.VITE_FF_SCRIPT_URL || FF_SCRIPT_URL;
@@ -29,6 +29,7 @@ async function load(days) {
     if (data.error === "login") { root.innerHTML = '<p class="d-msg">دخل لفضاء التاجر بالحساب ديالك. <a href="/portal/">دخول</a></p>'; return; }
     if (data.error) { root.innerHTML = token ? '<p class="d-msg">هاد الرابط ما خدامش. صاوب رابط جديد من الشيت: FragranceFlow ← 🔐 رابط لوحة الـ admin.</p>' : '<p class="d-msg">هاد الصفحة غير لفريق FragranceFlow. <a href="/portal/">رجوع لفضاء التاجر</a></p>'; return; }
     render(data);
+    wireStoreSearch(root);
     if (!token) {
       root.querySelector(".d-head").insertAdjacentHTML("beforeend", '<a class="d-btn a-portal" href="/portal/">فضاء التاجر ←</a>');
       root.querySelectorAll("[data-store]").forEach((a) => a.addEventListener("click", () => { try { sessionStorage.setItem("ff_store", a.dataset.store); } catch (e) {} }));

@@ -42,3 +42,12 @@
 }
 .d-head { flex-wrap: wrap; }
 .a-portal { margin-inline-start: auto; flex: none; }
+.a-stores-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 12px; }
+.a-stores-head h2 { margin: 0; }
+.a-search { flex: 1 1 240px; max-width: 360px; }
+.a-search input { width: 100%; font: inherit; font-size: .92rem; padding: 10px 14px; border: 1px solid var(--line); border-radius: 999px; background: #FFF; color: var(--ink); }
+.a-search input:focus { outline: 2px solid var(--v); outline-offset: 0; border-color: transparent; }
+.a-count-n { background: var(--v-soft); color: var(--v); }
+.a-table tr[hidden] { display: none !important; }
+@media (max-width: 640px) { .a-search { max-width: none; flex-basis: 100%; } }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }

@@ -5,7 +5,7 @@ import "./dashboard.css";
 import "./portal.css";
 import { sb } from "./supabase.js";
 import { esc, fmt } from "./dash-common.js";
-import { adminHTML } from "./admin-view.js";
+import { adminHTML, wireStoreSearch } from "./admin-view.js";
 import { FF_SCRIPT_URL } from "./ff-script-url.js";
 
 const API = import.meta.env.VITE_FF_SCRIPT_URL || FF_SCRIPT_URL;
@@ -211,7 +211,7 @@ async function tabOverview() {
   wire();
   // Supabase first (Phase 2); the Apps Script answers if Supabase cannot
   let d = null;
-  try { const r = await sb.rpc("admin_stats", { p_days: S.days }); if (!r.error && r.data && !r.data.error) d = r.data; } catch (e) {}
+  try { const r = await sb.rpc("admin_stats", { p_days: S.days }); if (!r.error && r.data && Array.isArray(r.data.stores)) d = r.data; } catch (e) {}
   if (!d) { try { d = await teamCall("admin", { days: S.days }); } catch (e) { d = { error: "net" }; } }
   if (d.error) { el.innerHTML = range + '<p class="d-msg">ما قدرناش نجيبو الأرقام. تأكد بلي Apps Script الجديد تدار ليه New version وفيه المفتاح السري.</p>'; wire(); return; }
   // stores that exist in Supabase but have no numbers yet still appear, so every store can be opened from here
@@ -219,7 +219,7 @@ async function tabOverview() {
   S.stores.forEach((x) => { if (!known.has(x.id)) d.stores.push({ id: x.id, name: x.name, active: x.active !== false, perfumes: 0, experiences: 0, completed: 0, whatsapp: 0, last: "" }); });
   el.innerHTML = range + adminHTML({ ...d, title: "اللوحة العامة" }, (x) => S.stores.some((y) => y.id === x.id)
     ? `<button type="button" class="d-btn a-open" data-manage="${esc(x.id)}">إدارة المتجر</button>` : "<small>ما كاينش ف Supabase</small>", "الأرقام والمتاجر والحسابات من Supabase.");
-  wire();
+  wire(); wireStoreSearch(el);
   el.querySelectorAll("[data-manage]").forEach((b) => b.addEventListener("click", () => openStore(b.dataset.manage)));
 }
 

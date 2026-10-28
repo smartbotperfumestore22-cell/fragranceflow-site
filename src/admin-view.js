@@ -34,10 +34,11 @@ export function adminHTML(d, storeCell, foot = "لوحة خاصة بيك. ما �
         : '<p class="d-empty">كلشي مزيان ✅</p>'}
     </section>
     <section class="d-card" aria-labelledby="a-stores-title">
-      <h2 id="a-stores-title">المتاجر</h2>
+      <div class="a-stores-head"><h2 id="a-stores-title">المتاجر <span class="a-count a-count-n" dir="ltr">${d.stores.length}</span></h2>
+        <label class="a-search"><span class="sr">قلب على متجر</span><input type="search" placeholder="🔎 قلب على متجر (السمية ولا store_id)…" autocomplete="off" data-a-search></label></div>
       <div class="a-scroll"><table class="d-table a-table">
         <thead><tr><th>المتجر</th><th>التجارب</th><th>المكملة</th><th>واتساب</th><th>العطور</th><th>آخر نشاط</th><th>الحالة</th><th></th></tr></thead>
-        <tbody>${d.stores.map((s) => `<tr class="${s.active ? "" : "is-off"}">
+        <tbody>${d.stores.map((s) => `<tr class="${s.active ? "" : "is-off"}" data-q="${esc((s.name + " " + s.id).toLowerCase())}">
           <td><b>${esc(s.name)}</b><small dir="ltr">${esc(s.id)}</small></td>
           <td data-l="التجارب">${fmt(s.experiences)}</td><td data-l="المكملة">${fmt(s.completed)} <small>${s.experiences ? pct(s.completed, s.experiences) + "%" : ""}</small></td>
           <td data-l="واتساب">${fmt(s.whatsapp)}</td><td data-l="العطور">${fmt(s.perfumes)}</td><td data-l="آخر نشاط">${ago(s.last, d.to)}</td>
@@ -45,7 +46,22 @@ export function adminHTML(d, storeCell, foot = "لوحة خاصة بيك. ما �
           <td>${storeCell(s)}</td>
         </tr>`).join("")}</tbody>
       </table></div>
+      <p class="d-empty" data-a-none hidden>ما كاين حتى متجر بهاد الاسم.</p>
     </section>
     <p class="d-foot">${esc(foot)}</p>`;
 }
 
+
+// the search box above the stores list: filters the rows as you type (name or store_id)
+export function wireStoreSearch(root) {
+  const input = root.querySelector("[data-a-search]");
+  if (!input) return;
+  const rows = [...root.querySelectorAll(".a-table tbody tr")], none = root.querySelector("[data-a-none]"), n = root.querySelector(".a-count-n");
+  input.addEventListener("input", () => {
+    const q = input.value.trim().toLowerCase();
+    let shown = 0;
+    rows.forEach((r) => { const ok = !q || r.dataset.q.includes(q); r.hidden = !ok; if (ok) shown++; });
+    none.hidden = shown > 0;
+    if (n) n.textContent = q ? `${shown} / ${rows.length}` : String(rows.length);
+  });
+}
