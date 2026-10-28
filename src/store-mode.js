@@ -22,6 +22,21 @@ function withMessage(url, name, inStore) {
   return url + "?text=" + encodeURIComponent(text);
 }
 
+// cheapest price per purchase type for one store offer: { full?: number, decant?: number }
+// from its sizes (decants 3ml, 5ml… and bottles), or, for an offer saved before sizes existed, from its formats and price
+export function offerTypePrices(offer) {
+  const out = {};
+  const sizes = Array.isArray(offer.variants) ? offer.variants.filter((v) => v && Number(v.price) > 0) : [];
+  if (sizes.length) {
+    for (const v of sizes) { const t = v.type === "decant" ? "decant" : "full"; if (out[t] == null || v.price < out[t]) out[t] = Number(v.price); }
+    return out;
+  }
+  const price = Number(offer.price) || null;
+  const formats = Array.isArray(offer.formats) && offer.formats.length ? offer.formats : ["full"];
+  for (const f of formats) out[f === "decant" ? "decant" : "full"] = price;
+  return out;
+}
+
 // returns { db, store } — db is the catalogue to use, store is null in normal mode
 export function applyStoreMode(db) {
   const id = storeIdFromUrl();
@@ -39,15 +54,16 @@ export function applyStoreMode(db) {
       logo: offer.storeLogo || "", color: offer.storeColor || "",
       whatsapp: /^https:\/\/wa\.me\/\d+/.test(offer.whatsapp || "") ? offer.whatsapp.split("?")[0] : "" };
     // the store's own price and link; "where to buy" lists only this store
-    // Rule: the quiz (budget, engine) always uses the perfume's REFERENCE price from the master catalogue (ref_price),
-    // never the store's selling prices (a 5ml decant at 35 DH must not make a 900 DH perfume look cheap).
-    // Only a perfume without a reference price falls back to the store's bottle price, so it is not lost.
-    const sizes = Array.isArray(offer.variants) ? offer.variants : [];
-    const bottle = sizes.filter((v) => v.type === "full").map((v) => v.price).sort((a, b) => a - b)[0];
-    const price = p.price || bottle || offer.price || 0;
-    mine.push({ ...p, price, stores: [offer] });
+    // Rule: through a store link the budget uses THIS store's prices, by purchase type: the cheapest full bottle
+    // when the visitor buys a bottle, the cheapest decant when they buy decants (typePrices; read by the quiz).
+    const typePrices = offerTypePrices(offer);
+    const price = typePrices.full || typePrices.decant || offer.price || p.price;
+    mine.push({ ...p, price, typePrices, stores: [offer] });
   }
   if (!mine.length) return { db: all, store: null };
   store.count = mine.filter((p) => p.active !== false).length;
+  // which purchase types this store sells (the quiz asks bottle / decant only when it sells both)
+  store.hasFull = mine.some((p) => p.typePrices.full != null);
+  store.hasDecant = mine.some((p) => p.typePrices.decant != null);
   return { db: mine, store };
 }

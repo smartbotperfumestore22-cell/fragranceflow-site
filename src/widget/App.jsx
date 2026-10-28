@@ -1476,14 +1476,15 @@ function scoreP(p, ans) {
   // إلا اختار Décante — ما يطلعوش غير عطور sizeType="decant"
   // إلا اختار Full — ما يطلعوش غير عطور sizeType="full"
   const effectiveSizeType = ans.sizeType || CONFIG.DEFAULT_SIZE || null;
-  if (effectiveSizeType && p.sizeType !== effectiveSizeType) return 0;
+  if (effectiveSizeType && !hasType(p, effectiveSizeType)) return 0;
 
   // ── Budget HARD FILTER — يحذف العطور اللي فوق الميزانية ──
   if (ans.budget && ans.budget !== "any") {
     // same ranges the visitor was shown (built from the catalogue for this size and fragrance world)
     const sizeType = ans.sizeType || CONFIG.DEFAULT_SIZE || "full";
     const bud = (calcDynamicBudget(sizeType, "ar", ans.world) || []).find(b=>b.v===ans.budget);
-    if (bud && (p.price < bud.min || p.price >= bud.maxEx)) return 0;
+    const price = priceFor(p, sizeType);
+    if (bud && (price < bud.min || price >= bud.maxEx)) return 0;
   }
 
   // ── Fragrance world HARD FILTER — "any" (or no answer) means no world filter ──
@@ -2340,6 +2341,10 @@ function roundToNice(n) {
 // Read from each fragrance's own "world" field; anything else counts as not classified ("")
 // and is only shown when the visitor has no preference. Nothing is guessed from the brand.
 const WORLDS = ["designer", "niche", "ultra_niche", "arabian"];
+// purchase type and price: through a store link a fragrance carries the store's cheapest price per type
+// (typePrices: { full, decant }, from its sizes); elsewhere its own sizeType and reference price, as before
+function hasType(p, st) { return p && p.typePrices ? p.typePrices[st] != null : p && p.sizeType === st; }
+function priceFor(p, st) { return p && p.typePrices ? (Number(p.typePrices[st]) || 0) : Number(p && p.price) || 0; }
 function worldOf(p) {
   const w = String((p && p.world) || "").trim().toLowerCase().replace(/[\s-]+/g, "_");
   return WORLDS.includes(w) ? w : "";
@@ -2357,7 +2362,7 @@ const WORLD_LABELS = {
 // Skipped entirely when the catalogue has fewer than two classified worlds (e.g. a partner sheet without the column).
 function buildWorldQ(sizeType, lang="ar") {
   const L = WORLD_LABELS[lang === "fr" ? "fr" : "ar"];
-  const live = getProducts().filter(p => p.active !== false && p.sizeType === sizeType);
+  const live = getProducts().filter(p => p.active !== false && hasType(p, sizeType));
   const present = WORLDS.filter(w => live.some(p => worldOf(p) === w));
   if (present.length < 2) return null;
   const opt = (w) => ({ v:w, l:L[w][0], i:L[w][1], d:L[w][2] });
@@ -2387,8 +2392,8 @@ function calcDynamicBudget(sizeType, lang="ar", world) {
   if (cache.has(key)) return cache.get(key);
 
   const prices = products
-    .filter(p => p.active !== false && p.sizeType === sizeType && (!world || world === "any" || worldOf(p) === world))
-    .map(p => Number(p.price)).filter(v => Number.isFinite(v) && v > 0)
+    .filter(p => p.active !== false && hasType(p, sizeType) && (!world || world === "any" || worldOf(p) === world))
+    .map(p => priceFor(p, sizeType)).filter(v => Number.isFinite(v) && v > 0)
     .sort((a, b) => a - b);
   const anyOpt = { v:"any", l: isAr ? "الثمن غير مهم" : "Prix libre", i:"🌟", d: isAr ? "كل العطور المناسبة" : "Tous les parfums", min:0, maxEx:Infinity };
   let out;
@@ -3357,11 +3362,14 @@ function RVSensory({ p, ans, lang, used }) {
 
 // Through a store link (?store=…) the card speaks for that one store: «available here» and a direct way to order,
 // instead of the «فين تلقاه؟» list (which would list only this store anyway).
-function RVStoreActions({ p, lang }) {
+function RVStoreActions({ p, lang, sizeType }) {
   const store = window.__FF_STORE__;
   const all = rvStores(p);
   const s = all.find(x => x.storeId === store.id) || all[0];
-  const sizes = (s && Array.isArray(s.variants)) ? s.variants : [];
+  // the sizes of the purchase type the visitor chose come first, and the cheapest of them is selected
+  const want = sizeType || CONFIG.DEFAULT_SIZE || "full";
+  const raw = (s && Array.isArray(s.variants)) ? s.variants : [];
+  const sizes = [...raw.filter(v => v.type === want), ...raw.filter(v => v.type !== want)];
   const [pick, setPick] = useState(0);
   if (!s) return null;
   const fr = lang === "fr";
@@ -3467,7 +3475,7 @@ function RVCard({ p, ans, lang, rank, used, peers, near }) {
           </div>
         )}
         <RVSensory p={p} ans={ans} lang={lang} used={used}/>
-        {window.__FF_STORE__ ? <RVStoreActions p={p} lang={lang}/> : <RVStores p={p} L={L} lang={lang}/>}
+        {window.__FF_STORE__ ? <RVStoreActions p={p} lang={lang} sizeType={ans && ans.sizeType}/> : <RVStores p={p} L={L} lang={lang}/>}
         {/* through a store link, WhatsApp is the action: no «شوف العطر» to a FragranceFlow page */}
         {window.__FF_STORE__ ? null : <div className="ffr-actions">
           <a className={"ffr-btn" + (featured ? "" : " ffr-btn-ghost")} href={"#f-" + encodeURIComponent(p.id)}>{L.view}</a>
@@ -3531,8 +3539,9 @@ function nearGaps(p, ans, lang) {
   if (ans.budget && ans.budget !== "any") {
     const sizeType = ans.sizeType || CONFIG.DEFAULT_SIZE || "full";
     const bud = (calcDynamicBudget(sizeType, "ar", ans.world) || []).find(b => b.v === ans.budget);
-    if (bud && p.price >= bud.maxEx) out.push(fr ? "Un peu au-dessus de votre budget" : "فوق الميزانية ديالك شوية");
-    else if (bud && p.price < bud.min) out.push(fr ? "En dessous de votre budget" : "أقل من الميزانية ديالك");
+    const price = priceFor(p, sizeType);
+    if (bud && price >= bud.maxEx) out.push(fr ? "Un peu au-dessus de votre budget" : "فوق الميزانية ديالك شوية");
+    else if (bud && price < bud.min) out.push(fr ? "En dessous de votre budget" : "أقل من الميزانية ديالك");
   }
   const ps = p.season || [];
   if (ans.season && ans.season !== "allseasons" && ps.length && !ps.includes("allseasons") && !ps.includes(ans.season)) {

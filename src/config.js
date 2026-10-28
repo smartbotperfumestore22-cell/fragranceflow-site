@@ -43,4 +43,10 @@ if (!window.__FF_CONFIG__.SHEETS_API_URL) {
   const { db: shown, store } = applyStoreMode(db);
   window.__ffDP__ = shown;
   window.__FF_STORE__ = store;
+  // a store link asks "bottle or decant?" only when the store sells both; a decant-only store starts on decants
+  if (store) {
+    window.__FF_CONFIG__.HAS_FULL = store.hasFull;
+    window.__FF_CONFIG__.HAS_DECANT = store.hasDecant;
+    window.__FF_CONFIG__.DEFAULT_SIZE = store.hasFull ? "full" : "decant";
+  }
 }
