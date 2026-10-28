@@ -179,6 +179,8 @@ function onOpen() {
     .addSeparator()
     .addItem('🗝 Supabase: حط المفتاح السري', 'setSupabaseKey')
     .addItem('⬆️ Supabase: نقل المتاجر والعطور والعروض', 'pushToSupabase')
+    .addItem('⬆️ Supabase: نقل الأحداث القديمة', 'pushEventsToSupabase')
+    .addItem('🔍 Supabase: قارن الإحصائيات', 'compareStatsWithSupabase')
     .addToUi();
 }
 
@@ -665,6 +667,63 @@ function storeByJwt_(jwt, wanted) {
   } catch (err) { found = null; }
   cache.put(ck, found ? JSON.stringify(found) : 'none', 300);
   return found;
+}
+
+// ───────────── Phase 2: events history and a check of the daily numbers ─────────────
+// copies the Events tab to Supabase, only what happened before Supabase started receiving events itself
+// (so nothing is counted twice); running it again adds nothing new.
+function pushEventsToSupabase() {
+  var ui = SpreadsheetApp.getUi();
+  try {
+    var first = sbCall_('get', 'rest/v1/events?select=ts&imported_row=is.null&order=ts.asc&limit=1');
+    if (first.code !== 200) throw new Error('Supabase: ' + first.code + ' (is 005_events.sql run?)');
+    var cutoff = first.data.length ? new Date(first.data[0].ts).getTime() : Infinity;
+    var sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(TAB.events);
+    if (!sh || sh.getLastRow() < 2) { ui.alert('ما كاين حتى حدث فالشيت.'); return; }
+    var rows = [], vals = sh.getDataRange().getValues();
+    for (var i = 1; i < vals.length; i++) {
+      var r = vals[i];
+      if (!(r[0] instanceof Date) || r[0].getTime() >= cutoff) continue;
+      var det = null; try { det = r[7] ? JSON.parse(r[7]) : null; } catch (e) { det = { raw: String(r[7]).slice(0, 200) }; }
+      rows.push({ ts: r[0].toISOString(), event: sbText_(r[1]), visit: sbText_(r[2]), source: sbText_(r[3]).toLowerCase(), perfume: sbText_(r[4]).slice(0, 120),
+        character: sbText_(r[5]), impression: sbText_(r[6]), details: det, store_id: sbText_(r[8]).toLowerCase(), perfume_id: sbText_(r[9]), imported_row: i + 1 });
+    }
+    var sent = 0;
+    for (var j = 0; j < rows.length; j += 500) {
+      var o = { method: 'post', contentType: 'application/json', headers: sbHeaders_(), muteHttpExceptions: true, payload: JSON.stringify(rows.slice(j, j + 500)) };
+      o.headers.Prefer = 'resolution=ignore-duplicates,return=minimal';
+      var res = UrlFetchApp.fetch(SUPABASE_URL + '/rest/v1/events?on_conflict=imported_row', o);
+      if (res.getResponseCode() >= 300) throw new Error('events: ' + res.getResponseCode() + ' ' + res.getContentText().slice(0, 200));
+      sent += Math.min(500, rows.length - j);
+    }
+    ui.alert('تنقلو ✅', sent + ' حدث من الشيت (القدام اللي قبل ما بدا Supabase كيسجل بوحدو).\nمن بعد: حل 006_schedule.sql ف Supabase باش يحسب الإحصائيات.', ui.ButtonSet.OK);
+  } catch (e) { ui.alert('ما تنقلش', String(e.message || e), ui.ButtonSet.OK); }
+}
+
+// compares the Sheet's Daily_Stats with Supabase's daily_stats, day by day (up to yesterday)
+function compareStatsWithSupabase() {
+  var ui = SpreadsheetApp.getUi();
+  try {
+    var today = day_(new Date()), mine = {}, theirs = {};
+    var sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(TAB.stats);
+    if (sh && sh.getLastRow() > 1) sh.getDataRange().getValues().slice(1).forEach(function (r) {
+      var d = r[0] instanceof Date ? day_(r[0]) : String(r[0]);
+      if (d >= STATS_START && d < today) mine[[d, r[1], r[2], r[3]].join('|')] = Number(r[4]) || 0;
+    });
+    for (var from = 0; ; from += 1000) {
+      var o = { headers: sbHeaders_(), muteHttpExceptions: true }; o.headers.Range = from + '-' + (from + 999);
+      var res = UrlFetchApp.fetch(SUPABASE_URL + '/rest/v1/daily_stats?select=day,store_id,metric,dimension,value&day=lt.' + today + '&order=day,store_id,metric,dimension', o);
+      if (res.getResponseCode() >= 300) throw new Error('daily_stats: ' + res.getResponseCode());
+      var page = JSON.parse(res.getContentText());
+      page.forEach(function (x) { theirs[[x.day, x.store_id, x.metric, x.dimension].join('|')] = x.value; });
+      if (page.length < 1000) break;
+    }
+    var keys = Object.keys(mine).concat(Object.keys(theirs)).filter(function (k, i, a) { return a.indexOf(k) === i; }).sort();
+    var diff = keys.filter(function (k) { return mine[k] !== theirs[k]; });
+    var lines = diff.slice(0, 15).map(function (k) { return k + ' → Sheet ' + (mine[k] == null ? '—' : mine[k]) + ' / Supabase ' + (theirs[k] == null ? '—' : theirs[k]); });
+    ui.alert(diff.length ? 'كاين فرق فـ ' + diff.length + ' سطر' : 'نفس الأرقام ✅',
+      keys.length + ' سطر تقارن (من ' + STATS_START + ' حتى البارح).' + (lines.length ? '\n\n' + lines.join('\n') : ''), ui.ButtonSet.OK);
+  } catch (e) { ui.alert('ما قدرناش نقارنو', String(e.message || e), ui.ButtonSet.OK); }
 }
 
 // ───────────── merchant accounts (portal → 👥 الحسابات, FragranceFlow team only) ─────────────

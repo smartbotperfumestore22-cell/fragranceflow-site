@@ -7,6 +7,7 @@ if (typeof window !== 'undefined' && !document.getElementById('ff-widget-root'))
   document.body.appendChild(_c);
 }
 import { useState, useEffect } from "react";
+import { sbTrack } from "../track-sb.js";
 import ShareResult from "./Share.jsx";
 
 
@@ -5160,6 +5161,7 @@ window.track = async function track(event, data) {
       ...data 
     });
     fetch(`${base}?${params.toString()}`, { mode: 'no-cors' }).catch(() => {}); // blocked (ad-blocker) or offline: ignore
+    if (own) sbTrack(Object.fromEntries(params)); // also recorded in Supabase (Phase 2)
   } catch(e) {}
 }
 export default function App() {
