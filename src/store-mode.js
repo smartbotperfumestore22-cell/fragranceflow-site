@@ -39,11 +39,12 @@ export function applyStoreMode(db) {
       logo: offer.storeLogo || "", color: offer.storeColor || "",
       whatsapp: /^https:\/\/wa\.me\/\d+/.test(offer.whatsapp || "") ? offer.whatsapp.split("?")[0] : "" };
     // the store's own price and link; "where to buy" lists only this store
-    // the engine's budget question is about a bottle: with several sizes, the cheapest full bottle counts
-    // (a 5ml decant price would make every perfume look cheap); decant-only offers keep the reference price
+    // Rule: the quiz (budget, engine) always uses the perfume's REFERENCE price from the master catalogue (ref_price),
+    // never the store's selling prices (a 5ml decant at 35 DH must not make a 900 DH perfume look cheap).
+    // Only a perfume without a reference price falls back to the store's bottle price, so it is not lost.
     const sizes = Array.isArray(offer.variants) ? offer.variants : [];
     const bottle = sizes.filter((v) => v.type === "full").map((v) => v.price).sort((a, b) => a - b)[0];
-    const price = sizes.length ? (bottle || p.price) : (offer.price || p.price);
+    const price = p.price || bottle || offer.price || 0;
     mine.push({ ...p, price, stores: [offer] });
   }
   if (!mine.length) return { db: all, store: null };

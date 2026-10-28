@@ -388,15 +388,23 @@ async function tabAdd() {
       const have = mine[p.perfume_id];
       return `<li class="p-item p-item-add" data-pid="${esc(p.perfume_id)}">${thumb(p)}
         <div class="p-name"><b dir="ltr">${esc(p.name)}</b><small><span dir="ltr">${esc(p.brand)}</span> · ${GENDER[p.gender] || ""}</small></div>
-        ${have && have.active ? '<span class="p-tag is-ok">عندك</span>' : `<button type="button" class="d-btn p-add" data-act="add">${have ? "رجعو" : "+ زيد"}</button>`}</li>`;
+        ${have && have.active ? `<span class="p-have"><span class="p-tag is-ok">عندك${vlist(have).length > 1 ? " · " + vlist(have).length + " أحجام" : ""}</span><button type="button" class="p-link" data-act="add">📏 زيد ولا بدل الأحجام</button></span>`
+          : `<button type="button" class="d-btn p-add" data-act="add">${have ? "رجعو" : "+ زيد"}</button>`}</li>`;
     }).join("") : '<li class="d-empty">ما لقينا والو بهاد الاسم.</li>';
   };
   draw(); wireSearch(draw);
   el.addEventListener("click", (e) => {
     if (!e.target.dataset || e.target.dataset.act !== "add") return;
     const li = e.target.closest(".p-item"), pid = li.dataset.pid, p = cat.find((x) => x.perfume_id === pid), have = mine[pid];
-    openPicker(li, have ? vlist(have) : [], p.size, have ? "رجّع العطر" : "إضافة العطر", async (variants) => {
-      if (have) { const ok = await save(have, { active: true, in_stock: true, variants }, "رجع العطر ✓"); if (ok) draw(); return ok; }
+    // a perfume the store already has: the same checklist, filled with its sizes (add a size or change a price)
+    const start = !have ? [] : vlist(have).length ? vlist(have)
+      : (have.price ? [{ type: have.size_type === "decant" ? "decant" : "full", size: have.size || p.size || "", price: have.price }] : []);
+    const label = !have ? "إضافة العطر" : have.active ? "حفظ الأحجام" : "رجّع العطر";
+    openPicker(li, start, p.size, label, async (variants) => {
+      if (have) {
+        const ok = await save(have, have.active ? { variants } : { active: true, in_stock: true, variants }, have.active ? `تحفظو ${variants.length} ${variants.length === 1 ? "حجم" : "أحجام"} ✓` : "رجع العطر ✓");
+        if (ok) draw(); return ok;
+      }
       const { data, error } = await sb.from("offers").insert({ store_id: S.store.id, perfume_id: pid, variants, in_stock: true })
         .select("id, perfume_id, size, size_type, price, in_stock, active, updated_at, variants, perfumes(name, brand, gender, image_url, size)").single();
       if (error) { toast(errText(error), true); return false; }
