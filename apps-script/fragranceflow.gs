@@ -178,7 +178,7 @@ function onOpen() {
     .addItem('🔑 بدل رابط النشر (Deploy Hook)', 'setDeployHook')
     .addSeparator()
     .addItem('🗝 Supabase: حط المفتاح السري', 'setSupabaseKey')
-    .addItem('⬆️ Supabase: نقل المتاجر والعطور والعروض', 'pushToSupabase')
+    .addItem('⬆️ Supabase: العطور + المتاجر والعروض الجداد', 'pushToSupabase')
     .addItem('⬆️ Supabase: نقل الأحداث القديمة', 'pushEventsToSupabase')
     .addItem('🔍 Supabase: قارن الإحصائيات', 'compareStatsWithSupabase')
     .addToUi();
@@ -627,11 +627,12 @@ function setSupabaseKey() {
   ui.alert('تسجل ✅');
 }
 
-function sbUpsert_(table, conflict, rows) {
+function sbUpsert_(table, conflict, rows, onlyNew) {
   var key = PropertiesService.getScriptProperties().getProperty('SUPABASE_SECRET');
   if (!key) throw new Error('حط المفتاح السري أولاً: FragranceFlow ← 🗝 Supabase: حط المفتاح السري');
   if (!rows.length) return 0;
-  var headers = { apikey: key, Prefer: 'resolution=merge-duplicates,return=minimal' };
+  // onlyNew: add rows that are not there yet, never overwrite (Supabase is the source for stores and offers now)
+  var headers = { apikey: key, Prefer: (onlyNew ? 'resolution=ignore-duplicates' : 'resolution=merge-duplicates') + ',return=minimal' };
   if (/^eyJ/.test(key)) headers.Authorization = 'Bearer ' + key;   // older service_role keys also need this header
   var res = UrlFetchApp.fetch(SUPABASE_URL + '/rest/v1/' + table + '?on_conflict=' + conflict, {
     method: 'post', contentType: 'application/json', headers: headers, payload: JSON.stringify(rows), muteHttpExceptions: true });
@@ -847,10 +848,12 @@ function pushToSupabase() {
   var ui = SpreadsheetApp.getUi();
   try {
     var stores = rows_(TAB.stores).filter(function (s) { return sbText_(s.store_id); }).map(function (s) {
-      var o = { id: sbText_(s.store_id).toLowerCase(), name: sbText_(s.name) || sbText_(s.store_id), city: sbText_(s.city), website: sbText_(s.website),
-        whatsapp: sbText_(s.whatsapp), instagram: sbText_(s.instagram), active: sbBool_(s.active) };
-      if (s.logo_url != null) o.logo_url = sbText_(s.logo_url);
-      if (s.color != null) o.color = sbText_(s.color);
+      var https = function (v) { v = sbText_(v); return /^https:\/\//.test(v) ? v : ''; };
+      var wa = sbText_(s.whatsapp).replace(/\D/g, '').replace(/^00/, '');
+      if (/^0[5-7]\d{8}$/.test(wa)) wa = '212' + wa.slice(1); else if (/^[5-7]\d{8}$/.test(wa)) wa = '212' + wa;
+      var o = { id: sbText_(s.store_id).toLowerCase(), name: sbText_(s.name) || sbText_(s.store_id), city: sbText_(s.city).slice(0, 60), website: https(s.website),
+        whatsapp: wa, instagram: https(s.instagram), active: sbBool_(s.active),
+        logo_url: https(s.logo_url), color: /^#[0-9a-f]{6}$/i.test(sbText_(s.color)) ? sbText_(s.color) : '' };
       return o;
     });
     var ids = {}; stores.forEach(function (s) { ids[s.id] = true; });
@@ -870,13 +873,14 @@ function pushToSupabase() {
       return { store_id: sid, perfume_id: pid, size: sbText_(o.size), size_type: sbText_(o.size_type) || 'full', price: sbNum_(o.price),
         url: sbText_(o.url), in_stock: sbBool_(o.in_stock) };
     }).filter(Boolean);
-    var n1 = sbUpsert_('stores', 'id', stores), n2 = sbUpsert_('perfumes', 'perfume_id', perfumes);
+    // stores and offers: only the new ones (merchants edit theirs in the portal); perfumes: the Sheet stays the reference
+    var n1 = sbUpsert_('stores', 'id', stores, true), n2 = sbUpsert_('perfumes', 'perfume_id', perfumes);
     // the secret dashboard links (Phase 2: the statistics are read from Supabase)
     var tokens = rows_(TAB.stores).filter(function (s) { return /^[A-Za-z0-9]{32,80}$/.test(sbText_(s.dash_token)) && ids[sbText_(s.store_id).toLowerCase()]; })
       .map(function (s) { return { store_id: sbText_(s.store_id).toLowerCase(), token: sbText_(s.dash_token) }; });
     try { sbUpsert_('store_tokens', 'store_id', tokens); } catch (e) { /* 007_stats.sql not run yet */ }
-    var n3 = 0; for (var i = 0; i < offers.length; i += 500) n3 += sbUpsert_('offers', 'store_id,perfume_id', offers.slice(i, i + 500));
-    ui.alert('تنقلو ✅', n1 + ' متجر، ' + n2 + ' عطر، ' + n3 + ' عرض.' + (skipped ? '\n' + skipped + ' عرض ما تنقلش (متجر ولا عطر ما كاينش، ولا مكرر).' : ''), ui.ButtonSet.OK);
+    var n3 = 0; for (var i = 0; i < offers.length; i += 500) n3 += sbUpsert_('offers', 'store_id,perfume_id', offers.slice(i, i + 500), true);
+    ui.alert('تنقلو ✅', n2 + ' عطر تحدّثو. المتاجر (' + n1 + ') والعروض (' + n3 + '): غير الجداد تزادو، والموجودين ما تقاسوش (التجار كيبدلوهم من البورطال).' + (skipped ? '\n' + skipped + ' عرض ما تنقلش (متجر ولا عطر ما كاينش، ولا مكرر).' : ''), ui.ButtonSet.OK);
   } catch (e) {
     ui.alert('ما تنقلش', String(e.message || e), ui.ButtonSet.OK);
   }
