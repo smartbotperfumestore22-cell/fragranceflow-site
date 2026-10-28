@@ -128,3 +128,20 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--v); outline
   .p-item-add > .p-tag { grid-area: name; justify-self: end; align-self: center; }
   .p-from { grid-area: price; }
 }
+
+/* size checklist */
+.p-picker { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+.p-pgroup { display: grid; gap: 6px; align-content: start; min-width: 0; }
+.p-pgroup h3 { font-size: .85rem; font-weight: 800; margin: 0 0 2px; }
+.p-chkrow { display: grid; grid-template-columns: 84px minmax(0, 1fr); gap: 8px; align-items: center; padding: 4px 8px; border-radius: 10px; }
+.p-chkrow.is-on { background: #FFF; }
+.p-chk { display: flex; align-items: center; gap: 8px; font-weight: 700; cursor: pointer; font-size: .9rem; }
+.p-chk input { width: 18px; height: 18px; padding: 0; accent-color: var(--v); flex: none; }
+.p-chkrow input[type=number] { padding: 7px 10px; font-size: .9rem; }
+.p-chkrow input:disabled { background: transparent; border-style: dashed; }
+.p-others .p-size { grid-template-columns: minmax(0, 1fr) 76px; grid-template-areas: "t z" "p x"; }
+.p-others .p-size > label:nth-child(1) { grid-area: t; } .p-others .p-size > label:nth-child(2) { grid-area: z; }
+.p-others .p-size > label:nth-child(3) { grid-area: p; } .p-others .p-size > button { grid-area: x; justify-self: end; }
+.p-others .p-link { justify-self: start; }
+@media (max-width: 760px) { .p-picker { grid-template-columns: minmax(0, 1fr); } }
+.p-chkrow .p-price, .p-chkrow .p-chk { grid-area: auto; }

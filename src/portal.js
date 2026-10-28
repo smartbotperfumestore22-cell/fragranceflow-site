@@ -283,60 +283,90 @@ function tabOffers() {
 
 // the sizes a store sells for a perfume: saved sizes, else the single price as one size
 const vlist = (o) => (Array.isArray(o.variants) ? o.variants : []);
-const DECANTS = ["3ml", "5ml", "10ml", "20ml"], BOTTLES = ["30ml", "50ml", "75ml", "100ml"];
+const DECANTS = ["3ml", "5ml", "10ml", "20ml"];
 const TYPE = { full: "قنينة كاملة", decant: "ديكونط" };
-function sizeRow(v = {}) {
+const normSize = (z) => String(z || "").trim().replace(/\s+/g, "").replace(/ML$/i, "ml");
+// checklist of sizes: decants 3/5/10/20 ml, the bottle sizes, and any other size; each ticked size gets its price
+function sizePicker(variants, bottleSize) {
+  const has = (t, z) => variants.find((v) => v.type === t && normSize(v.size).toLowerCase() === normSize(z).toLowerCase());
+  const bottles = [...new Set([normSize(bottleSize), "50ml", "100ml"].filter(Boolean))];
+  const preset = (t, z) => { const v = has(t, z); return `<div class="p-chkrow${v ? " is-on" : ""}">
+      <label class="p-chk"><input type="checkbox" data-type="${t}" data-size="${esc(z)}"${v ? " checked" : ""}><span dir="ltr">${esc(z.replace(/ml$/i, " ml"))}</span></label>
+      <label class="p-price"><span class="sr">ثمن ${esc(z)}</span><input type="number" inputmode="decimal" min="0" step="1" placeholder="الثمن" value="${v ? v.price : ""}"${v ? "" : " disabled"}><em>درهم</em></label></div>`; };
+  const presetKeys = new Set(DECANTS.map((z) => "decant|" + z.toLowerCase()).concat(bottles.map((z) => "full|" + z.toLowerCase())));
+  const others = variants.filter((v) => !presetKeys.has(v.type + "|" + normSize(v.size).toLowerCase()));
+  return `<div class="p-picker">
+    <div class="p-pgroup"><h3>🧪 ديكونط</h3>${DECANTS.map((z) => preset("decant", z)).join("")}</div>
+    <div class="p-pgroup"><h3>🧴 قنينة كاملة</h3>${bottles.map((z) => preset("full", z)).join("")}</div>
+    <div class="p-pgroup p-others"><h3>حجم آخر</h3><div class="p-size-list">${others.map(customRow).join("")}</div>
+      <button type="button" class="p-link" data-k="add">+ زيد حجم آخر</button></div></div>`;
+}
+function customRow(v = {}) {
   return `<div class="p-size" role="group">
-    <label><span class="sr">النوع</span><select data-k="type">${Object.keys(TYPE).map((t) => `<option value="${t}"${(v.type || "full") === t ? " selected" : ""}>${TYPE[t]}</option>`).join("")}</select></label>
-    <label><span class="sr">الحجم</span><input data-k="size" list="ff-sizes" maxlength="20" dir="ltr" placeholder="10ml" value="${esc(v.size || "")}"></label>
+    <label><span class="sr">النوع</span><select data-k="type">${Object.keys(TYPE).map((t) => `<option value="${t}"${(v.type || "decant") === t ? " selected" : ""}>${TYPE[t]}</option>`).join("")}</select></label>
+    <label><span class="sr">الحجم</span><input data-k="size" maxlength="20" dir="ltr" placeholder="15ml" value="${esc(v.size || "")}"></label>
     <label class="p-price"><span class="sr">الثمن</span><input data-k="price" type="number" inputmode="decimal" min="0" step="1" placeholder="الثمن" value="${v.price ?? ""}"><em>درهم</em></label>
     <button type="button" class="p-icon" data-k="del" aria-label="حيد هاد الحجم">✕</button></div>`;
 }
-function sizesEditor(li, o, done) {
-  let rows = vlist(o).length ? vlist(o) : (o.price ? [{ type: o.size_type === "decant" ? "decant" : "full", size: o.size || o.perfumes?.size || "", price: o.price }] : []);
+// read the ticked sizes; null (with a message) when something is missing
+function readPicker(box) {
+  const out = [], seen = new Set();
+  const push = (type, size, pv) => {
+    size = normSize(size); const price = Number(pv);
+    if (!size) { toast("كتب الحجم (مثلاً 15ml).", true); return false; }
+    if (pv === "" || !(price > 0) || price > 100000) { toast(`كتب الثمن ديال ${size}.`, true); return false; }
+    const key = type + "|" + size.toLowerCase();
+    if (seen.has(key)) { toast(`${size} مكتوب جوج مرات.`, true); return false; }
+    seen.add(key); out.push({ type, size, price }); return true;
+  };
+  for (const c of box.querySelectorAll(".p-chkrow input[type=checkbox]:checked"))
+    if (!push(c.dataset.type, c.dataset.size, c.closest(".p-chkrow").querySelector("input[type=number]").value)) return null;
+  for (const r of box.querySelectorAll(".p-size")) {
+    const size = r.querySelector("[data-k=size]").value, pv = r.querySelector("[data-k=price]").value;
+    if (!size.trim() && !pv) continue;
+    if (!push(r.querySelector("[data-k=type]").value, size, pv)) return null;
+  }
+  if (!out.length) { toast("ختار حجم واحد على الأقل وكتب الثمن ديالو.", true); return null; }
+  if (out.length > 12) { toast("12 حجم هو الحد.", true); return null; }
+  return out;
+}
+// opens the checklist under a list item; onSave(variants) returns true when saved
+function openPicker(li, variants, bottleSize, label, onSave) {
+  li.parentElement.querySelectorAll(".p-sizes-row").forEach((x) => x.remove());
   const box = document.createElement("li");
   box.className = "p-sizes-row";
   box.innerHTML = `<div class="p-sizes">
-    <p class="p-small">زيد كل حجم كتبيعو بالثمن ديالو: ديكونط ولا قنينة كاملة.</p>
-    <div class="p-size-list">${(rows.length ? rows : [{}]).map(sizeRow).join("")}</div>
-    <div class="p-quick"><span>زيد بسرعة:</span>${DECANTS.map((z) => `<button type="button" class="p-chip" data-q="decant|${z}">ديكونط ${z}</button>`).join("")}
-      ${BOTTLES.map((z) => `<button type="button" class="p-chip is-full" data-q="full|${z}">قنينة ${z}</button>`).join("")}</div>
-    <datalist id="ff-sizes">${DECANTS.concat(["2ml", "15ml", "30ml"], BOTTLES, ["90ml", "125ml", "150ml", "200ml"]).map((z) => `<option value="${z}">`).join("")}</datalist>
-    <div class="p-review"><button type="button" class="p-link" data-k="add">+ زيد حجم</button><span class="p-grow"></span>
-      <button type="button" class="p-link" data-k="cancel">إلغاء</button><button type="button" class="d-btn" data-k="save">حفظ الأحجام</button></div></div>`;
+    <p class="p-small">علّم على الأحجام اللي كتبيع وكتب الثمن ديال كل واحد.</p>
+    ${sizePicker(variants, bottleSize)}
+    <div class="p-review"><span class="p-grow"></span><button type="button" class="p-link" data-k="cancel">إلغاء</button>
+      <button type="button" class="d-btn" data-k="save">${label}</button></div></div>`;
   li.after(box);
-  const list = box.querySelector(".p-size-list");
+  box.addEventListener("change", (e) => {
+    if (e.target.type !== "checkbox") return;
+    const row = e.target.closest(".p-chkrow"), price = row.querySelector("input[type=number]");
+    row.classList.toggle("is-on", e.target.checked); price.disabled = !e.target.checked;
+    if (e.target.checked) price.focus();
+  });
   box.addEventListener("click", async (e) => {
-    const k = e.target.dataset.k, qk = e.target.dataset.q;
-    if (qk) {
-      const [type, size] = qk.split("|");
-      const empty = [...list.querySelectorAll(".p-size")].find((r) => !r.querySelector("[data-k=size]").value && !r.querySelector("[data-k=price]").value);
-      if (empty) empty.remove();
-      list.insertAdjacentHTML("beforeend", sizeRow({ type, size }));
-      list.lastElementChild.querySelector("[data-k=price]").focus();
-    }
-    if (k === "add") { list.insertAdjacentHTML("beforeend", sizeRow({ type: (vlist(o)[0] || {}).type })); list.lastElementChild.querySelector("[data-k=size]").focus(); }
+    const k = e.target.dataset.k;
+    if (k === "add") { const l = box.querySelector(".p-size-list"); l.insertAdjacentHTML("beforeend", customRow()); l.lastElementChild.querySelector("[data-k=size]").focus(); }
     if (k === "del") e.target.closest(".p-size").remove();
     if (k === "cancel") box.remove();
     if (k === "save") {
-      const out = [], seen = new Set();
-      for (const r of list.querySelectorAll(".p-size")) {
-        const type = r.querySelector("[data-k=type]").value, size = r.querySelector("[data-k=size]").value.trim().replace(/\s+/g, "");
-        const pv = r.querySelector("[data-k=price]").value;
-        if (!size && !pv) continue;
-        const price = Number(pv);
-        if (!size) return toast("كتب الحجم (مثلاً 10ml).", true);
-        if (!pv || !(price > 0) || price > 100000) return toast(`كتب ثمن صحيح لـ ${size}.`, true);
-        const key = type + "|" + size.toLowerCase();
-        if (seen.has(key)) return toast(`${size} مكتوب جوج مرات.`, true);
-        seen.add(key); out.push({ type, size, price });
-      }
-      if (!out.length) return toast("زيد حجم واحد على الأقل.", true);
-      if (out.length > 12) return toast("12 حجم هو الحد.", true);
+      const out = readPicker(box); if (!out) return;
       e.target.disabled = true;
-      if (await save(o, { variants: out }, `تحفظو ${out.length} ${out.length === 1 ? "حجم" : "أحجام"} ✓`)) { box.remove(); done(); }
+      const done = await onSave(out);
       e.target.disabled = false;
+      if (done) box.remove();
     }
+  });
+  const first = box.querySelector("input[type=checkbox]:not(:checked)") ; if (!variants.length && first) first.focus();
+}
+function sizesEditor(li, o, done) {
+  const start = vlist(o).length ? vlist(o) : (o.price ? [{ type: o.size_type === "decant" ? "decant" : "full", size: o.size || o.perfumes?.size || "", price: o.price }] : []);
+  openPicker(li, start, o.perfumes?.size, "حفظ الأحجام", async (out) => {
+    const ok = await save(o, { variants: out }, `تحفظو ${out.length} ${out.length === 1 ? "حجم" : "أحجام"} ✓`);
+    if (ok) done(); return ok;
   });
 }
 
@@ -357,41 +387,21 @@ async function tabAdd() {
     document.getElementById("list").innerHTML = list.length ? list.map((p) => {
       const have = mine[p.perfume_id];
       return `<li class="p-item p-item-add" data-pid="${esc(p.perfume_id)}">${thumb(p)}
-        <div class="p-name"><b dir="ltr">${esc(p.name)}</b><small dir="ltr">${esc(p.brand)} · ${GENDER[p.gender] || ""}</small></div>
-        ${have && have.active ? '<span class="p-tag is-ok">عندك</span>'
-          : `<div class="p-addform">
-              <label><span class="sr">النوع</span><select data-act="newtype"><option value="full">قنينة كاملة</option><option value="decant">ديكونط</option></select></label>
-              <label><span class="sr">الحجم</span><input data-act="newsize" maxlength="20" dir="ltr" list="ff-sizes-add" value="${esc(p.size || "")}" data-full="${esc(p.size || "")}"></label>
-              <label class="p-price"><span class="sr">الثمن</span><input type="number" inputmode="decimal" min="0" step="1" placeholder="الثمن" data-act="newprice"><em>درهم</em></label>
-              <button type="button" class="d-btn p-add" data-act="add">${have ? "رجعو" : "زيد"}</button></div>`}</li>`;
+        <div class="p-name"><b dir="ltr">${esc(p.name)}</b><small><span dir="ltr">${esc(p.brand)}</span> · ${GENDER[p.gender] || ""}</small></div>
+        ${have && have.active ? '<span class="p-tag is-ok">عندك</span>' : `<button type="button" class="d-btn p-add" data-act="add">${have ? "رجعو" : "+ زيد"}</button>`}</li>`;
     }).join("") : '<li class="d-empty">ما لقينا والو بهاد الاسم.</li>';
   };
-  el.insertAdjacentHTML("beforeend", `<datalist id="ff-sizes-add">${["3ml", "5ml", "10ml", "20ml", "30ml", "50ml", "75ml", "100ml", "125ml", "200ml"].map((z) => `<option value="${z}">`).join("")}</datalist>
-    <p class="p-small">تقدر تزيد أحجام أخرى (ديكونط 3ml، 5ml…) من «عطوري» ← 📏 الأحجام والأثمنة.</p>`);
   draw(); wireSearch(draw);
-  // choosing "decant" suggests 5ml; back to "full bottle" puts the bottle size back
-  el.addEventListener("change", (e) => {
-    if (e.target.dataset.act !== "newtype") return;
-    const sz = e.target.closest(".p-addform").querySelector("[data-act=newsize]");
-    sz.value = e.target.value === "decant" ? "5ml" : sz.dataset.full;
-  });
-  el.addEventListener("click", async (e) => {
+  el.addEventListener("click", (e) => {
     if (!e.target.dataset || e.target.dataset.act !== "add") return;
-    const li = e.target.closest(".p-item"), pid = li.dataset.pid, pin = li.querySelector("[data-act=newprice]");
-    const price = pin.value === "" ? null : Number(pin.value);
-    const type = li.querySelector("[data-act=newtype]").value, size = li.querySelector("[data-act=newsize]").value.trim().replace(/\s+/g, "");
-    if (price == null || isNaN(price) || price <= 0) { toast("كتب الثمن قبل.", true); pin.focus(); return; }
-    if (!size) { toast("كتب الحجم (مثلاً 10ml).", true); return; }
-    const variants = [{ type, size, price }];
-    e.target.disabled = true;
-    const have = mine[pid];
-    if (have) { if (await save(have, { active: true, in_stock: true, variants }, "رجع العطر ✓")) draw(); e.target.disabled = false; return; }
-    const p = cat.find((x) => x.perfume_id === pid);
-    const { data, error } = await sb.from("offers").insert({ store_id: S.store.id, perfume_id: pid, price, size, size_type: type, variants, in_stock: true })
-      .select("id, perfume_id, size, size_type, price, in_stock, active, updated_at, variants, perfumes(name, brand, gender, image_url, size)").single();
-    e.target.disabled = false;
-    if (error) return toast(errText(error), true);
-    S.offers.push(data); mine[pid] = data; toast(`تزاد ${p.name} ✓`); draw();
+    const li = e.target.closest(".p-item"), pid = li.dataset.pid, p = cat.find((x) => x.perfume_id === pid), have = mine[pid];
+    openPicker(li, have ? vlist(have) : [], p.size, have ? "رجّع العطر" : "إضافة العطر", async (variants) => {
+      if (have) { const ok = await save(have, { active: true, in_stock: true, variants }, "رجع العطر ✓"); if (ok) draw(); return ok; }
+      const { data, error } = await sb.from("offers").insert({ store_id: S.store.id, perfume_id: pid, variants, in_stock: true })
+        .select("id, perfume_id, size, size_type, price, in_stock, active, updated_at, variants, perfumes(name, brand, gender, image_url, size)").single();
+      if (error) { toast(errText(error), true); return false; }
+      S.offers.push(data); mine[pid] = data; toast(`تزاد ${p.name} ✓`); draw(); return true;
+    });
   });
 }
 

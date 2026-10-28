@@ -3361,18 +3361,47 @@ function RVStoreActions({ p, lang }) {
   const store = window.__FF_STORE__;
   const all = rvStores(p);
   const s = all.find(x => x.storeId === store.id) || all[0];
+  const sizes = (s && Array.isArray(s.variants)) ? s.variants : [];
+  const [pick, setPick] = useState(0);
   if (!s) return null;
   const fr = lang === "fr";
-  const track = (event) => window.track && window.track(event, { perfume: p.name, pid: p.id, price: s.price || p.price, store: s.name || store.name });
+  const chosen = sizes[pick] || null;
+  const TYPE = { decant: fr ? "Décante" : "ديكونط", full: fr ? "Flacon" : "قنينة كاملة" };
+  // the size the visitor chose goes with the click (recorded with the event, for the store's statistics)
+  const track = (event) => window.track && window.track(event, { perfume: p.name, pid: p.id, price: chosen ? chosen.price : (s.price || p.price),
+    store: s.name || store.name, ...(chosen ? { size: chosen.size, size_type: chosen.type } : {}) });
   const fmt = (s.formats || []).map(f => f === "decant" ? (fr ? "Décante" : "ديكونط") : (fr ? "Flacon complet" : "قنينة كاملة"));
+  // WhatsApp message with the chosen size and its price (the demo store keeps its own message)
+  let wa = s.whatsapp;
+  if (wa && chosen && store.id !== "demo") {
+    const what = `${p.brand ? p.brand + " " : ""}${p.name} — ${TYPE[chosen.type]} ${chosen.size} — ${chosen.price} ${fr ? "DH" : "درهم"}`;
+    const text = fr ? `Bonjour, j'ai fait votre quiz parfum et je voudrais : ${what}. Est-ce disponible ?`
+      : `السلام عليكم، دوزت اختبار العطور ديالكم وبغيت: ${what}. واش متوفر؟`;
+    wa = wa.split("?")[0] + "?text=" + encodeURIComponent(text);
+  }
   return (
     <div className="ffr-instore">
       <p className="ffr-instore-badge">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg>
         <span>{fr ? "Disponible chez " : "متوفر عند "}<b>{store.name}</b>{fmt.length ? <small> · {fmt.join(" · ")}</small> : null}</span>
       </p>
+      {sizes.length ? (
+        <fieldset className="ffr-sizes">
+          <legend>{fr ? "Choisissez la taille" : "ختار الحجم"}</legend>
+          <div className="ffr-sizes-list">
+            {sizes.map((v, i) => (
+              <label key={v.type + v.size} className={"ffr-size" + (i === pick ? " is-on" : "")}>
+                <input type="radio" name={"ffr-size-" + String(p.id).replace(/[^\w-]/g, "")} checked={i === pick} onChange={() => setPick(i)} />
+                <span className="ffr-size-name">{v.type === "decant" ? (fr ? "Décante " : "ديكونط ") : (fr ? "Flacon " : "قنينة ")}<b dir="ltr">{v.size}</b></span>
+                <span className="ffr-size-price"><b>{v.price}</b> {fr ? "DH" : "درهم"}</span>
+              </label>
+            ))}
+          </div>
+        </fieldset>
+      ) : null}
       <div className="ffr-instore-actions">
-        {s.whatsapp ? <a className="ffr-btn ffr-instore-wa" href={s.whatsapp} target="_blank" rel="noopener noreferrer" onClick={() => track("whatsapp_click")}>{fr ? "💬 Commander sur WhatsApp" : "💬 اطلبو فالواتساب"}</a> : null}
+        {wa ? <a className="ffr-btn ffr-instore-wa" href={wa} target="_blank" rel="noopener noreferrer" onClick={() => track("whatsapp_click")}>
+          {chosen ? (fr ? `💬 Commander ${chosen.size} sur WhatsApp` : `💬 اطلب ${chosen.size} فالواتساب`) : (fr ? "💬 Commander sur WhatsApp" : "💬 اطلبو فالواتساب")}</a> : null}
         {s.page ? <a className="ffr-btn ffr-btn-ghost" href={s.page} target="_blank" rel="noopener noreferrer" onClick={() => track("buy_click")}>{fr ? "Voir sur notre site" : "شوفو فالموقع ديالنا"}</a> : null}
       </div>
     </div>

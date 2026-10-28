@@ -1662,3 +1662,14 @@ body.on-b2b .head-login svg { width: 18px; height: 18px; flex: none; }
   body.on-b2b .head-login { display: none; }
   body.on-b2b .menu .menu-login { display: block; font-weight: 700; color: #3E1F9C; }
 }
+
+/* sizes and prices of a store's perfume (store link result) */
+#ff-widget-root .ffr-sizes { border: 0; padding: 0; margin: 0; min-width: 0; }
+#ff-widget-root .ffr-sizes legend { font-size: .85rem; font-weight: 700; color: var(--ink); margin-bottom: 8px; padding: 0; }
+#ff-widget-root .ffr-sizes-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 8px; }
+#ff-widget-root .ffr-size { position: relative; display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 10px 12px; border: 1px solid rgba(123, 63, 160, .25); border-radius: 10px; background: #FFF; cursor: pointer; font-size: .88rem; color: var(--ink); }
+#ff-widget-root .ffr-size input { position: absolute; opacity: 0; pointer-events: none; }
+#ff-widget-root .ffr-size.is-on { border-color: var(--plum); box-shadow: 0 0 0 1px var(--plum) inset; background: #F7F2FC; }
+#ff-widget-root .ffr-size:focus-within { outline: 2px solid var(--plum); outline-offset: 2px; }
+#ff-widget-root .ffr-size-price { white-space: nowrap; color: var(--muted); font-size: .82rem; }
+#ff-widget-root .ffr-size-price b { color: var(--ink); font-size: .95rem; }

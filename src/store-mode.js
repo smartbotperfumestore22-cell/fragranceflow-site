@@ -39,7 +39,12 @@ export function applyStoreMode(db) {
       logo: offer.storeLogo || "", color: offer.storeColor || "",
       whatsapp: /^https:\/\/wa\.me\/\d+/.test(offer.whatsapp || "") ? offer.whatsapp.split("?")[0] : "" };
     // the store's own price and link; "where to buy" lists only this store
-    mine.push({ ...p, price: offer.price || p.price, stores: [offer] });
+    // the engine's budget question is about a bottle: with several sizes, the cheapest full bottle counts
+    // (a 5ml decant price would make every perfume look cheap); decant-only offers keep the reference price
+    const sizes = Array.isArray(offer.variants) ? offer.variants : [];
+    const bottle = sizes.filter((v) => v.type === "full").map((v) => v.price).sort((a, b) => a - b)[0];
+    const price = sizes.length ? (bottle || p.price) : (offer.price || p.price);
+    mine.push({ ...p, price, stores: [offer] });
   }
   if (!mine.length) return { db: all, store: null };
   store.count = mine.filter((p) => p.active !== false).length;
