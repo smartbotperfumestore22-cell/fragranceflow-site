@@ -169,3 +169,19 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--v); outline
   .p-qr .p-link { align-self: end; }
   .p-qr small { align-self: start; }
 }
+
+/* statistics and report tabs */
+.p-wide-tab { display: grid; gap: 14px; min-width: 0; }
+.p-wide-tab > * { min-width: 0; }
+.p-wide-tab .p-range, .p-rtools { justify-self: start; }
+.p-wide-tab .d-head h1 { font-size: 1.3rem; }
+.p-wide-tab #p-stats, .p-wide-tab #p-report { display: grid; gap: 16px; min-width: 0; }
+.p-wide-tab .r-sheet { margin: 0 auto; }
+@media print {
+  body.p-print-report .dh, body.p-print-report .p-backbar, body.p-print-report .p-head, body.p-print-report .p-banner,
+  body.p-print-report .p-linkcard, body.p-print-report .p-tabs, body.p-print-report .p-rtools, body.p-print-report .d-foot,
+  body.p-print-report .p-toast { display: none !important; }
+  body.p-print-report #app { padding: 0 !important; display: block; }
+}
+.p-wide-tab #p-stats .d-head .d-seal, .p-wide-tab #p-stats .d-head h1 { display: none; }
+.p-wide-tab #p-stats .d-line { max-height: 240px; }

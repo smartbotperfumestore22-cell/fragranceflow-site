@@ -6,6 +6,9 @@ import "./portal.css";
 import { sb } from "./supabase.js";
 import { esc, fmt } from "./dash-common.js";
 import { adminHTML, wireStoreSearch } from "./admin-view.js";
+import { renderDashboard } from "./dashboard-view.js";
+import { renderReport, monthName, defaultMonth } from "./report-view.js";
+import { fetchStats } from "./stats-api.js";
 import { FF_SCRIPT_URL } from "./ff-script-url.js";
 
 const API = import.meta.env.VITE_FF_SCRIPT_URL || FF_SCRIPT_URL;
@@ -166,8 +169,9 @@ function render() {
   if (S.mode === "team") return renderTeam();
   const s = S.store, live = S.offers.filter((o) => o.active), off = live.filter((o) => !o.in_stock).length;
   const pending = S.requests.filter((r) => r.status === "pending").length;
-  const tabs = [["offers", `عطوري <small>${live.length}</small>`], ["add", "زيد عطر"], ["requests", `طلب عطر جديد${pending ? ` <small>${pending}</small>` : ""}`], ["settings", "⚙️ إعدادات المتجر"]];
-  if (!["offers", "add", "requests", "settings"].includes(S.tab)) S.tab = "offers";
+  const tabs = [["offers", `عطوري <small>${live.length}</small>`], ["add", "زيد عطر"], ["requests", `طلب عطر جديد${pending ? ` <small>${pending}</small>` : ""}`],
+    ["stats", "📊 الإحصائيات"], ["report", "📄 التقرير الشهري"], ["settings", "⚙️ إعدادات المتجر"]];
+  if (!tabs.some(([k]) => k === S.tab)) S.tab = "offers";
   app.innerHTML = `
     ${S.admin ? '<div class="p-backbar"><button type="button" class="p-link" id="b-team">← رجوع للوحة العامة</button><span>كتشوف المتجر بحال التاجر</span></div>' : ""}
     <section class="d-head p-head">
@@ -177,9 +181,8 @@ function render() {
     </section>
     ${trialBanner(s)}
     ${linkCard(s)}
-    <nav class="p-tabs" role="tablist">${tabs.map(([k, l]) => `<button role="tab" type="button" data-tab="${k}" aria-selected="${S.tab === k}">${l}</button>`).join("")}
-      <a class="p-tablink" href="/dashboard/">📊 الإحصائيات</a><a class="p-tablink" href="/dashboard/report.html">📄 التقرير الشهري</a></nav>
-    <section id="tab" class="d-card p-panel"></section>
+    <nav class="p-tabs" role="tablist">${tabs.map(([k, l]) => `<button role="tab" type="button" data-tab="${k}" aria-selected="${S.tab === k}">${l}</button>`).join("")}</nav>
+    <section id="tab" class="${S.tab === "stats" || S.tab === "report" ? "p-wide-tab" : "d-card p-panel"}"></section>
     <p class="d-foot">التبديلات كتبان للزبناء فالكويز من بعد التحديث ديال الموقع (مرة فالنهار).</p>`;
   app.querySelectorAll(".p-tabs button").forEach((b) => b.addEventListener("click", () => { S.tab = b.dataset.tab; S.q = ""; render(); }));
   const pick = document.getElementById("s-store");
@@ -187,7 +190,45 @@ function render() {
   wireLinkCard(s);
   const back = document.getElementById("b-team");
   if (back) back.addEventListener("click", () => { S.mode = "team"; sessionStorage.setItem("ff_mode", "team"); renderTeam(); });
-  ({ offers: tabOffers, add: tabAdd, requests: tabRequests, settings: tabSettings }[S.tab] || tabOffers)();
+  ({ offers: tabOffers, add: tabAdd, requests: tabRequests, settings: tabSettings, stats: tabStats, report: tabReport }[S.tab] || tabOffers)();
+}
+
+// statistics and monthly report, inside the store space (same numbers as /dashboard/, read with the login)
+const statsError = (d) => d.error === "login" ? "خرج ودخل من جديد." : d.error === "month" ? "ما كاين حتى رقم فهاد الشهر." : "ما قدرناش نجيبو الأرقام دابا. عاود جرب من بعد شوية.";
+async function tabStats() {
+  const el = document.getElementById("tab");
+  const range = `<div class="dh-range p-range" role="group" aria-label="المدة">${[7, 30, 90].map((d) => `<button type="button" data-days="${d}" aria-pressed="${(S.statDays || 30) === d}">${d === 7 ? "7 أيام" : d + " يوم"}</button>`).join("")}</div>`;
+  el.innerHTML = range + '<div id="p-stats" aria-live="polite"><p class="d-msg">كنجيبو الإحصائيات…</p></div>';
+  el.querySelectorAll("[data-days]").forEach((b) => b.addEventListener("click", () => { S.statDays = Number(b.dataset.days); tabStats(); }));
+  const box = document.getElementById("p-stats");
+  let d; try { d = await fetchStats({ days: S.statDays || 30 }); } catch (e) { d = { error: "net" }; }
+  if (S.tab !== "stats" || !document.getElementById("p-stats")) return;   // the merchant moved to another tab meanwhile
+  if (d.error) { box.innerHTML = `<p class="d-msg">${statsError(d)}</p>`; return; }
+  renderDashboard(box, d, { inPortal: true });
+}
+async function tabReport(month) {
+  const el = document.getElementById("tab");
+  const m = month || S.reportMonth || defaultMonth();
+  el.innerHTML = `<div class="r-tools p-rtools"><label class="r-month"><span class="sr">الشهر</span><select id="p-month" aria-label="الشهر"><option>${esc(monthName(m))}</option></select></label>
+      <button type="button" class="d-btn" id="p-pdf">تحميل PDF</button></div>
+    <div id="p-report" aria-live="polite"><p class="d-msg">كنوجدو التقرير…</p></div>`;
+  const box = document.getElementById("p-report");
+  let d; try { d = await fetchStats({ month: m }); } catch (e) { d = { error: "net" }; }
+  if (S.tab !== "report" || !document.getElementById("p-report")) return;
+  if (d.error) { box.innerHTML = `<p class="d-msg">${statsError(d)}</p>`; return; }
+  S.reportMonth = d.month;
+  const sel = document.getElementById("p-month");
+  sel.innerHTML = d.months.map((x) => `<option value="${x}"${x === d.month ? " selected" : ""}>${esc(monthName(x))}</option>`).join("");
+  sel.addEventListener("change", () => tabReport(sel.value));
+  renderReport(box, d, { inPortal: true });
+  // print only the report sheet (one A4 page), not the portal around it
+  document.getElementById("p-pdf").addEventListener("click", () => {
+    document.body.classList.add("p-print-report");
+    const done = () => { document.body.classList.remove("p-print-report"); window.removeEventListener("afterprint", done); };
+    window.addEventListener("afterprint", done);
+    window.print();
+    setTimeout(done, 60000);
+  });
 }
 
 // the store's quiz link and QR code, always at the top of the store space (the merchant shares them)

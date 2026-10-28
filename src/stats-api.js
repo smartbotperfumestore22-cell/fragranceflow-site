@@ -9,7 +9,7 @@ const API = import.meta.env.VITE_FF_SCRIPT_URL || FF_SCRIPT_URL;
 export const linkToken = new URLSearchParams(location.search).get("t") || "";
 export const portalMode = !linkToken;
 
-const ok = (d) => d && typeof d === "object" && !d.error;
+const ok = (d) => d && typeof d === "object" && !d.error && d.store && Array.isArray(d.days);
 
 async function fromSheetByLink(params) {
   const q = new URLSearchParams({ action: "stats", t: linkToken, ...params });
