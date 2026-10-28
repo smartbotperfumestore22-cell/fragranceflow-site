@@ -2447,7 +2447,19 @@ function buildQS(sizeType, lang="ar", world) {
 
   // سؤال العالم العطري — قبل الميزانية، غير إلا كانو عطور مصنفة ف الكاتالوج
   const worldQ = buildWorldQ(effectiveSizeType, lang);
-  const pre = worldQ ? [...base, worldQ] : base;
+  const pre = worldQ ? [...base, worldQ] : [...base];
+
+  // store link that sells both: ask "bottle or decant?" as its own question, right before the budget
+  // (the budget ranges and the engine then use this store's cheapest price of the chosen type)
+  const askType = !!(typeof window !== "undefined" && window.__FF_STORE__) && hasDecant && hasFull;
+  if (askType) pre.push({
+    id: "sizeType",
+    q:   lang === "fr" ? "Vous cherchez plutôt…" : "شنو بغيتي تشري؟",
+    sub: lang === "fr" ? "Les prix et le budget suivent votre choix" : "الأثمنة والميزانية كيتبدلو حسب اختيارك",
+    opts: lang === "fr"
+      ? [{ v:"full", l:"Flacon complet", i:"🧴", d:"La bouteille entière" }, { v:"decant", l:"Décante", i:"🧪", d:"Un petit format (3 – 20 ml) pour essayer" }]
+      : [{ v:"full", l:"قنينة كاملة", i:"🧴", d:"القارورة كاملة" }, { v:"decant", l:"ديكونط", i:"🧪", d:"حجم صغير (3 – 20 ml) باش تجرب" }],
+  });
 
   // سؤال الميزانية — يمكن تحييده من CONFIG
   if (CONFIG.HAS_BUDGET_QUESTION === false) return pre;
@@ -2461,7 +2473,7 @@ function buildQS(sizeType, lang="ar", world) {
     q:        lang==="fr" ? "Votre budget ?" : "شحال الميزانية ديالك؟",
     sub:      lang==="fr" ? "On adapte les prix selon votre choix" : "كنبدلوا الأثمان حسب اختيارك",
     sizeType: effectiveSizeType,
-    hasToggle: hasDecant && hasFull,
+    hasToggle: hasDecant && hasFull && !askType,   // no switch when the type was just asked as its own question
     opts:     dynamicOpts,
   };
 
@@ -4156,6 +4168,8 @@ function WidgetContent({ onClose, lang: langProp, initialStep="intro" }) {
     let na = {...ans, [qId]:val};
     // a new fragrance world changes the budget ranges, so an earlier budget answer no longer applies
     if (qId === "world" && val !== ans.world) na.budget = null;
+    // bottle ↔ decant changes the budget ranges too
+    if (qId === "sizeType" && val !== ans.sizeType) na.budget = null;
     // sizeType تلقائي حسب CONFIG
     if (CONFIG.HAS_DECANT === false) na.sizeType = "full";
     if (CONFIG.HAS_FULL   === false) na.sizeType = "decant";
