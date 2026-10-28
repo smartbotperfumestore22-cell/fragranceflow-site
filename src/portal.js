@@ -176,6 +176,7 @@ function render() {
       ${!S.admin && S.stores.length > 1 ? `<label class="p-pick">المتجر<select id="s-store">${S.stores.map((x) => `<option value="${esc(x.id)}"${x.id === s.id ? " selected" : ""}>${esc(x.name)}</option>`).join("")}</select></label>` : ""}
     </section>
     ${trialBanner(s)}
+    ${linkCard(s)}
     <nav class="p-tabs" role="tablist">${tabs.map(([k, l]) => `<button role="tab" type="button" data-tab="${k}" aria-selected="${S.tab === k}">${l}</button>`).join("")}
       <a class="p-tablink" href="/dashboard/">📊 الإحصائيات</a><a class="p-tablink" href="/dashboard/report.html">📄 التقرير الشهري</a></nav>
     <section id="tab" class="d-card p-panel"></section>
@@ -183,9 +184,53 @@ function render() {
   app.querySelectorAll(".p-tabs button").forEach((b) => b.addEventListener("click", () => { S.tab = b.dataset.tab; S.q = ""; render(); }));
   const pick = document.getElementById("s-store");
   if (pick) pick.addEventListener("change", () => { S.store = S.stores.find((x) => x.id === pick.value); loadStore(); });
+  wireLinkCard(s);
   const back = document.getElementById("b-team");
   if (back) back.addEventListener("click", () => { S.mode = "team"; sessionStorage.setItem("ff_mode", "team"); renderTeam(); });
   ({ offers: tabOffers, add: tabAdd, requests: tabRequests, settings: tabSettings }[S.tab] || tabOffers)();
+}
+
+// the store's quiz link and QR code, always at the top of the store space (the merchant shares them)
+const storeLink = (s) => location.origin + "/?store=" + encodeURIComponent(s.id);
+function linkCard(s) {
+  const url = storeLink(s);
+  return `<section class="d-card p-linkcard" aria-labelledby="p-link-title">
+    <div class="p-link-main">
+      <h2 id="p-link-title">🔗 الرابط ديال متجرك</h2>
+      <p class="p-small">حطو فالبيو ديال Instagram، صيفطو للزبناء فالواتساب، ولا زيدو فالموقع ديالك.</p>
+      <div class="p-linkrow"><input readonly dir="ltr" value="${esc(url)}" aria-label="الرابط ديال متجرك" id="p-store-url">
+        <button type="button" class="d-btn" id="b-copy-link">نسخ</button></div>
+      <div class="p-review p-linkacts">
+        <a class="p-link" target="_blank" rel="noopener" href="https://wa.me/?text=${encodeURIComponent("دوز اختبار العطور ديالنا ولقا العطر اللي كيناسبك: " + url)}">صيفطو فالواتساب</a>
+        <a class="p-link" target="_blank" rel="noopener" href="${esc(url)}#quiz">جرّب الكويز</a>
+      </div>
+    </div>
+    <div class="p-qr"><canvas id="p-qr" width="132" height="132" aria-label="QR Code ديال متجرك"></canvas>
+      <a class="p-link" id="b-qr-dl" download="qr-${esc(s.id)}.png" href="#">تحميل الـ QR</a>
+      <small>اطبعو وحطو فالمحل</small></div>
+  </section>`;
+}
+function wireLinkCard(s) {
+  const b = document.getElementById("b-copy-link"), inp = document.getElementById("p-store-url");
+  if (b) b.addEventListener("click", async () => {
+    try { await navigator.clipboard.writeText(inp.value); b.textContent = "تنسخ ✓"; }
+    catch (e) { inp.select(); b.textContent = "حدد ونسخ"; }
+    setTimeout(() => { b.textContent = "نسخ"; }, 2500);
+  });
+  if (inp) inp.addEventListener("focus", () => inp.select());
+  const canvas = document.getElementById("p-qr");
+  if (!canvas) return;
+  import("qrcode").then((m) => {
+    const QR = m.default || m;
+    // the printed QR carries source=qr, so visits from the shop counter are counted apart
+    const qrUrl = storeLink(s) + "&source=qr";
+    QR.toCanvas(canvas, qrUrl, { width: 132, margin: 1, color: { dark: "#1D1430", light: "#FFFFFF" } }, () => {});
+    // the download is a bigger image, sharp when printed
+    const big = document.createElement("canvas");
+    QR.toCanvas(big, qrUrl, { width: 800, margin: 2, color: { dark: "#1D1430", light: "#FFFFFF" } }, () => {
+      const a = document.getElementById("b-qr-dl"); if (a) a.href = big.toDataURL("image/png");
+    });
+  }).catch(() => { canvas.replaceWith(Object.assign(document.createElement("small"), { textContent: "ما قدرناش نوجدو الـ QR دابا." })); });
 }
 
 // the FragranceFlow team's own space: overview of every store, accounts, requests
