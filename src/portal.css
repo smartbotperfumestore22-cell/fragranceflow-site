@@ -98,3 +98,33 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--v); outline
 .p-overview > * { min-width: 0; }
 .p-range { justify-self: start; }
 .p-overview .d-head h1 { font-size: 1.4rem; }
+
+/* sizes and prices per perfume */
+.p-sizes-btn { font-size: .8rem; padding: 2px 0; text-decoration: none; }
+.p-from { display: grid; font-weight: 800; font-size: .95rem; line-height: 1.2; }
+.p-from em { font-style: normal; font-size: .76rem; color: var(--muted); font-weight: 600; }
+.p-from small { font-size: .74rem; color: var(--muted); font-weight: 600; }
+.p-sizes-row { list-style: none; padding: 4px 0 14px; border-bottom: 1px solid #F1ECFA; }
+.p-sizes { background: var(--v-soft); border: 1px solid var(--line); border-radius: 14px; padding: 14px; display: grid; gap: 10px; }
+.p-size-list { display: grid; gap: 8px; }
+.p-size { display: grid; grid-template-columns: 130px 110px minmax(0, 150px) 34px; gap: 8px; align-items: center; }
+.p-size select, .p-size input, .p-addform select, .p-addform input { padding: 8px 10px; font-size: .92rem; }
+.p-quick { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; font-size: .8rem; color: var(--muted); }
+.p-chip { border: 1px solid #CDBEF5; background: #FFF; color: #3E1F9C; border-radius: 999px; padding: 4px 10px; font: inherit; font-size: .78rem; font-weight: 700; cursor: pointer; }
+.p-chip.is-full { border-color: #E3DDF0; color: var(--ink); }
+.p-chip:focus-visible { outline: 2px solid var(--v); outline-offset: 2px; }
+.p-grow { flex: 1; }
+.p-sizes .p-review { justify-content: flex-start; }
+.p-item.p-item-add, #tab .p-list .p-item.p-item-add { grid-template-columns: 40px minmax(0, 1fr) auto; }
+.p-addform { display: grid; grid-template-columns: 120px 90px 130px auto; gap: 8px; align-items: center; }
+@media (max-width: 640px) {
+  .p-size { grid-template-columns: minmax(0, 1fr) 90px; grid-template-areas: "t z" "p x"; }
+  .p-size > label:nth-child(1) { grid-area: t; } .p-size > label:nth-child(2) { grid-area: z; }
+  .p-size > label:nth-child(3) { grid-area: p; } .p-size > button { grid-area: x; justify-self: end; }
+  .p-size + .p-size { border-top: 1px dashed var(--line); padding-top: 8px; }
+  .p-item.p-item-add, #tab .p-list .p-item.p-item-add { grid-template-columns: 40px minmax(0, 1fr); grid-template-areas: "img name" "form form"; }
+  .p-item-add .p-addform { grid-area: form; grid-template-columns: minmax(0, 1fr) 90px; }
+  .p-item-add .p-addform .p-price { grid-column: 1; } .p-item-add .p-addform .p-add { grid-column: 2; }
+  .p-item-add > .p-tag { grid-area: name; justify-self: end; align-self: center; }
+  .p-from { grid-area: price; }
+}

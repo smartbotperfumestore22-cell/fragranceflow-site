@@ -85,7 +85,10 @@ function build(data) {
       if (!same.page && page) same.page = page;
       continue;
     }
-    list.push({ storeId: sid, name: st.name, city: st.city, price: num(o.price) || null, size: str(o.size),
+    // every size the store sells with its price (decants 5ml, 10ml… and full bottles), cheapest first
+    const variants = Array.isArray(o.variants) ? o.variants.filter((v) => v && v.size && num(v.price))
+      .map((v) => ({ type: v.type === "decant" ? "decant" : "full", size: str(v.size), price: num(v.price) })) : [];
+    list.push({ storeId: sid, name: st.name, city: st.city, price: num(o.price) || null, size: str(o.size), variants,
       url, page, whatsapp, formats: fmt || [],
       // the store's own details, for the store link (header, footer)
       storeWebsite: st.website, storeInstagram: st.instagram, storeLogo: st.logo, storeColor: st.color });
@@ -153,7 +156,9 @@ async function readSupabase() {
   const [perfumes, stores, offers] = await Promise.all([
     sbAll("perfumes", "*", "perfume_id"),
     sbAll("stores", "id,name,city,website,whatsapp,instagram,logo_url,color,active", "id"),
-    sbAll("offers", "store_id,perfume_id,size,size_type,price,url,in_stock", "id"),
+    // sizes per offer (008_offer_sizes.sql); older databases without the column still work
+    sbAll("offers", "store_id,perfume_id,size,size_type,price,url,in_stock,variants", "id")
+      .catch(() => sbAll("offers", "store_id,perfume_id,size,size_type,price,url,in_stock", "id")),
   ]);
   return { perfumes, stores: stores.map((s) => ({ ...s, store_id: s.id })), offers };
 }

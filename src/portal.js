@@ -134,7 +134,7 @@ async function start_() {
 async function loadStore() {
   sessionStorage.setItem("ff_store", S.store.id);
   const [o, r] = await Promise.all([
-    sb.from("offers").select("id, perfume_id, size, size_type, price, in_stock, active, updated_at, perfumes(name, brand, gender, image_url)").eq("store_id", S.store.id),
+    sb.from("offers").select("id, perfume_id, size, size_type, price, in_stock, active, updated_at, variants, perfumes(name, brand, gender, image_url, size)").eq("store_id", S.store.id),
     sb.from("requests").select("*").eq("store_id", S.store.id).order("created_at", { ascending: false }),
   ]);
   if (o.error) { toast(errText(o.error), true); }
@@ -242,8 +242,10 @@ function tabOffers() {
     if (!list.length) { ul.innerHTML = '<li class="d-empty">ما لقينا والو بهاد الاسم.</li>'; return; }
     ul.innerHTML = list.map((o) => `<li class="p-item${o.active ? "" : " is-removed"}${o.in_stock ? "" : " is-out"}" data-id="${o.id}">
       ${thumb(o.perfumes)}
-      <div class="p-name"><b dir="ltr">${esc(o.perfumes?.name || o.perfume_id)}</b><small dir="ltr">${esc(o.perfumes?.brand || "")}${o.size ? " · " + esc(o.size) : ""}</small></div>
-      ${o.active ? `<label class="p-price"><span class="sr">الثمن</span><input type="number" inputmode="decimal" min="0" step="1" value="${o.price ?? ""}" data-act="price"><em>درهم</em></label>
+      <div class="p-name"><b dir="ltr">${esc(o.perfumes?.name || o.perfume_id)}</b><small dir="ltr">${esc(o.perfumes?.brand || "")}${o.size ? " · " + esc(o.size) : ""}</small>
+        ${o.active ? `<button type="button" class="p-link p-sizes-btn" data-act="sizes">📏 الأحجام والأثمنة${vlist(o).length > 1 ? ` (${vlist(o).length})` : ""}</button>` : ""}</div>
+      ${o.active ? `${vlist(o).length > 1 ? `<span class="p-from">من ${fmt(o.price)} <em>درهم</em><small>${vlist(o).length} أحجام</small></span>`
+        : `<label class="p-price"><span class="sr">الثمن</span><input type="number" inputmode="decimal" min="0" step="1" value="${o.price ?? ""}" data-act="price"><em>درهم</em></label>`}
         <label class="p-switch"><input type="checkbox" data-act="stock"${o.in_stock ? " checked" : ""}><span>${o.in_stock ? "متوفر" : "مقطوع"}</span></label>
         <button type="button" class="p-icon" data-act="remove" aria-label="حيد ${esc(o.perfumes?.name || "")}" title="حيد">✕</button>`
       : `<span class="p-tag">محيد</span><button type="button" class="p-link" data-act="restore">رجعو</button>`}
@@ -251,25 +253,95 @@ function tabOffers() {
   };
   draw(); wireSearch(draw);
   el.addEventListener("change", async (e) => {
+    if (e.target.closest(".p-sizes")) return;
     const li = e.target.closest(".p-item"); if (!li) return;
     const o = S.offers.find((x) => x.id === Number(li.dataset.id));
     if (e.target.dataset.act === "price") {
       const v = e.target.value === "" ? null : Number(e.target.value);
       if (v != null && (isNaN(v) || v < 0 || v > 100000)) { toast("الثمن ماشي صحيح.", true); e.target.value = o.price ?? ""; return; }
-      await save(o, { price: v }, "تبدل الثمن ✓");
+      // one size saved as a size: change its price there, so price and sizes stay the same thing
+      const vs = vlist(o);
+      if (vs.length === 1 && v) await save(o, { variants: [{ ...vs[0], price: v }] }, "تبدل الثمن ✓");
+      else await save(o, { price: v }, "تبدل الثمن ✓");
     }
     if (e.target.dataset.act === "stock") { await save(o, { in_stock: e.target.checked }, e.target.checked ? "ولا متوفر ✓" : "ولا مقطوع ✓"); render(); }
   });
   el.addEventListener("click", async (e) => {
-    const act = e.target.dataset && e.target.dataset.act; if (act !== "remove" && act !== "restore") return;
+    const act = e.target.dataset && e.target.dataset.act;
+    if (act === "sizes") {
+      const li = e.target.closest(".p-item"), open = li.nextElementSibling && li.nextElementSibling.classList.contains("p-sizes-row");
+      el.querySelectorAll(".p-sizes-row").forEach((x) => x.remove());
+      if (!open) sizesEditor(li, S.offers.find((x) => x.id === Number(li.dataset.id)), draw);
+      return;
+    }
+    if (act !== "remove" && act !== "restore") return;
     const o = S.offers.find((x) => x.id === Number(e.target.closest(".p-item").dataset.id));
     await save(o, { active: act === "restore" }, act === "restore" ? "رجع العطر ✓" : "تحيد العطر. تقدر ترجعو من بعد.");
     render();
   });
 }
 
+// the sizes a store sells for a perfume: saved sizes, else the single price as one size
+const vlist = (o) => (Array.isArray(o.variants) ? o.variants : []);
+const DECANTS = ["3ml", "5ml", "10ml", "20ml"], BOTTLES = ["30ml", "50ml", "75ml", "100ml"];
+const TYPE = { full: "قنينة كاملة", decant: "ديكونط" };
+function sizeRow(v = {}) {
+  return `<div class="p-size" role="group">
+    <label><span class="sr">النوع</span><select data-k="type">${Object.keys(TYPE).map((t) => `<option value="${t}"${(v.type || "full") === t ? " selected" : ""}>${TYPE[t]}</option>`).join("")}</select></label>
+    <label><span class="sr">الحجم</span><input data-k="size" list="ff-sizes" maxlength="20" dir="ltr" placeholder="10ml" value="${esc(v.size || "")}"></label>
+    <label class="p-price"><span class="sr">الثمن</span><input data-k="price" type="number" inputmode="decimal" min="0" step="1" placeholder="الثمن" value="${v.price ?? ""}"><em>درهم</em></label>
+    <button type="button" class="p-icon" data-k="del" aria-label="حيد هاد الحجم">✕</button></div>`;
+}
+function sizesEditor(li, o, done) {
+  let rows = vlist(o).length ? vlist(o) : (o.price ? [{ type: o.size_type === "decant" ? "decant" : "full", size: o.size || o.perfumes?.size || "", price: o.price }] : []);
+  const box = document.createElement("li");
+  box.className = "p-sizes-row";
+  box.innerHTML = `<div class="p-sizes">
+    <p class="p-small">زيد كل حجم كتبيعو بالثمن ديالو: ديكونط ولا قنينة كاملة.</p>
+    <div class="p-size-list">${(rows.length ? rows : [{}]).map(sizeRow).join("")}</div>
+    <div class="p-quick"><span>زيد بسرعة:</span>${DECANTS.map((z) => `<button type="button" class="p-chip" data-q="decant|${z}">ديكونط ${z}</button>`).join("")}
+      ${BOTTLES.map((z) => `<button type="button" class="p-chip is-full" data-q="full|${z}">قنينة ${z}</button>`).join("")}</div>
+    <datalist id="ff-sizes">${DECANTS.concat(["2ml", "15ml", "30ml"], BOTTLES, ["90ml", "125ml", "150ml", "200ml"]).map((z) => `<option value="${z}">`).join("")}</datalist>
+    <div class="p-review"><button type="button" class="p-link" data-k="add">+ زيد حجم</button><span class="p-grow"></span>
+      <button type="button" class="p-link" data-k="cancel">إلغاء</button><button type="button" class="d-btn" data-k="save">حفظ الأحجام</button></div></div>`;
+  li.after(box);
+  const list = box.querySelector(".p-size-list");
+  box.addEventListener("click", async (e) => {
+    const k = e.target.dataset.k, qk = e.target.dataset.q;
+    if (qk) {
+      const [type, size] = qk.split("|");
+      const empty = [...list.querySelectorAll(".p-size")].find((r) => !r.querySelector("[data-k=size]").value && !r.querySelector("[data-k=price]").value);
+      if (empty) empty.remove();
+      list.insertAdjacentHTML("beforeend", sizeRow({ type, size }));
+      list.lastElementChild.querySelector("[data-k=price]").focus();
+    }
+    if (k === "add") { list.insertAdjacentHTML("beforeend", sizeRow({ type: (vlist(o)[0] || {}).type })); list.lastElementChild.querySelector("[data-k=size]").focus(); }
+    if (k === "del") e.target.closest(".p-size").remove();
+    if (k === "cancel") box.remove();
+    if (k === "save") {
+      const out = [], seen = new Set();
+      for (const r of list.querySelectorAll(".p-size")) {
+        const type = r.querySelector("[data-k=type]").value, size = r.querySelector("[data-k=size]").value.trim().replace(/\s+/g, "");
+        const pv = r.querySelector("[data-k=price]").value;
+        if (!size && !pv) continue;
+        const price = Number(pv);
+        if (!size) return toast("كتب الحجم (مثلاً 10ml).", true);
+        if (!pv || !(price > 0) || price > 100000) return toast(`كتب ثمن صحيح لـ ${size}.`, true);
+        const key = type + "|" + size.toLowerCase();
+        if (seen.has(key)) return toast(`${size} مكتوب جوج مرات.`, true);
+        seen.add(key); out.push({ type, size, price });
+      }
+      if (!out.length) return toast("زيد حجم واحد على الأقل.", true);
+      if (out.length > 12) return toast("12 حجم هو الحد.", true);
+      e.target.disabled = true;
+      if (await save(o, { variants: out }, `تحفظو ${out.length} ${out.length === 1 ? "حجم" : "أحجام"} ✓`)) { box.remove(); done(); }
+      e.target.disabled = false;
+    }
+  });
+}
+
 async function save(o, patch, ok) {
-  const { data, error } = await sb.from("offers").update(patch).eq("id", o.id).select("id, price, in_stock, active, updated_at").single();
+  const { data, error } = await sb.from("offers").update(patch).eq("id", o.id).select("id, price, size, size_type, in_stock, active, updated_at, variants").single();
   if (error) { toast(errText(error), true); return false; }
   Object.assign(o, data); toast(ok); return true;
 }
@@ -284,25 +356,39 @@ async function tabAdd() {
     const list = cat.filter((p) => match(p, S.q)).slice(0, 60);
     document.getElementById("list").innerHTML = list.length ? list.map((p) => {
       const have = mine[p.perfume_id];
-      return `<li class="p-item" data-pid="${esc(p.perfume_id)}">${thumb(p)}
+      return `<li class="p-item p-item-add" data-pid="${esc(p.perfume_id)}">${thumb(p)}
         <div class="p-name"><b dir="ltr">${esc(p.name)}</b><small dir="ltr">${esc(p.brand)} · ${GENDER[p.gender] || ""}</small></div>
         ${have && have.active ? '<span class="p-tag is-ok">عندك</span>'
-          : `<label class="p-price"><span class="sr">الثمن</span><input type="number" inputmode="decimal" min="0" step="1" placeholder="الثمن" data-act="newprice"><em>درهم</em></label>
-             <button type="button" class="d-btn p-add" data-act="add">${have ? "رجعو" : "زيد"}</button>`}</li>`;
+          : `<div class="p-addform">
+              <label><span class="sr">النوع</span><select data-act="newtype"><option value="full">قنينة كاملة</option><option value="decant">ديكونط</option></select></label>
+              <label><span class="sr">الحجم</span><input data-act="newsize" maxlength="20" dir="ltr" list="ff-sizes-add" value="${esc(p.size || "")}" data-full="${esc(p.size || "")}"></label>
+              <label class="p-price"><span class="sr">الثمن</span><input type="number" inputmode="decimal" min="0" step="1" placeholder="الثمن" data-act="newprice"><em>درهم</em></label>
+              <button type="button" class="d-btn p-add" data-act="add">${have ? "رجعو" : "زيد"}</button></div>`}</li>`;
     }).join("") : '<li class="d-empty">ما لقينا والو بهاد الاسم.</li>';
   };
+  el.insertAdjacentHTML("beforeend", `<datalist id="ff-sizes-add">${["3ml", "5ml", "10ml", "20ml", "30ml", "50ml", "75ml", "100ml", "125ml", "200ml"].map((z) => `<option value="${z}">`).join("")}</datalist>
+    <p class="p-small">تقدر تزيد أحجام أخرى (ديكونط 3ml، 5ml…) من «عطوري» ← 📏 الأحجام والأثمنة.</p>`);
   draw(); wireSearch(draw);
+  // choosing "decant" suggests 5ml; back to "full bottle" puts the bottle size back
+  el.addEventListener("change", (e) => {
+    if (e.target.dataset.act !== "newtype") return;
+    const sz = e.target.closest(".p-addform").querySelector("[data-act=newsize]");
+    sz.value = e.target.value === "decant" ? "5ml" : sz.dataset.full;
+  });
   el.addEventListener("click", async (e) => {
     if (!e.target.dataset || e.target.dataset.act !== "add") return;
     const li = e.target.closest(".p-item"), pid = li.dataset.pid, pin = li.querySelector("[data-act=newprice]");
     const price = pin.value === "" ? null : Number(pin.value);
+    const type = li.querySelector("[data-act=newtype]").value, size = li.querySelector("[data-act=newsize]").value.trim().replace(/\s+/g, "");
     if (price == null || isNaN(price) || price <= 0) { toast("كتب الثمن قبل.", true); pin.focus(); return; }
+    if (!size) { toast("كتب الحجم (مثلاً 10ml).", true); return; }
+    const variants = [{ type, size, price }];
     e.target.disabled = true;
     const have = mine[pid];
-    if (have) { if (await save(have, { active: true, in_stock: true, price }, "رجع العطر ✓")) draw(); e.target.disabled = false; return; }
+    if (have) { if (await save(have, { active: true, in_stock: true, variants }, "رجع العطر ✓")) draw(); e.target.disabled = false; return; }
     const p = cat.find((x) => x.perfume_id === pid);
-    const { data, error } = await sb.from("offers").insert({ store_id: S.store.id, perfume_id: pid, price, size: p.size || "", in_stock: true })
-      .select("id, perfume_id, size, size_type, price, in_stock, active, updated_at, perfumes(name, brand, gender, image_url)").single();
+    const { data, error } = await sb.from("offers").insert({ store_id: S.store.id, perfume_id: pid, price, size, size_type: type, variants, in_stock: true })
+      .select("id, perfume_id, size, size_type, price, in_stock, active, updated_at, variants, perfumes(name, brand, gender, image_url, size)").single();
     e.target.disabled = false;
     if (error) return toast(errText(error), true);
     S.offers.push(data); mine[pid] = data; toast(`تزاد ${p.name} ✓`); draw();
