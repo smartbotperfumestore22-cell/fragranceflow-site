@@ -245,13 +245,53 @@ function linkCard(s) {
         <a class="p-link" target="_blank" rel="noopener" href="https://wa.me/?text=${encodeURIComponent("دوز اختبار العطور ديالنا ولقا العطر اللي كيناسبك: " + url)}">صيفطو فالواتساب</a>
         <a class="p-link" target="_blank" rel="noopener" href="${esc(url)}#quiz">جرّب الكويز</a>
       </div>
+      ${embedBox(s)}
     </div>
     <div class="p-qr"><canvas id="p-qr" width="132" height="132" aria-label="QR Code ديال متجرك"></canvas>
       <a class="p-link" id="b-qr-dl" download="qr-${esc(s.id)}.png" href="#">تحميل الـ QR</a>
       <small>اطبعو وحطو فالمحل</small></div>
   </section>`;
 }
+// the quiz on the store's own website: a button that opens it, or the quiz inside a page (iframe that sizes itself)
+const THEME_ACCENT = { luxury: "#5B2A86", oriental: "#7A2331", modern: "#1F1F22", natural: "#3E6B4A" };
+function embedCodes(s) {
+  const base = storeLink(s), color = /^#[0-9a-f]{6}$/i.test(s.color || "") ? s.color : (THEME_ACCENT[s.theme] || THEME_ACCENT.luxury);
+  const button = `<a href="${base}&source=website#quiz" target="_blank" rel="noopener" style="display:inline-block;padding:14px 30px;border-radius:999px;background:${color};color:#fff;font-weight:700;text-decoration:none">✨ اكتشف العطر اللي كيناسبك</a>`;
+  const frame = `<iframe id="ff-quiz" src="${base}&embed=1&source=website#quiz" title="اختبار العطور" loading="lazy" allow="clipboard-write; web-share" style="display:block;width:100%;height:1100px;border:0"></iframe>
+<script>(function(){var f=document.getElementById("ff-quiz"),o="${location.origin}";addEventListener("message",function(e){var d=e.data;if(e.origin!==o||!d||!d.ff||e.source!==f.contentWindow)return;if(d.type==="height")f.style.height=d.h+"px";if(d.type==="view"){var t=f.getBoundingClientRect().top+d.y;if(d.force||t<0)scrollTo({top:scrollY+t-12,behavior:"smooth"})}})})();</script>`;
+  return { button, frame };
+}
+function embedBox(s) {
+  const c = embedCodes(s);
+  return `<details class="p-embed">
+    <summary>🌐 زيد الكويز للموقع ديالك</summary>
+    <div class="p-embed-in">
+      <h3>1. زر كيحل الكويز</h3>
+      <p class="p-small">الأسهل: زر فالصفحة الرئيسية ولا فالقائمة، كيحل الكويز ديال متجرك.</p>
+      <textarea readonly dir="ltr" rows="3" aria-label="كود الزر" id="p-code-btn">${esc(c.button)}</textarea>
+      <button type="button" class="d-btn ghost" data-copy="p-code-btn">نسخ كود الزر</button>
+      <h3>2. الكويز داخل الصفحة</h3>
+      <p class="p-small">الزبون كيدوز الكويز بلا ما يخرج من الموقع ديالك. الطول كيتبدل بوحدو حسب كل سؤال.</p>
+      <textarea readonly dir="ltr" rows="5" aria-label="كود الكويز داخل الصفحة" id="p-code-frame">${esc(c.frame)}</textarea>
+      <button type="button" class="d-btn ghost" data-copy="p-code-frame">نسخ كود الكويز</button>
+      <h3>فين نلصق الكود؟</h3>
+      <ul class="p-small p-embed-steps">
+        <li><b>Shopify:</b> <span class="p-path" dir="ltr">Online Store › Themes › Customize › Add section › Custom Liquid</span>، لصق الكود وورك Save.</li>
+        <li><b>WordPress / WooCommerce:</b> عدّل الصفحة، زيد بلوك <span class="p-path" dir="ltr">Custom HTML</span>، لصق الكود وورك Update.</li>
+        <li><b>Wix:</b> استعمل كود الزر (1) فـ <span class="p-path" dir="ltr">Add › Embed Code › Embed HTML</span>.</li>
+        <li><b>موقع خاص:</b> عطي الكود للمطوّر ديالك يحطو فين بغيتي.</li>
+      </ul>
+      <p class="p-small">الزيارات اللي جاية من الموقع ديالك كتبان فالإحصائيات بوحدها (المصدر: الموقع ديالك).</p>
+    </div>
+  </details>`;
+}
 function wireLinkCard(s) {
+  document.querySelectorAll(".p-embed [data-copy]").forEach((btn) => btn.addEventListener("click", async () => {
+    const ta = document.getElementById(btn.dataset.copy), label = btn.textContent;
+    try { await navigator.clipboard.writeText(ta.value); btn.textContent = "تنسخ ✓"; }
+    catch (e) { ta.select(); btn.textContent = "حدد ونسخ"; }
+    setTimeout(() => { btn.textContent = label; }, 2500);
+  }));
   const b = document.getElementById("b-copy-link"), inp = document.getElementById("p-store-url");
   if (b) b.addEventListener("click", async () => {
     try { await navigator.clipboard.writeText(inp.value); b.textContent = "تنسخ ✓"; }

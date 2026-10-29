@@ -6,6 +6,26 @@ import { FOOTER_LINKS } from './footer-links.js';
 export function startSite({ loadQuiz }) {
   var DB = (window.__ffDP__ || []).filter(function (p) { return p.active !== false; });
   var STORE = window.__FF_STORE__ || null; // set when the visit came through a store link (?store=…)
+  // embedded in the store's own website (portal → «زيد الكويز لموقعك»): ?store=<id>&embed=1 inside an iframe.
+  // Only the store's quiz shows; the page tells the host its height and where to scroll. Nothing else changes.
+  var EMBED = !!STORE && /[?&]embed=1(&|$)/.test(location.search);
+  if (EMBED) {
+    document.documentElement.classList.add('ff-embed');
+    var post = function (m) { m.ff = 1; try { window.parent.postMessage(m, '*'); } catch (e) {} };
+    var lastH = 0;
+    var sendH = function () { var hh = Math.ceil(document.body.getBoundingClientRect().height); if (Math.abs(hh - lastH) > 2) { lastH = hh; post({ type: 'height', h: hh }); } };
+    if (window.ResizeObserver) new ResizeObserver(sendH).observe(document.body);
+    window.addEventListener('load', sendH); setInterval(sendH, 1200);
+    // after a step of the quiz, bring its top back into view on the host page (same as on our own page)
+    document.addEventListener('click', function (e) {
+      var cta = e.target.closest && e.target.closest('.store-hero-cta');
+      if (!cta && !(e.target.closest && e.target.closest('#ff-widget-root'))) return;
+      setTimeout(function () {
+        var el = (!cta && document.querySelector('.ff-page')) || document.getElementById('ff-widget-root');
+        if (el) post({ type: 'view', y: Math.max(0, Math.round(el.getBoundingClientRect().top + window.scrollY - 8)), force: !!cta });
+      }, 260);
+    }, true);
+  }
   // display order for browsing: alternate women / men / unisex so the grid never opens on one gender only
   var BROWSE = (function () {
     var buckets = { women: [], men: [], unisex: [] }, out = [];

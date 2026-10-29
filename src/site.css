@@ -1759,4 +1759,8 @@ body.on-b2b .head-login svg { width: 18px; height: 18px; flex: none; }
   #quizpage .store-hero { border-radius: 18px; margin-bottom: 18px; }
   #quizpage .shp-card { min-height: 84px; background: linear-gradient(270deg, var(--shp-cm, #F7E4C6) 68%, transparent 96%), var(--shp-banner, none) left -30px center / auto 100% no-repeat, linear-gradient(180deg, var(--shp-c1, #F9EBD4), var(--shp-c2, #F0CFAE)); }
 }
+/* inside the store's own website (iframe): only the quiz */
+.ff-embed header.head, .ff-embed footer.foot, .ff-embed .skip { display: none !important; }
+.ff-embed .quizpage { min-height: 0; padding-block: 0 16px; }
+.ff-embed #quizpage .store-hero { margin-top: 0; }
 @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
