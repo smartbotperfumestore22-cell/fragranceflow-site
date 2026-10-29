@@ -553,8 +553,23 @@ function tabSettings() {
       <label>المدينة<input name="city" maxlength="60" value="${esc(s.city || "")}"></label>
       <label>Instagram<input name="instagram" dir="ltr" placeholder="https://instagram.com/…" value="${esc(s.instagram || "")}"></label>
       <label>الموقع ديالك<input name="website" dir="ltr" placeholder="https://…" value="${esc(s.website || "")}"></label>
-      <label>رابط اللوگو (صورة)<input name="logo_url" dir="ltr" placeholder="https://…/logo.png" value="${esc(s.logo_url || "")}"></label>
       <label>اللون ديال المتجر<span class="p-color"><input type="color" name="color" value="${/^#[0-9a-f]{6}$/i.test(s.color || "") ? esc(s.color) : "#5b35c8"}"><button type="button" class="p-link" id="b-nocolor">بلا لون</button></span></label>
+    </div>
+    <h2 class="p-h2">🎨 صفحة الكويز ديالك</h2>
+    <p class="p-small">هادشي كيبان للزبون فأول صفحة الكويز. إلا خليتيهم خاويين، كيبان النص العادي.</p>
+    <div class="p-media">
+      <div class="p-pic"><span class="p-pic-box p-pic-logo">${s.logo_url ? `<img src="${esc(s.logo_url)}" alt="اللوگو">` : esc((s.name || "?").slice(0, 2).toUpperCase())}</span>
+        <div><b>اللوگو</b><small>مربع، PNG ولا JPG</small>
+          <label class="d-btn p-upload">رفع اللوگو<input type="file" accept="image/png,image/jpeg,image/webp" data-up="logo_url" class="sr"></label>
+          ${s.logo_url ? '<button type="button" class="p-link p-danger" data-rm="logo_url">حيد</button>' : ""}</div></div>
+      <div class="p-pic p-pic-wide"><span class="p-pic-box p-pic-cover">${s.cover_url ? `<img src="${esc(s.cover_url)}" alt="صورة الغلاف">` : "<small>بلا صورة</small>"}</span>
+        <div><b>صورة الغلاف</b><small>عريضة: المحل، الواجهة، ولا العطور ديالك</small>
+          <label class="d-btn p-upload">رفع صورة<input type="file" accept="image/png,image/jpeg,image/webp" data-up="cover_url" class="sr"></label>
+          ${s.cover_url ? '<button type="button" class="p-link p-danger" data-rm="cover_url">حيد</button>' : ""}</div></div>
+    </div>
+    <div class="p-grid2">
+      <label>العنوان<input name="welcome_title" maxlength="80" value="${esc(s.welcome_title || "")}" placeholder="اختبار العطور ديال ${esc(s.name)}"></label>
+      <label>جملة الترحيب<textarea name="welcome_text" maxlength="300" rows="2" placeholder="جاوب على الأسئلة، ونقترحو عليك العطور الأقرب لذوقك من العطور المتوفرة عندنا.">${esc(s.welcome_text || "")}</textarea></label>
     </div>
     <button class="d-btn" type="submit">حفظ</button></form>
     <form id="f-pass" class="p-form p-pass" novalidate>
@@ -562,6 +577,34 @@ function tabSettings() {
       <div class="p-grid2"><label>كلمة السر الجديدة (8 حروف ولا أكثر)<input type="password" name="p1" minlength="8" autocomplete="new-password" dir="ltr"></label>
       <label>عاودها<input type="password" name="p2" minlength="8" autocomplete="new-password" dir="ltr"></label></div>
       <button class="d-btn" type="submit">بدل كلمة السر</button></form>`;
+  // pictures: resized in the browser, uploaded to the store's folder in Supabase Storage, then saved on the store
+  el.addEventListener("change", async (e) => {
+    const field = e.target.dataset && e.target.dataset.up, file = e.target.files && e.target.files[0];
+    if (!field || !file) return;
+    if (!/^image\/(png|jpe?g|webp)$/.test(file.type)) return toast("ختار صورة PNG ولا JPG.", true);
+    if (file.size > 15 * 1024 * 1024) return toast("الصورة كبيرة بزاف (أكثر من 15 MB).", true);
+    const lab = e.target.closest(".p-upload"); lab.classList.add("is-busy"); lab.firstChild.textContent = "كنرفعو…";
+    try {
+      const blob = field === "logo_url" ? await shrinkImage(file, 512, 512) : await shrinkImage(file, 1600, 900);
+      const ext = blob.type === "image/webp" ? "webp" : blob.type === "image/png" ? "png" : "jpg";
+      const path = `${s.id}/${field === "logo_url" ? "logo" : "cover"}-${Date.now()}.${ext}`;
+      const up = await sb.storage.from("store-assets").upload(path, blob, { contentType: blob.type, cacheControl: "31536000", upsert: false });
+      if (up.error) throw up.error;
+      const url = sb.storage.from("store-assets").getPublicUrl(path).data.publicUrl;
+      const { data, error } = await sb.from("stores").update({ [field]: url }).eq("id", s.id).select("*").single();
+      if (error) throw error;
+      Object.assign(s, data); toast("تحفظات الصورة ✓"); askPublish(); render();
+    } catch (er) {
+      lab.classList.remove("is-busy"); lab.firstChild.textContent = field === "logo_url" ? "رفع اللوگو" : "رفع صورة";
+      toast(/bucket|not found/i.test(String(er && er.message)) ? "التخزين ما مزال مواجدش (010_store_page.sql)." : errText(er), true);
+    }
+  });
+  el.addEventListener("click", async (e) => {
+    const field = e.target.dataset && e.target.dataset.rm; if (!field) return;
+    const { data, error } = await sb.from("stores").update({ [field]: "" }).eq("id", s.id).select("*").single();
+    if (error) return toast(errText(error), true);
+    Object.assign(s, data); toast("تحيدات ✓"); askPublish(); render();
+  });
   const fp = document.getElementById("f-pass");
   fp.addEventListener("submit", async (e) => {
     e.preventDefault();
@@ -581,15 +624,28 @@ function tabSettings() {
     let w = f.whatsapp.value.replace(/\D/g, "").replace(/^00/, "");
     if (/^0[5-7]\d{8}$/.test(w)) w = "212" + w.slice(1);
     const row = { whatsapp: w, city: f.city.value.trim(), instagram: f.instagram.value.trim(), website: f.website.value.trim(),
-      logo_url: f.logo_url.value.trim(), color: noColor ? "" : f.color.value.toLowerCase() };
+      color: noColor ? "" : f.color.value.toLowerCase(), welcome_title: f.welcome_title.value.trim(), welcome_text: f.welcome_text.value.trim() };
     if (w && !/^\d{11,15}$/.test(w)) return toast("نمرة الواتساب ماشي صحيحة. مثال: 0612345678", true);
-    for (const k of ["instagram", "website", "logo_url"]) if (!https(row[k])) return toast("الروابط خاصهم يبداو بـ https://", true);
+    for (const k of ["instagram", "website"]) if (!https(row[k])) return toast("الروابط خاصهم يبداو بـ https://", true);
     const b = f.querySelector("[type=submit]"); b.disabled = true;
     const { data, error } = await sb.from("stores").update(row).eq("id", s.id).select("*").single();
     b.disabled = false;
     if (error) return toast(errText(error), true);
     Object.assign(s, data); toast("تحفظات المعلومات ✓"); askPublish(); render();
   });
+}
+
+// shrink a picture before upload (a phone photo of 5 MB becomes ~150 KB); WebP when the browser can, else JPEG
+async function shrinkImage(file, maxW, maxH) {
+  const img = await createImageBitmap(file);
+  const k = Math.min(1, maxW / img.width, maxH / img.height);
+  const c = document.createElement("canvas");
+  c.width = Math.round(img.width * k); c.height = Math.round(img.height * k);
+  c.getContext("2d").drawImage(img, 0, 0, c.width, c.height);
+  const as = (type, q) => new Promise((ok) => c.toBlob(ok, type, q));
+  let b = await as("image/webp", 0.86);
+  if (!b || b.type !== "image/webp") b = await as("image/jpeg", 0.86);
+  return b;
 }
 
 // FragranceFlow team: create merchant logins (and new stores), new temporary passwords, remove access

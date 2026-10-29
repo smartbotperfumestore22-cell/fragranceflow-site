@@ -233,10 +233,12 @@ export function startSite({ loadQuiz }) {
     show('quiz'); window.scrollTo(0, back ? resultsY : 0);
     if (STORE && !document.getElementById('store-quiz-note')) {
       var root = document.getElementById('ff-widget-root');
-      root.parentNode.insertBefore(h('aside', { class: 'store-quiz-note', id: 'store-quiz-note' },
+      // the store's own words and cover picture when it set them in the portal (⚙️ إعدادات المتجر), else the default text
+      root.parentNode.insertBefore(h('aside', { class: 'store-quiz-note' + (STORE.cover ? ' has-cover' : ''), id: 'store-quiz-note' },
+        STORE.cover ? h('img', { class: 'store-cover', src: STORE.cover, alt: '', loading: 'eager', decoding: 'async' }) : null,
         storeSeal('store-seal-lg'),
-        h('p', { class: 'store-quiz-title', text: 'اختبار العطور ديال ' + STORE.name }),
-        h('p', { text: 'جاوب على الأسئلة، ونقترحو عليك العطور الأقرب لذوقك من ' + STORE.count + ' عطر متوفر عندنا.' })), root);
+        h('p', { class: 'store-quiz-title', text: STORE.welcomeTitle || ('اختبار العطور ديال ' + STORE.name) }),
+        h('p', { text: STORE.welcomeText || ('جاوب على الأسئلة، ونقترحو عليك العطور الأقرب لذوقك من ' + STORE.count + ' عطر متوفر عندنا.') })), root);
     }
     document.title = STORE ? 'اكتشف عطرك | ' + STORE.name : 'اكتشف بصمتك العطرية | FragranceFlow';
     if (quizOpen) return;

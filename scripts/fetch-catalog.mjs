@@ -61,7 +61,8 @@ function build(data) {
     const color = /^#?[0-9a-f]{6}$/i.test(str(s.color)) ? "#" + str(s.color).replace(/^#/, "").toLowerCase() : "";
     stores[id] = { name: str(s.name), city: str(s.city), whatsapp: wa.length >= 9 ? wa : "",
       website: link(s.website || s.website_url), instagram: link(s.instagram || s.instagram_url),
-      logo: link(s.logo_url || s.logo), color };
+      logo: link(s.logo_url || s.logo), color,
+      welcomeTitle: str(s.welcome_title).slice(0, 80), welcomeText: str(s.welcome_text).slice(0, 300), cover: link(s.cover_url) };
   }
   const offers = {};
   for (const o of data.offers || []) {
@@ -91,7 +92,8 @@ function build(data) {
     list.push({ storeId: sid, name: st.name, city: st.city, price: num(o.price) || null, size: str(o.size), variants,
       url, page, whatsapp, formats: fmt || [],
       // the store's own details, for the store link (header, footer)
-      storeWebsite: st.website, storeInstagram: st.instagram, storeLogo: st.logo, storeColor: st.color });
+      storeWebsite: st.website, storeInstagram: st.instagram, storeLogo: st.logo, storeColor: st.color,
+      storeWelcomeTitle: st.welcomeTitle, storeWelcomeText: st.welcomeText, storeCover: st.cover });
   }
   for (const pid in offers) offers[pid].forEach((x) => x.formats.sort((a, b) => (a === "full" ? -1 : b === "full" ? 1 : 0)));
   const seen = new Set(), out = [];
@@ -155,7 +157,9 @@ async function sbAll(table, select, order) {
 async function readSupabase() {
   const [perfumes, stores, offers] = await Promise.all([
     sbAll("perfumes", "*", "perfume_id"),
-    sbAll("stores", "id,name,city,website,whatsapp,instagram,logo_url,color,active", "id"),
+    // welcome text and cover of the store's quiz page (010_store_page.sql); older databases without them still work
+    sbAll("stores", "id,name,city,website,whatsapp,instagram,logo_url,color,active,welcome_title,welcome_text,cover_url", "id")
+      .catch(() => sbAll("stores", "id,name,city,website,whatsapp,instagram,logo_url,color,active", "id")),
     // sizes per offer (008_offer_sizes.sql); older databases without the column still work
     sbAll("offers", "store_id,perfume_id,size,size_type,price,url,in_stock,variants", "id")
       .catch(() => sbAll("offers", "store_id,perfume_id,size,size_type,price,url,in_stock", "id")),
