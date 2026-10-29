@@ -62,10 +62,10 @@ export function startSite({ loadQuiz }) {
   }
   // the store's atmosphere (portal → ⚙️ إعدادات المتجر): palette and picture; the store's own colour and cover win
   var THEMES = {
-    luxury:   { accent: '#5B2A86', gold: '#C9A45C', overlay: 'rgba(34, 12, 52, .6)', img: '/images/themes/luxury.webp', banner: '/images/themes/luxury-banner.webp' },
-    oriental: { accent: '#7A2331', gold: '#C99A4A', overlay: 'rgba(42, 12, 10, .6)', img: '/images/themes/oriental.webp' },
-    modern:   { accent: '#1F1F22', gold: '#B5A68C', overlay: 'rgba(12, 12, 14, .55)', img: '/images/themes/modern.webp' },
-    natural:  { accent: '#3E6B4A', gold: '#C2A878', overlay: 'rgba(18, 38, 24, .55)', img: '/images/themes/natural.webp' }
+    luxury:   { accent: '#5B2A86', gold: '#C9A45C', overlay: 'rgba(34, 12, 52, .6)', img: '/images/themes/luxury.webp', banner: '/images/themes/luxury-banner.webp', cream: ['#FBE8CB', '#F1D4BB', '#E5BCB0'] },
+    oriental: { accent: '#7A2331', gold: '#C99A4A', overlay: 'rgba(42, 12, 10, .6)', img: '/images/themes/oriental.webp', banner: '/images/themes/oriental-banner.webp', cream: ['#F1BF7D', '#E7AC66', '#E0974D'] },
+    modern:   { accent: '#1F1F22', gold: '#B5A68C', overlay: 'rgba(12, 12, 14, .55)', img: '/images/themes/modern.webp', banner: '/images/themes/modern-banner.webp', cream: ['#DDD1C5', '#E8DDD2', '#ECDED1'] },
+    natural:  { accent: '#3E6B4A', gold: '#C2A878', overlay: 'rgba(18, 38, 24, .55)', img: '/images/themes/natural.webp', banner: '/images/themes/natural-banner.webp', cream: ['#D8D294', '#DDD494', '#DED28D'] }
   };
   function hexRgb(x) { x = x.replace('#', ''); return [parseInt(x.substr(0, 2), 16), parseInt(x.substr(2, 2), 16), parseInt(x.substr(4, 2), 16)]; }
   function mix(x, y, k) { var a = hexRgb(x), b = hexRgb(y); return '#' + a.map(function (v, i) { return ('0' + Math.round(v + (b[i] - v) * k).toString(16)).slice(-2); }).join(''); }
@@ -272,6 +272,7 @@ export function startSite({ loadQuiz }) {
         ic('print', 'shp-seal'),
         h('span', { class: 'shp-card-tx' }, h('b', { text: 'بصمتك العطرية' }), h('small', { text: 'الشخصية العطرية ديالك' })));
       if (theme.banner) card.style.setProperty('--shp-banner', 'url("' + theme.banner + '")');
+      if (theme.cream) ['--shp-c1', '--shp-cm', '--shp-c2'].forEach(function (k, i) { card.style.setProperty(k, theme.cream[i]); });
       var preview = h('div', { class: 'store-hero-pv', 'aria-hidden': 'true' },
         h('p', { class: 'shp-cap', text: 'شنو غادي تحصل عليه؟ ✨' }),
         card,

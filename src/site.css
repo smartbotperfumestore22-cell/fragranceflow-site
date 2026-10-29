@@ -1707,7 +1707,7 @@ body.on-b2b .head-login svg { width: 18px; height: 18px; flex: none; }
 #quizpage .shp-cap { margin: 0; font-size: 1.1rem; font-weight: 800; color: #FFF; }
 #quizpage .shp-card { display: flex; align-items: center; gap: 14px; min-height: 96px; padding: 14px 16px; border-radius: 16px; color: #2A1A08; text-align: start;
   border: 1px solid color-mix(in srgb, var(--g) 70%, transparent);
-  background: linear-gradient(270deg, rgba(248, 230, 204, .96) 42%, rgba(248, 230, 204, 0) 72%), var(--shp-banner, none) left center / auto 100% no-repeat, linear-gradient(180deg, #F9EBD4, #F0CFAE); }
+  background: linear-gradient(270deg, var(--shp-cm, #F7E4C6) 40%, transparent 70%), var(--shp-banner, none) left center / auto 100% no-repeat, linear-gradient(180deg, var(--shp-c1, #F9EBD4), var(--shp-c2, #F0CFAE)); }
 #quizpage .shp-seal { flex: none; display: grid; place-items: center; width: 56px; height: 56px; border-radius: 50%; color: var(--g);
   background: var(--store-accent, #5B2A86); box-shadow: 0 0 0 2px color-mix(in srgb, var(--g) 70%, transparent), 0 8px 18px -8px rgba(0, 0, 0, .6); }
 #quizpage .shp-seal svg { width: 28px; height: 28px; }
@@ -1757,6 +1757,6 @@ body.on-b2b .head-login svg { width: 18px; height: 18px; flex: none; }
 }
 @media (max-width: 640px) {
   #quizpage .store-hero { border-radius: 18px; margin-bottom: 18px; }
-  #quizpage .shp-card { min-height: 84px; background: linear-gradient(270deg, rgba(248, 230, 204, .97) 66%, rgba(248, 230, 204, 0) 94%), var(--shp-banner, none) left -46px center / auto 100% no-repeat, linear-gradient(180deg, #F9EBD4, #F0CFAE); }
+  #quizpage .shp-card { min-height: 84px; background: linear-gradient(270deg, var(--shp-cm, #F7E4C6) 68%, transparent 96%), var(--shp-banner, none) left -30px center / auto 100% no-repeat, linear-gradient(180deg, var(--shp-c1, #F9EBD4), var(--shp-c2, #F0CFAE)); }
 }
 @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
