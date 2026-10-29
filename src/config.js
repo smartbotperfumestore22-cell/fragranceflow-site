@@ -47,6 +47,7 @@ if (!window.__FF_CONFIG__.SHEETS_API_URL) {
   if (store) {
     window.__FF_CONFIG__.HAS_FULL = store.hasFull;
     window.__FF_CONFIG__.HAS_DECANT = store.hasDecant;
-    window.__FF_CONFIG__.DEFAULT_SIZE = store.hasFull ? "full" : "decant";
+    // both types: «ما مهمش» until the visitor says otherwise (the engine picks the best purchase in the budget)
+    window.__FF_CONFIG__.DEFAULT_SIZE = store.hasFull && store.hasDecant ? "any" : store.hasFull ? "full" : "decant";
   }
 }

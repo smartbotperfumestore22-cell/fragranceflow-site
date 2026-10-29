@@ -1478,8 +1478,15 @@ function scoreP(p, ans) {
   const effectiveSizeType = ans.sizeType || CONFIG.DEFAULT_SIZE || null;
   if (effectiveSizeType && !hasType(p, effectiveSizeType)) return 0;
 
+  // ── Store link: the fragrance stays when the store has a purchase within the budget ceiling
+  //    (a 3,200 DH bottle can still come as a decant that fits). Ranking is untouched: taste decides.
+  if (p.typePrices) {
+    const mode = effectiveSizeType || "any";
+    const bud = ans.budget && ans.budget !== "any" ? (calcDynamicBudget(mode, "ar", ans.world) || []).find(b => b.v === ans.budget) : null;
+    if (!bestOffer(p, mode, budgetCap(bud))) return 0;
+  }
   // ── Budget HARD FILTER — يحذف العطور اللي فوق الميزانية ──
-  if (ans.budget && ans.budget !== "any") {
+  else if (ans.budget && ans.budget !== "any") {
     // same ranges the visitor was shown (built from the catalogue for this size and fragrance world)
     const sizeType = ans.sizeType || CONFIG.DEFAULT_SIZE || "full";
     const bud = (calcDynamicBudget(sizeType, "ar", ans.world) || []).find(b=>b.v===ans.budget);
@@ -2343,8 +2350,41 @@ function roundToNice(n) {
 const WORLDS = ["designer", "niche", "ultra_niche", "arabian"];
 // purchase type and price: through a store link a fragrance carries the store's cheapest price per type
 // (typePrices: { full, decant }, from its sizes); elsewhere its own sizeType and reference price, as before
-function hasType(p, st) { return p && p.typePrices ? p.typePrices[st] != null : p && p.sizeType === st; }
-function priceFor(p, st) { return p && p.typePrices ? (Number(p.typePrices[st]) || 0) : Number(p && p.price) || 0; }
+// st "any" (store link, visitor said «ما مهمش»): any purchase type the store sells
+function hasType(p, st) {
+  if (p && p.typePrices) return st === "any" ? Object.values(p.typePrices).some(v => v != null) : p.typePrices[st] != null;
+  return p && p.sizeType === st;
+}
+function priceFor(p, st) {
+  if (p && p.typePrices) {
+    if (st === "any") { const v = Object.values(p.typePrices).filter(x => x != null).map(Number); return v.length ? Math.min(...v) : 0; }
+    return Number(p.typePrices[st]) || 0;
+  }
+  return Number(p && p.price) || 0;
+}
+// store link: every size this store sells for a fragrance (decants and bottles) with its price
+function storeSizes(p) {
+  const o = p && Array.isArray(p.stores) ? p.stores[0] : null;
+  if (!o) return [];
+  if (Array.isArray(o.variants) && o.variants.length) return o.variants.filter(v => Number(v.price) > 0);
+  const tp = p.typePrices || {};
+  return Object.keys(tp).filter(t => tp[t] != null).map(t => ({ type: t, size: o.size || p.size || "", price: Number(tp[t]) }));
+}
+// the purchase this visitor would make within the budget ceiling (cap):
+// «ما مهمش» → a full bottle if one fits, otherwise a decant; within a type, the biggest size that fits (best value);
+// with no ceiling, the cheapest of that type. null = nothing fits (the fragrance is left out).
+function bestOffer(p, mode, cap) {
+  const all = storeSizes(p), lim = Number.isFinite(cap) ? cap : Infinity;
+  const pick = (type) => {
+    const fit = all.filter(v => v.type === type && v.price <= lim);
+    if (!fit.length) return null;
+    return fit.reduce((a, b) => (Number.isFinite(lim) ? b.price > a.price : b.price < a.price) ? b : a);
+  };
+  if (mode === "full" || mode === "decant") return pick(mode);
+  return pick("full") || pick("decant");
+}
+// the ceiling of the budget answer (store links use ceilings «حتى …»; Infinity = no limit)
+function budgetCap(bud) { return !bud ? Infinity : bud.cap != null ? bud.cap : (Number.isFinite(bud.maxEx) ? bud.maxEx - 1 : Infinity); }
 function worldOf(p) {
   const w = String((p && p.world) || "").trim().toLowerCase().replace(/[\s-]+/g, "_");
   return WORLDS.includes(w) ? w : "";
@@ -2391,11 +2431,23 @@ function calcDynamicBudget(sizeType, lang="ar", world) {
   if (!cache) { cache = new Map(); _budgetCache.set(products, cache); }
   if (cache.has(key)) return cache.get(key);
 
-  const prices = products
-    .filter(p => p.active !== false && hasType(p, sizeType) && (!world || world === "any" || worldOf(p) === world))
-    .map(p => priceFor(p, sizeType)).filter(v => Number.isFinite(v) && v > 0)
-    .sort((a, b) => a - b);
+  const pool = products.filter(p => p.active !== false && hasType(p, sizeType) && (!world || world === "any" || worldOf(p) === world));
+  const prices = pool.map(p => priceFor(p, sizeType)).filter(v => Number.isFinite(v) && v > 0).sort((a, b) => a - b);
   const anyOpt = { v:"any", l: isAr ? "الثمن غير مهم" : "Prix libre", i:"🌟", d: isAr ? "كل العطور المناسبة" : "Tous les parfums", min:0, maxEx:Infinity };
+  // store link: ceilings «حتى …» (what the visitor is ready to pay at most); «ما مهمش» uses fixed, easy figures
+  const inStore = typeof window !== "undefined" && !!window.__FF_STORE__;
+  const capOpts = (caps) => {
+    const cur = isAr ? "درهم" : "Dh", ICO = ["💚", "💙", "💛", "💎"];
+    const opts = caps.map((c, j) => {
+      const nb = pool.filter(p => bestOffer(p, sizeType, c)).length;
+      return { v: "c" + c, l: isAr ? `حتى ${c} ${cur}` : `Jusqu'à ${c} ${cur}`, i: ICO[j] || "💎", d: isAr ? `${nb} ${nb === 1 ? "عطر" : "عطور"}` : `${nb} parfum${nb > 1 ? "s" : ""}`, min: 0, maxEx: c + 1, cap: c, nb };
+    }).filter(o => o.nb > 0);
+    return [{ ...anyOpt, l: isAr ? "بلا حد" : "Sans limite", d: isAr ? "كل العطور المناسبة" : "Tous les parfums" }, ...opts];
+  };
+  if (inStore && sizeType === "any") {
+    const out = prices.length ? capOpts([200, 500, 1000]) : null;
+    cache.set(key, out); return out;
+  }
   let out;
   if (!prices.length) {
     // no usable price in this world: no invented ranges, the visitor continues without a budget filter
@@ -2417,6 +2469,7 @@ function calcDynamicBudget(sizeType, lang="ar", world) {
       if (c.length === k - 1 && edges.slice(1).every((hi, j) => count(edges[j], hi) > 0)) cuts = c;
     }
     if (!cuts) out = null;
+    else if (inStore) out = capOpts(cuts);
     else {
       const KEYS = [["low","high"], ["low","mid","high"], ["low","mid","high","luxury"]][cuts.length - 1];
       const ICO = { low:"💚", mid:"💙", high:"💛", luxury:"💎" };
@@ -2455,10 +2508,12 @@ function buildQS(sizeType, lang="ar", world) {
   if (askType) pre.push({
     id: "sizeType",
     q:   lang === "fr" ? "Vous cherchez plutôt…" : "شنو بغيتي تشري؟",
-    sub: lang === "fr" ? "Les prix et le budget suivent votre choix" : "الأثمنة والميزانية كيتبدلو حسب اختيارك",
+    sub: lang === "fr" ? "On choisit le meilleur format dans votre budget" : "كنختارو ليك أحسن صيغة داخل الميزانية ديالك",
     opts: lang === "fr"
-      ? [{ v:"full", l:"Flacon complet", i:"🧴", d:"La bouteille entière" }, { v:"decant", l:"Décante", i:"🧪", d:"Un petit format (3 – 20 ml) pour essayer" }]
-      : [{ v:"full", l:"قنينة كاملة", i:"🧴", d:"القارورة كاملة" }, { v:"decant", l:"ديكونط", i:"🧪", d:"حجم صغير (3 – 20 ml) باش تجرب" }],
+      ? [{ v:"any", l:"Peu importe, le parfum qui me va", i:"✨", d:"Flacon ou décante, selon votre budget" },
+         { v:"full", l:"Flacon complet", i:"🧴", d:"La bouteille entière" }, { v:"decant", l:"Décante", i:"🧪", d:"Un petit format (3 – 20 ml) pour essayer" }]
+      : [{ v:"any", l:"ما مهمش، بغيت العطر اللي يناسبني", i:"✨", d:"قنينة ولا ديكونط، حسب الميزانية ديالك" },
+         { v:"full", l:"قنينة كاملة", i:"🧴", d:"القارورة كاملة" }, { v:"decant", l:"ديكونط", i:"🧪", d:"حجم صغير (3 – 20 ml) باش تجرب" }],
   });
 
   // سؤال الميزانية — يمكن تحييده من CONFIG
@@ -2470,7 +2525,7 @@ function buildQS(sizeType, lang="ar", world) {
 
   const budgetQ = {
     id:       "budget",
-    q:        lang==="fr" ? "Votre budget ?" : "شحال الميزانية ديالك؟",
+    q:        (typeof window !== "undefined" && window.__FF_STORE__) ? (lang==="fr" ? "Votre budget maximum ?" : "شحال أقصى ميزانية ديالك؟") : (lang==="fr" ? "Votre budget ?" : "شحال الميزانية ديالك؟"),
     sub:      lang==="fr" ? "On adapte les prix selon votre choix" : "كنبدلوا الأثمان حسب اختيارك",
     sizeType: effectiveSizeType,
     hasToggle: hasDecant && hasFull && !askType,   // no switch when the type was just asked as its own question
@@ -3374,15 +3429,22 @@ function RVSensory({ p, ans, lang, used }) {
 
 // Through a store link (?store=…) the card speaks for that one store: «available here» and a direct way to order,
 // instead of the «فين تلقاه؟» list (which would list only this store anyway).
-function RVStoreActions({ p, lang, sizeType }) {
+function RVStoreActions({ p, lang, ans }) {
   const store = window.__FF_STORE__;
   const all = rvStores(p);
   const s = all.find(x => x.storeId === store.id) || all[0];
-  // the sizes of the purchase type the visitor chose come first, and the cheapest of them is selected
-  const want = sizeType || CONFIG.DEFAULT_SIZE || "full";
+  // the purchase the engine chose for this budget is selected; its type's sizes come first
+  const mode = (ans && ans.sizeType) || CONFIG.DEFAULT_SIZE || "full";
+  const bud = ans && ans.budget && ans.budget !== "any" ? (calcDynamicBudget(mode, "ar", ans.world) || []).find(b => b.v === ans.budget) : null;
+  const cap = budgetCap(bud);
+  const best = bestOffer(p, mode, cap);
+  const want = best ? best.type : (mode === "decant" ? "decant" : "full");
   const raw = (s && Array.isArray(s.variants)) ? s.variants : [];
   const sizes = [...raw.filter(v => v.type === want), ...raw.filter(v => v.type !== want)];
-  const [pick, setPick] = useState(0);
+  const bestIdx = best ? Math.max(0, sizes.findIndex(v => v.type === best.type && v.size === best.size && Number(v.price) === Number(best.price))) : 0;
+  // «ما مهمش» and the bottle is above the budget: say why a decant is proposed
+  const bottleOver = mode === "any" && best && best.type === "decant" && Number.isFinite(cap) && raw.some(v => v.type === "full");
+  const [pick, setPick] = useState(bestIdx);
   if (!s) return null;
   const fr = lang === "fr";
   const chosen = sizes[pick] || null;
@@ -3405,6 +3467,7 @@ function RVStoreActions({ p, lang, sizeType }) {
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg>
         <span>{fr ? "Disponible chez " : "متوفر عند "}<b>{store.name}</b>{fmt.length ? <small> · {fmt.join(" · ")}</small> : null}</span>
       </p>
+      {bottleOver ? <p className="ffr-size-note">{fr ? `Le flacon dépasse votre budget : voici le parfum en décante, dans votre budget.` : `القنينة فوق الميزانية ديالك، ولكن كاين كديكونط داخل فيها 👇`}</p> : null}
       {sizes.length ? (
         <fieldset className="ffr-sizes">
           <legend>{fr ? "Choisissez la taille" : "ختار الحجم"}</legend>
@@ -3487,7 +3550,7 @@ function RVCard({ p, ans, lang, rank, used, peers, near }) {
           </div>
         )}
         <RVSensory p={p} ans={ans} lang={lang} used={used}/>
-        {window.__FF_STORE__ ? <RVStoreActions p={p} lang={lang} sizeType={ans && ans.sizeType}/> : <RVStores p={p} L={L} lang={lang}/>}
+        {window.__FF_STORE__ ? <RVStoreActions p={p} lang={lang} ans={ans}/> : <RVStores p={p} L={L} lang={lang}/>}
         {/* through a store link, WhatsApp is the action: no «شوف العطر» to a FragranceFlow page */}
         {window.__FF_STORE__ ? null : <div className="ffr-actions">
           <a className={"ffr-btn" + (featured ? "" : " ffr-btn-ghost")} href={"#f-" + encodeURIComponent(p.id)}>{L.view}</a>
@@ -4153,7 +4216,7 @@ function WidgetContent({ onClose, lang: langProp, initialStep="intro" }) {
 
   function getBudgetOpts(q) {
     const st = ans.sizeType || q?.sizeType || CONFIG.DEFAULT_SIZE || "full";
-    const validSt = (st === "decant" || st === "full") ? st : "full";
+    const validSt = (st === "decant" || st === "full" || st === "any") ? st : "full";
     return calcDynamicBudget(validSt, lang, ans.world) || [];
   }
 
