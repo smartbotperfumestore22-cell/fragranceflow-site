@@ -267,7 +267,8 @@ export function startSite({ loadQuiz }) {
       var fromStore = 'من العطور المتوفرة عند ' + STORE.name + '.';
       var get = function (k, t, sub) { return h('li', null, ic(k), h('span', { class: 'store-hero-get' }, h('b', { text: t }), h('small', { text: sub }))); };
       var img = function (src, cls) { return h('img', { src: src, alt: '', class: cls, loading: 'lazy', decoding: 'async', width: '120', height: '120' }); };
-      var note = function (n, t) { return h('figure', { class: 'shp-note' }, img('/images/hero-kit/note-' + n + '.webp'), h('figcaption', { text: t })); };
+      var kit = '/images/themes/' + (THEMES[STORE.theme] ? STORE.theme : 'luxury') + '/';
+      var note = function (n, t) { return h('figure', { class: 'shp-note' }, img(kit + 'note-' + n + '.webp'), h('figcaption', { text: t })); };
       var card = h('div', { class: 'shp-card' },
         ic('print', 'shp-seal'),
         h('span', { class: 'shp-card-tx' }, h('b', { text: 'بصمتك العطرية' }), h('small', { text: 'الشخصية العطرية ديالك' })));
@@ -278,7 +279,7 @@ export function startSite({ loadQuiz }) {
         card,
         h('div', { class: 'shp-box' },
           h('div', { class: 'shp-row' },
-            h('span', { class: 'shp-imgs' }, img('/images/hero-kit/bottle-1.webp', 'shp-bottle'), img('/images/hero-kit/bottle-2.webp', 'shp-bottle'), img('/images/hero-kit/bottle-3.webp', 'shp-bottle')),
+            h('span', { class: 'shp-imgs' }, img(kit + 'bottle-1.webp', 'shp-bottle'), img(kit + 'bottle-2.webp', 'shp-bottle'), img(kit + 'bottle-3.webp', 'shp-bottle')),
             ic('bottle', 'shp-ic')),
           h('p', { class: 'shp-box-tx' }, h('b', { text: three }), h('small', { text: fromStore }))),
         h('div', { class: 'shp-box' },

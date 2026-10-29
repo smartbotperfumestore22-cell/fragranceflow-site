@@ -1717,7 +1717,7 @@ body.on-b2b .head-login svg { width: 18px; height: 18px; flex: none; }
 #quizpage .shp-box { display: grid; gap: 10px; padding: 12px; border-radius: 16px; background: rgba(255, 255, 255, .06); border: 1px solid rgba(255, 255, 255, .14); }
 #quizpage .shp-row { display: flex; align-items: center; gap: 10px; }
 #quizpage .shp-imgs { flex: 1; display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; min-width: 0; }
-#quizpage .shp-bottle { width: 100%; height: auto; aspect-ratio: 1; object-fit: cover; border-radius: 12px; border: 1px solid color-mix(in srgb, var(--g) 45%, transparent); }
+#quizpage .shp-bottle { width: 100%; height: auto; aspect-ratio: 12 / 13; object-fit: cover; border-radius: 12px; border: 1px solid color-mix(in srgb, var(--g) 45%, transparent); }
 #quizpage .shp-note { margin: 0; display: flex; flex-direction: column; align-items: center; gap: 6px; }
 #quizpage .shp-note img { width: 100%; max-width: 92px; height: auto; aspect-ratio: 1; border-radius: 50%; box-shadow: 0 0 0 2px color-mix(in srgb, var(--g) 70%, transparent); }
 #quizpage .shp-note figcaption { font-size: .78rem; color: rgba(255, 255, 255, .88); }
