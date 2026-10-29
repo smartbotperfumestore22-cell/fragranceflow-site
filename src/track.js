@@ -1,5 +1,5 @@
 // Event tracking for the site pages (homepage, catalogue, fragrance pages), available before the quiz loads.
-// Same request as the quiz's own window.track (src/widget/App.jsx), which replaces this one once the quiz is loaded.
+// Same event as the quiz's own window.track (src/widget/App.jsx), which replaces this one once the quiz is loaded.
 import { sbTrack } from "./track-sb.js";
 // Sends only the event name, an anonymous per-tab visit id, the visit source (utm) and the details passed in.
 export function siteTrack(event, data) {
@@ -15,7 +15,7 @@ export function siteTrack(event, data) {
       const utm = sessionStorage.getItem("ff_utm"); if (utm) extra.utm = utm;
     } catch (e) {}
     const params = new URLSearchParams({ action: "analytics", store: (window.__FF_CONFIG__ || {}).STORE_NAME || "", key: "", event, ...extra, ...(data || {}) });
-    fetch(`${base}?${params.toString()}`, { mode: "no-cors" }).catch(() => {}); // blocked or offline: ignore
+    // Phase 3: events are recorded in Supabase only (the Google Sheet no longer receives them)
     sbTrack(Object.fromEntries(params));
   } catch (e) {}
 }

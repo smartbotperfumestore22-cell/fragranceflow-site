@@ -60,6 +60,7 @@ function doPost(e) {
     return json_(store ? statsFor_(store, b.days, b.month) : { error: 'invalid' });
   }
   if (b.action === 'admin') return json_(adminByJwt_(b.jwt) ? adminStatsFor_(b.days) : { error: 'invalid' });
+  if (b.action === 'publish') return json_(requestPublish_(b.jwt, b.now));
   if (/^(merchants|createMerchant|resetPassword|unlinkMerchant)$/.test(String(b.action))) {
     if (!adminByJwt_(b.jwt)) return json_({ error: 'invalid' });
     try { return json_(MERCHANT_ACTIONS[b.action](b)); }
@@ -167,6 +168,7 @@ function onOpen() {
     .addItem('✅ تحقق من البيانات', 'checkData')
     .addItem('🚀 نشر الموقع', 'publishSite')
     .addSeparator()
+    .addItem('⏱ تحديث الكويز ملي التجار يبدلو: شعل', 'enablePublishWatcher')
     .addItem('🔁 تحديث يومي أوتوماتيكي: شعل', 'enableDailyPublish')
     .addItem('⏹ تحديث يومي أوتوماتيكي: طفي', 'disableDailyPublish')
     .addSeparator()
@@ -178,7 +180,7 @@ function onOpen() {
     .addItem('🔑 بدل رابط النشر (Deploy Hook)', 'setDeployHook')
     .addSeparator()
     .addItem('🗝 Supabase: حط المفتاح السري', 'setSupabaseKey')
-    .addItem('⬆️ Supabase: العطور + المتاجر والعروض الجداد', 'pushToSupabase')
+    .addItem('⬆️ Supabase: زيد الجداد من الشيت (اختياري)', 'pushToSupabase')
     .addItem('⬆️ Supabase: نقل الأحداث القديمة', 'pushEventsToSupabase')
     .addItem('🔍 Supabase: قارن الإحصائيات', 'compareStatsWithSupabase')
     .addToUi();
@@ -236,8 +238,7 @@ function setDeployHook() {
 
 function publishSite() {
   var ui = SpreadsheetApp.getUi();
-  var list = problems_();
-  if (list.length) { ui.alert('ما نشرناش: صلح هاد المشاكل أولا.\n\n' + list.slice(0, 25).join('\n')); return; }
+  // Phase 3: the catalogue is built from Supabase, so the Sheet's checks no longer block publishing
   var hook = PropertiesService.getScriptProperties().getProperty('VERCEL_DEPLOY_HOOK') || setDeployHook();
   if (!hook) return;
   var res = UrlFetchApp.fetch(hook, { method: 'post', muteHttpExceptions: true });
@@ -253,8 +254,9 @@ function publishSite() {
 // called every day by the trigger: rebuilds the site so the popular section follows the latest activity
 function dailyPublish() {
   var hook = PropertiesService.getScriptProperties().getProperty('VERCEL_DEPLOY_HOOK');
-  if (!hook || problems_().length) return; // never publish data that fails the checks
+  if (!hook) return;
   UrlFetchApp.fetch(hook, { method: 'post', muteHttpExceptions: true });
+  PropertiesService.getScriptProperties().setProperty('FF_LAST_PUBLISH', String(Date.now()));
 }
 function enableDailyPublish() {
   disableDailyPublish(true);
@@ -671,6 +673,46 @@ function storeByJwt_(jwt, wanted) {
   return found;
 }
 
+// ───────────── Phase 3: the quiz follows the portal within minutes ─────────────
+// A merchant's change (price, sizes, stock…) asks for a publish; at most one site build every 10 minutes:
+// the request is noted, and publishIfPending (every 10 minutes, menu ⏱) sends it. The team can publish at once.
+function requestPublish_(jwt, now) {
+  jwt = String(jwt || '');
+  if (!/^[\w-]+\.[\w-]+\.[\w-]+$/.test(jwt) || jwt.length > 4000) return { error: 'invalid' };
+  try {
+    var u = UrlFetchApp.fetch(SUPABASE_URL + '/auth/v1/user', { headers: { apikey: SUPABASE_PUBLISHABLE, Authorization: 'Bearer ' + jwt }, muteHttpExceptions: true });
+    if (u.getResponseCode() !== 200) return { error: 'invalid' };
+    var uid = JSON.parse(u.getContentText()).id;
+    var admin = (sbCall_('get', 'rest/v1/admins?select=user_id&user_id=eq.' + encodeURIComponent(uid)).data || []).length > 0;
+    var member = admin || (sbCall_('get', 'rest/v1/store_members?select=store_id&user_id=eq.' + encodeURIComponent(uid)).data || []).length > 0;
+    if (!member) return { error: 'invalid' };
+    var props = PropertiesService.getScriptProperties(), last = Number(props.getProperty('FF_LAST_PUBLISH') || 0);
+    if (admin && now && Date.now() - last > 60 * 1000) return publishNow_() ? { ok: true, published: true } : { error: 'hook' };
+    props.setProperty('FF_PUBLISH_PENDING', String(Date.now()));
+    return { ok: true, queued: true };
+  } catch (e) { return { error: 'failed' }; }
+}
+function publishNow_() {
+  var props = PropertiesService.getScriptProperties(), hook = props.getProperty('VERCEL_DEPLOY_HOOK');
+  if (!hook) return false;
+  var res = UrlFetchApp.fetch(hook, { method: 'post', muteHttpExceptions: true });
+  if (res.getResponseCode() >= 300) return false;
+  props.setProperty('FF_LAST_PUBLISH', String(Date.now()));
+  props.deleteProperty('FF_PUBLISH_PENDING');
+  return true;
+}
+function publishIfPending() {
+  var props = PropertiesService.getScriptProperties();
+  if (!props.getProperty('FF_PUBLISH_PENDING')) return;
+  if (Date.now() - Number(props.getProperty('FF_LAST_PUBLISH') || 0) < 5 * 60 * 1000) return;   // a build just ran
+  publishNow_();
+}
+function enablePublishWatcher() {
+  ScriptApp.getProjectTriggers().forEach(function (t) { if (t.getHandlerFunction() === 'publishIfPending') ScriptApp.deleteTrigger(t); });
+  ScriptApp.newTrigger('publishIfPending').timeBased().everyMinutes(10).create();
+  SpreadsheetApp.getUi().alert('⏱ تشعل: ملي شي تاجر يبدل شي حاجة فالبورطال، الكويز كيتحدث ف 10 حتى 15 دقيقة.');
+}
+
 // ───────────── Phase 2: events history and a check of the daily numbers ─────────────
 // copies the Events tab to Supabase, only what happened before Supabase started receiving events itself
 // (so nothing is counted twice); running it again adds nothing new.
@@ -801,12 +843,7 @@ var MERCHANT_ACTIONS = {
       var ins = sbCall_('post', 'rest/v1/stores', row);
       if (ins.code >= 300) throw new Error('المتجر ما تزادش: ' + JSON.stringify(ins.data).slice(0, 200));
       created = true;
-      // the Sheet's Stores tab is still used for visit tracking and statistics: add the store there too
-      var sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(TAB.stores);
-      var head = sh.getRange(1, 1, 1, sh.getLastColumn()).getValues()[0].map(function (h) { return String(h).trim(); });
-      var vals = { store_id: sid, name: row.name, city: row.city, whatsapp: wa, active: 'TRUE' };
-      var known = rows_(TAB.stores).some(function (s) { return String(s.store_id).trim().toLowerCase() === sid; });
-      if (!known) sh.appendRow(head.map(function (h) { return vals[h] != null ? vals[h] : ''; }));
+      // Phase 3: stores live in Supabase only (the Sheet is no longer used for visits or statistics)
       CacheService.getScriptCache().remove('ff_active_stores');
     }
     var password = tempPassword_(), newUser = true;
@@ -873,14 +910,14 @@ function pushToSupabase() {
       return { store_id: sid, perfume_id: pid, size: sbText_(o.size), size_type: sbText_(o.size_type) || 'full', price: sbNum_(o.price),
         url: sbText_(o.url), in_stock: sbBool_(o.in_stock) };
     }).filter(Boolean);
-    // stores and offers: only the new ones (merchants edit theirs in the portal); perfumes: the Sheet stays the reference
-    var n1 = sbUpsert_('stores', 'id', stores, true), n2 = sbUpsert_('perfumes', 'perfume_id', perfumes);
+    // Phase 3: the portal (Supabase) is the reference for perfumes, stores and offers: only rows that are not there yet are added
+    var n1 = sbUpsert_('stores', 'id', stores, true), n2 = sbUpsert_('perfumes', 'perfume_id', perfumes, true);
     // the secret dashboard links (Phase 2: the statistics are read from Supabase)
     var tokens = rows_(TAB.stores).filter(function (s) { return /^[A-Za-z0-9]{32,80}$/.test(sbText_(s.dash_token)) && ids[sbText_(s.store_id).toLowerCase()]; })
       .map(function (s) { return { store_id: sbText_(s.store_id).toLowerCase(), token: sbText_(s.dash_token) }; });
     try { sbUpsert_('store_tokens', 'store_id', tokens); } catch (e) { /* 007_stats.sql not run yet */ }
     var n3 = 0; for (var i = 0; i < offers.length; i += 500) n3 += sbUpsert_('offers', 'store_id,perfume_id', offers.slice(i, i + 500), true);
-    ui.alert('تنقلو ✅', n2 + ' عطر تحدّثو. المتاجر (' + n1 + ') والعروض (' + n3 + '): غير الجداد تزادو، والموجودين ما تقاسوش (التجار كيبدلوهم من البورطال).' + (skipped ? '\n' + skipped + ' عرض ما تنقلش (متجر ولا عطر ما كاينش، ولا مكرر).' : ''), ui.ButtonSet.OK);
+    ui.alert('تنقلو ✅', 'العطور (' + n2 + ')، المتاجر (' + n1 + ') والعروض (' + n3 + '): غير الجداد تزادو. الموجودين ما تقاسوش: كيتبدلو من البورطال.' + (skipped ? '\n' + skipped + ' عرض ما تنقلش (متجر ولا عطر ما كاينش، ولا مكرر).' : ''), ui.ButtonSet.OK);
   } catch (e) {
     ui.alert('ما تنقلش', String(e.message || e), ui.ButtonSet.OK);
   }

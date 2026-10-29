@@ -183,7 +183,7 @@ function render() {
     ${linkCard(s)}
     <nav class="p-tabs" role="tablist">${tabs.map(([k, l]) => `<button role="tab" type="button" data-tab="${k}" aria-selected="${S.tab === k}">${l}</button>`).join("")}</nav>
     <section id="tab" class="${S.tab === "stats" || S.tab === "report" ? "p-wide-tab" : "d-card p-panel"}"></section>
-    <p class="d-foot">التبديلات كتبان للزبناء فالكويز من بعد التحديث ديال الموقع (مرة فالنهار).</p>`;
+    <p class="d-foot">التبديلات كتبان للزبناء فالكويز فـ 10 حتى 15 دقيقة.</p>`;
   app.querySelectorAll(".p-tabs button").forEach((b) => b.addEventListener("click", () => { S.tab = b.dataset.tab; S.q = ""; render(); }));
   const pick = document.getElementById("s-store");
   if (pick) pick.addEventListener("change", () => { S.store = S.stores.find((x) => x.id === pick.value); loadStore(); });
@@ -281,13 +281,22 @@ function openStore(id) {
   loadStore();
 }
 function renderTeam() {
-  const tabs = [["overview", "🌐 اللوحة العامة"], ["accounts", "👥 الحسابات"], ["review", "📝 الطلبات"]];
+  const tabs = [["overview", "🌐 اللوحة العامة"], ["perfumes", "🧴 العطور"], ["accounts", "👥 الحسابات"], ["review", "📝 الطلبات"]];
   app.innerHTML = `
-    <section class="d-head p-head"><div><h1>لوحة FragranceFlow</h1><p>${fmt(S.stores.length)} متجر · غير لفريق FragranceFlow</p></div></section>
+    <section class="d-head p-head"><div><h1>لوحة FragranceFlow</h1><p>${fmt(S.stores.length)} متجر · غير لفريق FragranceFlow</p></div>
+      <button type="button" class="d-btn p-publish" id="b-publish">🚀 نشر الموقع دابا</button></section>
     <nav class="p-tabs" role="tablist">${tabs.map(([k, l]) => `<button role="tab" type="button" data-team="${k}" aria-selected="${S.teamTab === k}">${l}</button>`).join("")}</nav>
     <section id="tab" class="${S.teamTab === "overview" ? "p-overview" : "d-card p-panel"}"></section>`;
   app.querySelectorAll("[data-team]").forEach((b) => b.addEventListener("click", () => { S.teamTab = b.dataset.team; renderTeam(); }));
-  ({ overview: tabOverview, accounts: tabAccounts, review: tabReview }[S.teamTab] || tabOverview)();
+  document.getElementById("b-publish").addEventListener("click", async (e) => {
+    e.target.disabled = true;
+    let r; try { r = await teamCall("publish", { now: true }); } catch (er) { r = { error: "net" }; }
+    e.target.disabled = false;
+    if (r.published) toast("🚀 تصيفط. الكويز كيتحدث ف دقيقة ولا جوج.");
+    else if (r.queued) toast("تسجل الطلب: كاين نشر ديجا قبل شوية، غادي يتعاود ف 10 دقايق.");
+    else toast("ما تنشرش. تأكد من Apps Script (New version) ورابط النشر.", true);
+  });
+  ({ overview: tabOverview, perfumes: tabPerfumes, accounts: tabAccounts, review: tabReview }[S.teamTab] || tabOverview)();
 }
 async function tabOverview() {
   const el = document.getElementById("tab");
@@ -295,11 +304,11 @@ async function tabOverview() {
   el.innerHTML = range + '<p class="d-msg">كنجيبو الأرقام…</p>';
   const wire = () => el.querySelectorAll("[data-days]").forEach((b) => b.addEventListener("click", () => { S.days = Number(b.dataset.days); tabOverview(); }));
   wire();
-  // Supabase first (Phase 2); the Apps Script answers if Supabase cannot
+  // from Supabase (the Sheet's numbers are not used any more)
   let d = null;
   try { const r = await sb.rpc("admin_stats", { p_days: S.days }); if (!r.error && r.data && Array.isArray(r.data.stores)) d = r.data; } catch (e) {}
-  if (!d) { try { d = await teamCall("admin", { days: S.days }); } catch (e) { d = { error: "net" }; } }
-  if (d.error) { el.innerHTML = range + '<p class="d-msg">ما قدرناش نجيبو الأرقام. تأكد بلي Apps Script الجديد تدار ليه New version وفيه المفتاح السري.</p>'; wire(); return; }
+  if (!d) d = { error: "net" };
+  if (d.error) { el.innerHTML = range + '<p class="d-msg">ما قدرناش نجيبو الأرقام من Supabase دابا. عاود جرب من بعد شوية.</p>'; wire(); return; }
   // stores that exist in Supabase but have no numbers yet still appear, so every store can be opened from here
   const known = new Set(d.stores.map((x) => x.id));
   S.stores.forEach((x) => { if (!known.has(x.id)) d.stores.push({ id: x.id, name: x.name, active: x.active !== false, perfumes: 0, experiences: 0, completed: 0, whatsapp: 0, last: "" }); });
@@ -459,7 +468,13 @@ function sizesEditor(li, o, done) {
 async function save(o, patch, ok) {
   const { data, error } = await sb.from("offers").update(patch).eq("id", o.id).select("id, price, size, size_type, in_stock, active, updated_at, variants").single();
   if (error) { toast(errText(error), true); return false; }
-  Object.assign(o, data); toast(ok); return true;
+  Object.assign(o, data); toast(ok); askPublish(); return true;
+}
+// after a change, ask for the quiz to be rebuilt (Apps Script groups the requests: one build every 10 minutes at most)
+let publishTimer = null;
+function askPublish() {
+  clearTimeout(publishTimer);
+  publishTimer = setTimeout(() => { teamCall("publish").catch(() => {}); }, 4000);
 }
 
 // add a perfume from the FragranceFlow catalogue
@@ -494,7 +509,7 @@ async function tabAdd() {
       const { data, error } = await sb.from("offers").insert({ store_id: S.store.id, perfume_id: pid, variants, in_stock: true })
         .select("id, perfume_id, size, size_type, price, in_stock, active, updated_at, variants, perfumes(name, brand, gender, image_url, size)").single();
       if (error) { toast(errText(error), true); return false; }
-      S.offers.push(data); mine[pid] = data; toast(`تزاد ${p.name} ✓`); draw(); return true;
+      S.offers.push(data); mine[pid] = data; toast(`تزاد ${p.name} ✓`); askPublish(); draw(); return true;
     });
   });
 }
@@ -573,7 +588,7 @@ function tabSettings() {
     const { data, error } = await sb.from("stores").update(row).eq("id", s.id).select("*").single();
     b.disabled = false;
     if (error) return toast(errText(error), true);
-    Object.assign(s, data); toast("تحفظات المعلومات ✓"); render();
+    Object.assign(s, data); toast("تحفظات المعلومات ✓"); askPublish(); render();
   });
 }
 
@@ -650,6 +665,89 @@ async function tabAccounts() {
   loadList();
 }
 
+// FragranceFlow team: the master catalogue (what the quiz knows about every perfume)
+const P_FAMILY = { fresh: "منعش", citrus: "حمضي", woody: "خشبي", aquatic: "أكواتيك", oriental: "شرقي", sweet: "حلو", heavy: "ثقيل وعميق", fruity: "فاكهي", floral: "زهري", clean: "نظيف", musky: "مسكي" };
+const P_OCCASION = { daily: "يومي / الخدمة", dates: "الأمسيات الخاصة", evening: "السهرات", travel: "السفر", allday: "كل الأوقات" };
+const P_SEASON = { spring: "ربيع", summer: "صيف", autumn: "خريف", winter: "شتاء", allseasons: "طول العام" };
+const P_WORLD = { "": "بلا تصنيف", designer: "Designer", niche: "Niche", ultra_niche: "Ultra-Niche", arabian: "Arabian" };
+const P_GENDER = { men: "رجالي", women: "نسائي", unisex: "للجميع" };
+const P_CONC = ["EDP", "EDT", "Parfum", "Extrait", "EDC"];
+async function tabPerfumes() {
+  const el = document.getElementById("tab");
+  el.innerHTML = `<div class="p-review p-ptools">${search("قلب بالسمية ولا الماركة…")}<button type="button" class="d-btn" id="b-newp">+ عطر جديد</button></div>
+    <p class="p-small">هادي هي القاعدة اللي كيخدم بيها المحرك. أي تبديل كيبان فالكويز من بعد النشر.</p><ul class="p-list" id="list"><li class="d-empty">كنجيبو العطور…</li></ul>`;
+  const { data, error } = await sb.from("perfumes").select("*").order("perfume_id");
+  if (error) { document.getElementById("list").innerHTML = `<li class="d-empty">${errText(error)}</li>`; return; }
+  const all = data;
+  const draw = () => {
+    const list = all.filter((p) => match(p, S.q));
+    document.getElementById("list").innerHTML = list.length ? list.map((p) => `<li class="p-item p-item-add${p.active ? "" : " is-removed"}" data-pid="${esc(p.perfume_id)}">${thumb(p)}
+      <div class="p-name"><b dir="ltr">${esc(p.name)}</b><small><span dir="ltr">${esc(p.brand)}</span> · ${P_GENDER[p.gender] || ""} · <span dir="ltr">${esc(p.perfume_id)}</span>${p.ref_price ? " · " + fmt(p.ref_price) + " درهم" : ""}</small></div>
+      <span class="p-have">${p.active ? "" : '<span class="p-tag">محبوس</span>'}<button type="button" class="p-link" data-edit="${esc(p.perfume_id)}">✏️ بدّل</button></span></li>`).join("")
+      : '<li class="d-empty">ما لقينا والو بهاد الاسم.</li>';
+  };
+  draw(); wireSearch(draw);
+  el.addEventListener("click", (e) => {
+    const id = e.target.dataset && e.target.dataset.edit;
+    if (id) perfumeForm(e.target.closest(".p-item"), all.find((p) => p.perfume_id === id), (saved) => { Object.assign(all.find((p) => p.perfume_id === saved.perfume_id), saved); draw(); });
+    if (e.target.id === "b-newp") perfumeForm(null, null, (saved) => { all.push(saved); draw(); });
+  });
+}
+const chipSet = (name, labels, chosen) => `<div class="p-chips" role="group" aria-label="${name}">${Object.keys(labels).map((k) =>
+  `<label class="p-chip2"><input type="checkbox" name="${name}" value="${k}"${chosen.includes(k) ? " checked" : ""}><span>${labels[k]}</span></label>`).join("")}</div>`;
+const csv = (v) => String(v || "").split(",").map((x) => x.trim()).filter(Boolean);
+// add or edit one perfume; prefill (from a request) fills a new one; onSaved(row)
+async function perfumeForm(afterLi, p, onSaved, prefill = {}) {
+  document.querySelectorAll(".p-pform-row").forEach((x) => x.remove());
+  const isNew = !p;
+  let id = p ? p.perfume_id : "";
+  if (isNew) { const r = await sb.rpc("next_perfume_id"); if (r.error || !r.data) return toast("ما قدرناش نجيبو رقم جديد. تأكد من 009_phase3.sql.", true); id = r.data; }
+  const v = p || { perfume_id: id, name: prefill.name || "", brand: prefill.brand || "", gender: "unisex", character: "", occasion: "", season: "", notes_top: "", notes_mid: "", notes_base: "",
+    concentration: "EDP", size: prefill.size || "", size_type: "full", ref_price: prefill.price || null, world: "", image_url: "", active: true };
+  const box = document.createElement(afterLi ? "li" : "div");
+  box.className = "p-pform-row";
+  box.innerHTML = `<form class="p-sizes p-pform" novalidate>
+    <h3>${isNew ? "عطر جديد" : "تبديل العطر"} <span dir="ltr" class="p-tag">${esc(id)}</span></h3>
+    <div class="p-grid2"><label>السمية *<input name="name" required maxlength="120" dir="ltr" value="${esc(v.name)}"></label>
+      <label>الماركة *<input name="brand" required maxlength="80" dir="ltr" value="${esc(v.brand)}"></label>
+      <label>لمن؟<select name="gender">${Object.keys(P_GENDER).map((k) => `<option value="${k}"${v.gender === k ? " selected" : ""}>${P_GENDER[k]}</option>`).join("")}</select></label>
+      <label>العالم<select name="world">${Object.keys(P_WORLD).map((k) => `<option value="${k}"${(v.world || "") === k ? " selected" : ""}>${P_WORLD[k]}</option>`).join("")}</select></label></div>
+    <fieldset><legend>العائلة (الطابع) *</legend>${chipSet("character", P_FAMILY, csv(v.character))}</fieldset>
+    <fieldset><legend>المناسبة</legend>${chipSet("occasion", P_OCCASION, csv(v.occasion))}</fieldset>
+    <fieldset><legend>الموسم</legend>${chipSet("season", P_SEASON, csv(v.season))}</fieldset>
+    <div class="p-grid2"><label>نوتات الافتتاح (بفاصلة)<input name="notes_top" dir="ltr" value="${esc(v.notes_top)}" placeholder="Bergamot, Pepper"></label>
+      <label>نوتات القلب<input name="notes_mid" dir="ltr" value="${esc(v.notes_mid)}"></label>
+      <label>نوتات القاعدة<input name="notes_base" dir="ltr" value="${esc(v.notes_base)}"></label>
+      <label>التركيز<select name="concentration">${P_CONC.map((c) => `<option${v.concentration === c ? " selected" : ""}>${c}</option>`).join("")}</select></label>
+      <label>الحجم المرجعي<input name="size" dir="ltr" maxlength="20" value="${esc(v.size)}" placeholder="100ml"></label>
+      <label>الثمن المرجعي (درهم)<input name="ref_price" type="number" min="0" step="1" value="${v.ref_price ?? ""}"></label>
+      <label>رابط الصورة (https)<input name="image_url" dir="ltr" value="${esc(v.image_url)}" placeholder="https://res.cloudinary.com/…"></label>
+      <label class="p-chk p-activechk"><input type="checkbox" name="active"${v.active ? " checked" : ""}><span>كيبان فالكويز</span></label></div>
+    <div class="p-review"><span class="p-grow"></span><button type="button" class="p-link" data-k="cancel">إلغاء</button><button type="submit" class="d-btn">${isNew ? "زيد العطر" : "حفظ"}</button></div></form>`;
+  if (afterLi) afterLi.after(box); else document.getElementById("list").before(box);
+  box.scrollIntoView({ behavior: "smooth", block: "start" });
+  const f = box.querySelector("form");
+  box.querySelector("[data-k=cancel]").onclick = () => box.remove();
+  f.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const checked = (n) => [...f.querySelectorAll(`input[name=${n}]:checked`)].map((x) => x.value).join(",");
+    const row = { name: f.name.value.trim(), brand: f.brand.value.trim(), gender: f.gender.value, world: f.world.value,
+      character: checked("character"), occasion: checked("occasion"), season: checked("season"),
+      notes_top: csv(f.notes_top.value).join(","), notes_mid: csv(f.notes_mid.value).join(","), notes_base: csv(f.notes_base.value).join(","),
+      concentration: f.concentration.value, size: f.size.value.trim(), ref_price: f.ref_price.value === "" ? null : Number(f.ref_price.value),
+      image_url: f.image_url.value.trim(), active: f.active.checked };
+    if (!row.name || !row.brand) return toast("السمية والماركة ضروريين.", true);
+    if (!row.character) return toast("ختار عائلة وحدة على الأقل: المحرك كيحتاجها.", true);
+    if (row.image_url && !/^https:\/\//.test(row.image_url)) return toast("رابط الصورة خاصو يبدا بـ https://", true);
+    const b = f.querySelector("[type=submit]"); b.disabled = true;
+    const q = isNew ? sb.from("perfumes").insert({ perfume_id: id, size_type: "full", ...row }) : sb.from("perfumes").update(row).eq("perfume_id", id);
+    const { data, error } = await q.select("*").single();
+    b.disabled = false;
+    if (error) return toast(errText(error), true);
+    toast(isNew ? `تزاد ${data.name} ✓` : "تحفظ ✓"); S.catalog = null; box.remove(); onSaved(data);
+  });
+}
+
 // FragranceFlow team: review requests from every store
 async function tabReview() {
   const el = document.getElementById("tab");
@@ -660,12 +758,22 @@ async function tabReview() {
   const row = (r) => `<li data-id="${r.id}"><div><b dir="auto">${esc(r.perfume_name)}</b> <small dir="auto">${esc(r.brand)}${r.size ? " · " + esc(r.size) : ""}${r.price ? " · " + fmt(r.price) + " درهم" : ""}</small>
       <small>${esc(r.stores?.name || r.store_id)} · ${dateAr(r.created_at)}</small>${r.note ? `<p class="p-small">${esc(r.note)}</p>` : ""}</div>
       ${r.status === "pending" ? `<div class="p-review"><input placeholder="ملاحظة للتاجر (اختياري)" maxlength="300" data-note>
-        <button type="button" class="d-btn" data-st="approved">قبول</button><button type="button" class="p-link" data-st="rejected">رفض</button></div>`
+        <button type="button" class="d-btn" data-addp="${r.id}">قبول وزيد العطر</button><button type="button" class="p-link" data-st="approved">قبول فقط</button><button type="button" class="p-link" data-st="rejected">رفض</button></div>`
         : `<span class="p-tag is-${r.status}">${STATUS[r.status]}</span>`}</li>`;
   el.innerHTML = `<h2 class="p-h2">كيتسناو (${pend.length})</h2>${pend.length ? `<ul class="p-reqs">${pend.map(row).join("")}</ul>` : '<p class="d-empty">ما كاين حتى طلب كيتسنى ✅</p>'}
     <p class="p-small">ملي تقبل طلب: زيد العطر ف Perfumes بالتصنيف ديالو، ومن بعد التاجر يقدر يزيدو من «زيد عطر».</p>
     ${done.length ? `<h2 class="p-h2">آخر الطلبات اللي تراجعو</h2><ul class="p-reqs">${done.map(row).join("")}</ul>` : ""}`;
   el.addEventListener("click", async (e) => {
+    const addp = e.target.dataset && e.target.dataset.addp;
+    if (addp) {
+      const r = data.find((x) => String(x.id) === addp), li = e.target.closest("li");
+      return perfumeForm(li, null, async (saved) => {
+        const note = li.querySelector("[data-note]").value.trim() || `تزاد للكاتالوگ (${saved.perfume_id}). تقدر تزيدو من «زيد عطر».`;
+        const { error: er } = await sb.from("requests").update({ status: "approved", admin_note: note, perfume_id: saved.perfume_id }).eq("id", r.id);
+        if (er) return toast(errText(er), true);
+        toast("تقبل وتزاد العطر ✓"); tabReview();
+      }, { name: r.perfume_name, brand: r.brand, size: r.size, price: r.price });
+    }
     const st = e.target.dataset && e.target.dataset.st; if (!st) return;
     const li = e.target.closest("li"), note = li.querySelector("[data-note]").value.trim();
     const { error: er } = await sb.from("requests").update({ status: st, admin_note: note }).eq("id", Number(li.dataset.id));

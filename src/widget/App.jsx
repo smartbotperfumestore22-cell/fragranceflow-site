@@ -5212,8 +5212,9 @@ window.track = async function track(event, data) {
       ...extra,
       ...data 
     });
-    fetch(`${base}?${params.toString()}`, { mode: 'no-cors' }).catch(() => {}); // blocked (ad-blocker) or offline: ignore
-    if (own) sbTrack(Object.fromEntries(params)); // also recorded in Supabase (Phase 2)
+    // Phase 3: FragranceFlow's own site records events in Supabase only; an external widget keeps its own endpoint
+    if (own) sbTrack(Object.fromEntries(params));
+    else fetch(`${base}?${params.toString()}`, { mode: 'no-cors' }).catch(() => {}); // blocked (ad-blocker) or offline: ignore
   } catch(e) {}
 }
 export default function App() {

@@ -11,6 +11,7 @@ async function load(month) {
   root.setAttribute("aria-busy", "true");
   try {
     const data = await fetchStats({ month });
+    if (data.error === "net") { root.innerHTML = '<p class="d-msg">ما قدرناش نجيبو التقرير دابا. عاود جرب من بعد شوية.</p>'; return; }
     if (data.error === "login") { root.innerHTML = '<p class="d-msg">دخل لفضاء التاجر باش تشوف التقرير. <a href="/portal/">دخول</a></p>'; return; }
     if (data.error === "invalid") { root.innerHTML = portalMode ? '<p class="d-msg">ما قدرناش نلقاو المتجر ديالك. خرج ودخل من جديد، ولا تواصل مع FragranceFlow.</p>' : '<p class="d-msg">هاد الرابط ما خدامش ولا تبدّل. تواصل مع FragranceFlow باش ياخد رابط جديد.</p>'; return; }
     if (data.error) { root.innerHTML = '<p class="d-msg">ما كاين حتى رقم فهاد الشهر.</p>'; return; }

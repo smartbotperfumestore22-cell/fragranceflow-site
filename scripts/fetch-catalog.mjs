@@ -187,7 +187,14 @@ async function main() {
   let data = null;
   try {
     const sb = await readSupabase();
-    if (sb.perfumes.length >= MIN_PERFUMES) { data = { ...sb, popular: (sheet && sheet.popular) || {} }; SOURCE = "supabase"; }
+    // "most looked-for" from Supabase's events (Phase 3); the Sheet's only if Supabase cannot answer
+    let popular = (sheet && sheet.popular) || {};
+    try {
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/popular_items`, { method: "POST", headers: { apikey: SUPABASE_KEY, "Content-Type": "application/json" },
+        body: JSON.stringify({ p_days: 30 }), signal: AbortSignal.timeout(20000) });
+      if (res.ok) { const p = await res.json(); if (p && Array.isArray(p.items)) popular = p; }
+    } catch (e) { /* keep the Sheet's */ }
+    if (sb.perfumes.length >= MIN_PERFUMES) { data = { ...sb, popular }; SOURCE = "supabase"; }
     else console.warn(`[catalog] Supabase has only ${sb.perfumes.length} perfumes: using the Sheet`);
   } catch (e) { console.warn("[catalog] could not read Supabase (" + e.message + "): using the Sheet"); }
   if (!data) {

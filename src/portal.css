@@ -185,3 +185,20 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--v); outline
 }
 .p-wide-tab #p-stats .d-head .d-seal, .p-wide-tab #p-stats .d-head h1 { display: none; }
 .p-wide-tab #p-stats .d-line { max-height: 240px; }
+
+/* team: perfumes (master catalogue) */
+.p-ptools { justify-content: flex-start; gap: 10px; }
+.p-ptools .p-search { flex: 1; min-width: 200px; }
+.p-pform-row { list-style: none; padding: 6px 0 14px; }
+.p-pform h3 { font-size: 1rem; font-weight: 800; display: flex; align-items: center; gap: 8px; margin: 0; }
+.p-pform fieldset { border: 0; padding: 0; margin: 0; min-width: 0; }
+.p-pform legend { font-size: .86rem; font-weight: 700; margin-bottom: 6px; padding: 0; }
+.p-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.p-chip2 { display: inline-flex; cursor: pointer; }
+.p-chip2 input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+.p-chip2 span { border: 1px solid #CDBEF5; background: #FFF; border-radius: 999px; padding: 6px 12px; font-size: .84rem; font-weight: 600; color: var(--ink); }
+.p-chip2 input:checked + span { background: var(--v); border-color: var(--v); color: #FFF; }
+.p-chip2 input:focus-visible + span { outline: 2px solid var(--v); outline-offset: 2px; }
+.p-activechk { align-self: end; padding-bottom: 10px; }
+.p-publish { margin-inline-start: auto; flex: none; }
+@media (max-width: 640px) { .p-publish { width: 100%; margin: 0; } }
