@@ -240,3 +240,5 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--v); outline
 .p-embed-in .d-btn { justify-self: start; }
 .p-embed-steps { margin: 0; padding-inline-start: 18px; display: grid; gap: 4px; }
 .p-path { display: inline-block; font-size: .8rem; padding: 1px 6px; border-radius: 6px; background: #F3ECF5; unicode-bidi: isolate; }
+.p-more { display: block; margin: 12px auto 0; }
+.p-count { margin: 4px 0 0; font-size: .8rem; font-weight: 700; color: var(--muted, #6C6072); }

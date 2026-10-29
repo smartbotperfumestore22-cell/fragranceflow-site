@@ -152,6 +152,43 @@ async function loadCatalog() {
   if (error) { toast(errText(error), true); return []; }
   return (S.catalog = data);
 }
+// one page of the catalogue matching what is typed (search_perfumes, 011): ready for thousands of perfumes,
+// since Supabase returns at most 1000 rows per request. Before 011 is run: the old full list, filtered here.
+async function findPerfumes(q, { all = false, off = 0, lim = 30 } = {}) {
+  const r = await sb.rpc("search_perfumes", { q: q || "", only_active: !all, lim, off });
+  if (!r.error) return { rows: (r.data || []).map((x) => x.p), total: r.data && r.data.length ? Number(r.data[0].total) : 0 };
+  if (!/search_perfumes|PGRST202|42883/.test((r.error.message || "") + r.error.code)) throw r.error;
+  const src = all ? ((await sb.from("perfumes").select("*").order("brand").order("name")).data || []) : await loadCatalog();
+  const hits = src.filter((p) => match(p, q));
+  return { rows: hits.slice(off, off + lim), total: hits.length };
+}
+// a list fed page by page from the server: search as you type, «عرض المزيد» at the bottom
+function serverList(opts, drawRow, onDraw) {
+  const st = { rows: [], total: 0, seq: 0 };
+  const listEl = document.getElementById("list"), more = document.getElementById("more"), cnt = document.getElementById("cnt");
+  const draw = () => {
+    listEl.innerHTML = st.rows.length ? st.rows.map(drawRow).join("") : '<li class="d-empty">ما لقينا والو بهاد الاسم.</li>';
+    if (cnt) cnt.textContent = st.total ? `${fmt(st.total)} عطر${S.q ? " كيطابقو البحث" : ""}` : "";
+    more.hidden = st.rows.length >= st.total;
+    if (onDraw) onDraw();
+  };
+  const load = async (reset) => {
+    const my = ++st.seq;
+    if (reset) listEl.innerHTML = '<li class="d-empty">كنقلبو…</li>';
+    more.disabled = true;
+    let res;
+    try { res = await findPerfumes(S.q, { ...opts, off: reset ? 0 : st.rows.length }); }
+    catch (e) { if (my === st.seq) listEl.innerHTML = `<li class="d-empty">${errText(e)}</li>`; more.disabled = false; return; }
+    if (my !== st.seq) return;
+    st.rows = reset ? res.rows : st.rows.concat(res.rows); st.total = res.total; more.disabled = false; draw();
+  };
+  let t;
+  const q = document.getElementById("q");
+  q.addEventListener("input", () => { S.q = q.value; clearTimeout(t); t = setTimeout(() => load(true), 250); });
+  more.addEventListener("click", () => load(false));
+  load(true);
+  return { st, draw };
+}
 
 // ───────────── page ─────────────
 function trialBanner(s) {
@@ -520,23 +557,21 @@ function askPublish() {
 // add a perfume from the FragranceFlow catalogue
 async function tabAdd() {
   const el = document.getElementById("tab");
-  el.innerHTML = `${search("قلب فالكاتالوگ ديال FragranceFlow…")}<p class="p-small">ما لقيتيش العطر؟ صيفط «طلب عطر جديد» ونزيدوه.</p><ul class="p-list" id="list"><li class="d-empty">كنجيبو الكاتالوگ…</li></ul>`;
-  const cat = await loadCatalog();
+  el.innerHTML = `${search("قلب بالسمية ولا الماركة…")}<p class="p-small">ما لقيتيش العطر؟ صيفط «طلب عطر جديد» ونزيدوه.</p><p class="p-count" id="cnt"></p>
+    <ul class="p-list" id="list"></ul><button type="button" class="d-btn p-more" id="more" hidden>عرض المزيد</button>`;
   const mine = {}; S.offers.forEach((o) => { mine[o.perfume_id] = o; });
-  const draw = () => {
-    const list = cat.filter((p) => match(p, S.q)).slice(0, 60);
-    document.getElementById("list").innerHTML = list.length ? list.map((p) => {
-      const have = mine[p.perfume_id];
-      return `<li class="p-item p-item-add" data-pid="${esc(p.perfume_id)}">${thumb(p)}
+  const L = serverList({}, (p) => {
+    const have = mine[p.perfume_id];
+    return `<li class="p-item p-item-add" data-pid="${esc(p.perfume_id)}">${thumb(p)}
         <div class="p-name"><b dir="ltr">${esc(p.name)}</b><small><span dir="ltr">${esc(p.brand)}</span> · ${GENDER[p.gender] || ""}</small></div>
         ${have && have.active ? `<span class="p-have"><span class="p-tag is-ok">عندك${vlist(have).length > 1 ? " · " + vlist(have).length + " أحجام" : ""}</span><button type="button" class="p-link" data-act="add">📏 زيد ولا بدل الأحجام</button></span>`
           : `<button type="button" class="d-btn p-add" data-act="add">${have ? "رجعو" : "+ زيد"}</button>`}</li>`;
-    }).join("") : '<li class="d-empty">ما لقينا والو بهاد الاسم.</li>';
-  };
-  draw(); wireSearch(draw);
+  });
+  const draw = L.draw;
   el.addEventListener("click", (e) => {
     if (!e.target.dataset || e.target.dataset.act !== "add") return;
-    const li = e.target.closest(".p-item"), pid = li.dataset.pid, p = cat.find((x) => x.perfume_id === pid), have = mine[pid];
+    const li = e.target.closest(".p-item"), pid = li.dataset.pid, p = L.st.rows.find((x) => x.perfume_id === pid), have = mine[pid];
+    if (!p) return;
     // a perfume the store already has: the same checklist, filled with its sizes (add a size or change a price)
     const start = !have ? [] : vlist(have).length ? vlist(have)
       : (have.price ? [{ type: have.size_type === "decant" ? "decant" : "full", size: have.size || p.size || "", price: have.price }] : []);
@@ -776,23 +811,17 @@ const P_GENDER = { men: "رجالي", women: "نسائي", unisex: "للجميع
 const P_CONC = ["EDP", "EDT", "Parfum", "Extrait", "EDC"];
 async function tabPerfumes() {
   const el = document.getElementById("tab");
-  el.innerHTML = `<div class="p-review p-ptools">${search("قلب بالسمية ولا الماركة…")}<button type="button" class="d-btn" id="b-newp">+ عطر جديد</button></div>
-    <p class="p-small">هادي هي القاعدة اللي كيخدم بيها المحرك. أي تبديل كيبان فالكويز من بعد النشر.</p><ul class="p-list" id="list"><li class="d-empty">كنجيبو العطور…</li></ul>`;
-  const { data, error } = await sb.from("perfumes").select("*").order("perfume_id");
-  if (error) { document.getElementById("list").innerHTML = `<li class="d-empty">${errText(error)}</li>`; return; }
-  const all = data;
-  const draw = () => {
-    const list = all.filter((p) => match(p, S.q));
-    document.getElementById("list").innerHTML = list.length ? list.map((p) => `<li class="p-item p-item-add${p.active ? "" : " is-removed"}" data-pid="${esc(p.perfume_id)}">${thumb(p)}
+  el.innerHTML = `<div class="p-review p-ptools">${search("قلب بالسمية، الماركة ولا الرقم (FF-…)")}<button type="button" class="d-btn" id="b-newp">+ عطر جديد</button></div>
+    <p class="p-small">هادي هي القاعدة اللي كيخدم بيها المحرك. أي تبديل كيبان فالكويز من بعد النشر.</p><p class="p-count" id="cnt"></p>
+    <ul class="p-list" id="list"></ul><button type="button" class="d-btn p-more" id="more" hidden>عرض المزيد</button>`;
+  const L = serverList({ all: true }, (p) => `<li class="p-item p-item-add${p.active ? "" : " is-removed"}" data-pid="${esc(p.perfume_id)}">${thumb(p)}
       <div class="p-name"><b dir="ltr">${esc(p.name)}</b><small><span dir="ltr">${esc(p.brand)}</span> · ${P_GENDER[p.gender] || ""} · <span dir="ltr">${esc(p.perfume_id)}</span>${p.ref_price ? " · " + fmt(p.ref_price) + " درهم" : ""}</small></div>
-      <span class="p-have">${p.active ? "" : '<span class="p-tag">محبوس</span>'}<button type="button" class="p-link" data-edit="${esc(p.perfume_id)}">✏️ بدّل</button></span></li>`).join("")
-      : '<li class="d-empty">ما لقينا والو بهاد الاسم.</li>';
-  };
-  draw(); wireSearch(draw);
+      <span class="p-have">${p.active ? "" : '<span class="p-tag">محبوس</span>'}<button type="button" class="p-link" data-edit="${esc(p.perfume_id)}">✏️ بدّل</button></span></li>`);
+  const all = L.st, draw = L.draw;
   el.addEventListener("click", (e) => {
     const id = e.target.dataset && e.target.dataset.edit;
-    if (id) perfumeForm(e.target.closest(".p-item"), all.find((p) => p.perfume_id === id), (saved) => { Object.assign(all.find((p) => p.perfume_id === saved.perfume_id), saved); draw(); });
-    if (e.target.id === "b-newp") perfumeForm(null, null, (saved) => { all.push(saved); draw(); });
+    if (id) perfumeForm(e.target.closest(".p-item"), all.rows.find((p) => p.perfume_id === id), (saved) => { Object.assign(all.rows.find((p) => p.perfume_id === saved.perfume_id), saved); draw(); });
+    if (e.target.id === "b-newp") perfumeForm(null, null, (saved) => { all.rows.unshift(saved); all.total += 1; draw(); });
   });
 }
 const chipSet = (name, labels, chosen) => `<div class="p-chips" role="group" aria-label="${name}">${Object.keys(labels).map((k) =>
