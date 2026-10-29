@@ -52,7 +52,7 @@ export function applyStoreMode(db) {
     if (!offer) continue;
     store = store || { id, name: offer.name, city: offer.city, website: offer.storeWebsite || "", instagram: offer.storeInstagram || "",
       logo: offer.storeLogo || "", color: offer.storeColor || "",
-      welcomeTitle: offer.storeWelcomeTitle || "", welcomeText: offer.storeWelcomeText || "", cover: offer.storeCover || "",
+      welcomeTitle: offer.storeWelcomeTitle || "", welcomeText: offer.storeWelcomeText || "", cover: offer.storeCover || "", theme: offer.storeTheme || "",
       whatsapp: /^https:\/\/wa\.me\/\d+/.test(offer.whatsapp || "") ? offer.whatsapp.split("?")[0] : "" };
     // the store's own price and link; "where to buy" lists only this store
     // Rule: through a store link the budget uses THIS store's prices, by purchase type: the cheapest full bottle

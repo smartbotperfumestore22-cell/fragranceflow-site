@@ -5,11 +5,14 @@
 alter table public.stores add column if not exists welcome_title text not null default '';
 alter table public.stores add column if not exists welcome_text  text not null default '';
 alter table public.stores add column if not exists cover_url     text not null default '';
+-- atmosphere of the page: luxury (purple & gold), oriental (burgundy & gold), modern (black & white), natural (green & beige)
+alter table public.stores add column if not exists theme         text not null default '';
 alter table public.stores drop constraint if exists stores_page_ok;
 alter table public.stores add constraint stores_page_ok check (
-  length(welcome_title) <= 80 and length(welcome_text) <= 300 and (cover_url = '' or cover_url ~ '^https://')) not valid;
+  length(welcome_title) <= 80 and length(welcome_text) <= 300 and (cover_url = '' or cover_url ~ '^https://')
+  and theme in ('', 'luxury', 'oriental', 'modern', 'natural')) not valid;
 -- the merchant may change these too (next to the contact fields of 004)
-grant update (city, website, whatsapp, instagram, logo_url, color, welcome_title, welcome_text, cover_url) on public.stores to authenticated;
+grant update (city, website, whatsapp, instagram, logo_url, color, welcome_title, welcome_text, cover_url, theme) on public.stores to authenticated;
 
 -- 2) pictures (logo, cover) uploaded from the portal: a public folder per store, at most 2 MB, images only
 insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)

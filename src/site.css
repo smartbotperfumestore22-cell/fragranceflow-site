@@ -1679,3 +1679,27 @@ body.on-b2b .head-login svg { width: 18px; height: 18px; flex: none; }
 #quizpage .store-quiz-note.has-cover { padding-top: 0; overflow: hidden; }
 #quizpage .store-quiz-note .store-cover { display: block; width: calc(100% + 40px); max-width: none; margin: 0 -20px; height: clamp(140px, 30vw, 220px); object-fit: cover; }
 #quizpage .store-quiz-note.has-cover .store-seal { margin-top: -36px; position: relative; box-shadow: 0 0 0 4px #FFF; }
+
+/* store quiz page: the store's welcome (template: picture + palette + logo + words) */
+#quizpage .store-hero { position: relative; max-width: 1100px; margin: 0 auto 24px; border-radius: 22px; overflow: hidden; color: #FFF; text-align: center;
+  background: linear-gradient(var(--store-overlay, rgba(34, 12, 52, .72)), var(--store-overlay, rgba(34, 12, 52, .72))), var(--store-cover) center / cover no-repeat, var(--plum-deep); }
+#quizpage .store-hero::after { content: ""; position: absolute; inset: 0; pointer-events: none; background: radial-gradient(ellipse 60% 70% at 50% 45%, transparent 30%, rgba(0, 0, 0, .28) 100%); }
+#quizpage .store-hero-in { position: relative; z-index: 1; display: flex; flex-direction: column; align-items: center; gap: 12px; padding: clamp(32px, 6vw, 64px) 20px clamp(28px, 5vw, 52px); }
+#quizpage .store-hero .store-seal { width: 72px; height: 72px; font-size: 1.5rem; box-shadow: 0 0 0 3px var(--store-gold, #C9A45C), 0 10px 30px -10px rgba(0, 0, 0, .6); }
+#quizpage .store-hero-kicker { margin: 0; font-size: .9rem; font-weight: 700; color: var(--store-gold, #C9A45C); letter-spacing: .02em; }
+#quizpage .store-hero-title { margin: 0; font-family: var(--font-display); font-weight: 700; font-size: clamp(1.9rem, 6vw, 3rem); line-height: 1.25; color: #FFF; max-width: 18ch; text-wrap: balance; }
+#quizpage .store-hero-title::after { content: ""; display: block; width: 72px; height: 2px; margin: 14px auto 0; background: linear-gradient(90deg, transparent, var(--store-gold, #C9A45C), transparent); }
+#quizpage .store-hero-text { margin: 0; max-width: 46ch; font-size: clamp(.95rem, 2.4vw, 1.08rem); line-height: 1.8; color: rgba(255, 255, 255, .9); }
+#quizpage .store-hero-badges { list-style: none; padding: 0; margin: 6px 0 4px; display: flex; flex-wrap: wrap; justify-content: center; gap: 10px 22px; font-size: .86rem; color: rgba(255, 255, 255, .92); }
+#quizpage .store-hero-badges li { display: flex; align-items: center; gap: 8px; }
+#quizpage .store-hero-ic { display: grid; place-items: center; width: 34px; height: 34px; border-radius: 50%; border: 1px solid var(--store-gold, #C9A45C); color: var(--store-gold, #C9A45C); }
+#quizpage .store-hero-ic svg { width: 18px; height: 18px; }
+#quizpage .store-hero-cta { margin-top: 8px; border: 0; cursor: pointer; font: inherit; font-weight: 800; font-size: 1.02rem; padding: 14px 34px; border-radius: 999px;
+  color: #2A1A08; background: linear-gradient(180deg, #F6E3B4, var(--store-gold, #C9A45C)); box-shadow: 0 10px 30px -8px rgba(201, 164, 92, .6), inset 0 1px 0 rgba(255, 255, 255, .6); }
+#quizpage .store-hero-cta:hover { filter: brightness(1.04); }
+#quizpage .store-hero-cta:focus-visible { outline: 2px solid #FFF; outline-offset: 3px; }
+@media (max-width: 640px) {
+  #quizpage .store-hero { border-radius: 18px; margin-bottom: 18px; }
+  #quizpage .store-hero-badges { flex-direction: column; align-items: center; gap: 8px; }
+}
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }

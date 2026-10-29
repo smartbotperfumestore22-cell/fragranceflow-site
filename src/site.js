@@ -60,15 +60,32 @@ export function startSite({ loadQuiz }) {
     else seal.textContent = (STORE.name || '?').trim().split(/\s+/).slice(0, 2).map(function (w) { return w.charAt(0); }).join('').toUpperCase();
     return seal;
   }
+  // the store's atmosphere (portal → ⚙️ إعدادات المتجر): palette and picture; the store's own colour and cover win
+  var THEMES = {
+    luxury:   { accent: '#5B2A86', gold: '#C9A45C', overlay: 'rgba(34, 12, 52, .6)', img: '/images/themes/luxury.webp' },
+    oriental: { accent: '#7A2331', gold: '#C99A4A', overlay: 'rgba(42, 12, 10, .6)', img: '/images/themes/oriental.webp' },
+    modern:   { accent: '#1F1F22', gold: '#B5A68C', overlay: 'rgba(12, 12, 14, .55)', img: '/images/themes/modern.webp' },
+    natural:  { accent: '#3E6B4A', gold: '#C2A878', overlay: 'rgba(18, 38, 24, .55)', img: '/images/themes/natural.webp' }
+  };
+  function hexRgb(x) { x = x.replace('#', ''); return [parseInt(x.substr(0, 2), 16), parseInt(x.substr(2, 2), 16), parseInt(x.substr(4, 2), 16)]; }
+  function mix(x, y, k) { var a = hexRgb(x), b = hexRgb(y); return '#' + a.map(function (v, i) { return ('0' + Math.round(v + (b[i] - v) * k).toString(16)).slice(-2); }).join(''); }
   if (STORE) {
     document.body.classList.add('in-store');
-    if (STORE.color) {
-      // text on the store colour: white or ink, whichever reads better
-      var c = STORE.color.replace('#', ''), r = parseInt(c.substr(0, 2), 16), g = parseInt(c.substr(2, 2), 16), b = parseInt(c.substr(4, 2), 16);
-      var lum = (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255;
-      document.documentElement.style.setProperty('--store-accent', STORE.color);
-      document.documentElement.style.setProperty('--store-on-accent', lum > 0.6 ? '#24172C' : '#FFFFFF');
-    }
+    var theme = THEMES[STORE.theme] || THEMES.luxury, accent = STORE.color || theme.accent;
+    var rgb = hexRgb(accent), lum = (0.2126 * rgb[0] + 0.7152 * rgb[1] + 0.0722 * rgb[2]) / 255;
+    var css = document.documentElement.style;
+    css.setProperty('--store-accent', accent);
+    // text on the store colour: white or ink, whichever reads better
+    css.setProperty('--store-on-accent', lum > 0.6 ? '#24172C' : '#FFFFFF');
+    css.setProperty('--store-gold', theme.gold);
+    css.setProperty('--store-overlay', theme.overlay);
+    // the whole quiz takes the store's colours (questions, buttons, results), not only the header
+    css.setProperty('--plum', lum > 0.6 ? mix(accent, '#000000', .45) : accent);
+    css.setProperty('--plum-deep', mix(accent, '#000000', .3));
+    css.setProperty('--purple', mix(accent, '#FFFFFF', .18));
+    css.setProperty('--lavender', mix(accent, '#FFFFFF', .62));
+    css.setProperty('--mist', mix(accent, '#FFFFFF', .92));
+    css.setProperty('--rose', theme.gold);
     // header: the store's lockup instead of FragranceFlow's
     var logoBtn = document.getElementById('logo');
     if (logoBtn) {
@@ -233,12 +250,25 @@ export function startSite({ loadQuiz }) {
     show('quiz'); window.scrollTo(0, back ? resultsY : 0);
     if (STORE && !document.getElementById('store-quiz-note')) {
       var root = document.getElementById('ff-widget-root');
-      // the store's own words and cover picture when it set them in the portal (⚙️ إعدادات المتجر), else the default text
-      root.parentNode.insertBefore(h('aside', { class: 'store-quiz-note' + (STORE.cover ? ' has-cover' : ''), id: 'store-quiz-note' },
-        STORE.cover ? h('img', { class: 'store-cover', src: STORE.cover, alt: '', loading: 'eager', decoding: 'async' }) : null,
-        storeSeal('store-seal-lg'),
-        h('p', { class: 'store-quiz-title', text: STORE.welcomeTitle || ('اختبار العطور ديال ' + STORE.name) }),
-        h('p', { text: STORE.welcomeText || ('جاوب على الأسئلة، ونقترحو عليك العطور الأقرب لذوقك من ' + STORE.count + ' عطر متوفر عندنا.') })), root);
+      // the store's welcome: its picture (or its atmosphere's), its logo, its words; same quiz and engine underneath
+      var icon = function (d) { var sv = document.createElementNS('http://www.w3.org/2000/svg', 'svg'); sv.setAttribute('viewBox', '0 0 24 24'); sv.setAttribute('aria-hidden', 'true');
+        sv.innerHTML = '<path d="' + d + '" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>'; return sv; };
+      var badge = function (d, t) { return h('li', null, h('span', { class: 'store-hero-ic' }, icon(d)), h('span', { text: t })); };
+      var hero = h('section', { class: 'store-hero', id: 'store-quiz-note', 'aria-labelledby': 'store-hero-title' },
+        h('div', { class: 'store-hero-in' },
+          storeSeal('store-seal-lg'),
+          STORE.welcomeTitle ? h('p', { class: 'store-hero-kicker', text: STORE.name }) : null,
+          h('h1', { class: 'store-hero-title', id: 'store-hero-title', text: STORE.welcomeTitle || ('اختبار العطور ديال ' + STORE.name) }),
+          h('p', { class: 'store-hero-text', text: STORE.welcomeText || ('جاوب على أسئلة بسيطة، ونقترحو عليك العطور الأقرب لذوقك من ' + STORE.count + ' عطر متوفر عندنا.') }),
+          h('ul', { class: 'store-hero-badges' },
+            badge('M6 4h12l3 5-9 11L3 9z M3 9h18 M9 4l3 16 3-16', 'اقتراحات خاصة بيك'),
+            badge('M5 12.5l4.5 4.5L19 7.5', 'على حساب ذوقك'),
+            badge('M4 9h16v11H4z M2 6h20v3H2z M12 6v14 M12 6c-2-4-6-3-5 0 M12 6c2-4 6-3 5 0', 'من العطور اللي عندنا')),
+          h('button', { type: 'button', class: 'store-hero-cta', onclick: function () {
+            var q = document.getElementById('ff-widget-root'); if (q) q.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          } }, '✨ بدا الكويز')));
+      hero.style.setProperty('--store-cover', 'url("' + String(STORE.cover || theme.img).replace(/["\\]/g, '') + '")');
+      root.parentNode.insertBefore(hero, root);
     }
     document.title = STORE ? 'اكتشف عطرك | ' + STORE.name : 'اكتشف بصمتك العطرية | FragranceFlow';
     if (quizOpen) return;

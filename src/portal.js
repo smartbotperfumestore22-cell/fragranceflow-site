@@ -557,6 +557,11 @@ function tabSettings() {
     </div>
     <h2 class="p-h2">🎨 صفحة الكويز ديالك</h2>
     <p class="p-small">هادشي كيبان للزبون فأول صفحة الكويز. إلا خليتيهم خاويين، كيبان النص العادي.</p>
+    <fieldset class="p-themes"><legend>الأجواء ديال الصفحة</legend>
+      ${[["luxury", "💜 فاخر", "بنفسجي وذهبي"], ["oriental", "🌙 شرقي", "عنابي وذهبي، عود وعنبر"], ["modern", "🤍 عصري", "أبيض وأسود، بسيط"], ["natural", "🌿 طبيعي", "أخضر وبيج، ورود ونباتات"]].map(([k, l, d]) =>
+        `<label class="p-theme"><input type="radio" name="theme" value="${k}"${(s.theme || "luxury") === k ? " checked" : ""}>
+          <img src="/images/themes/${k}-thumb.webp" alt="" width="320" height="180" loading="lazy"><span><b>${l}</b><small>${d}</small></span></label>`).join("")}
+      <p class="p-small">اللون ديالك وصورة الغلاف ديالك (إلا رفعتيها) كيتقدمو على ديال القالب.</p></fieldset>
     <div class="p-media">
       <div class="p-pic"><span class="p-pic-box p-pic-logo">${s.logo_url ? `<img src="${esc(s.logo_url)}" alt="اللوگو">` : esc((s.name || "?").slice(0, 2).toUpperCase())}</span>
         <div><b>اللوگو</b><small>مربع، PNG ولا JPG</small>
@@ -624,7 +629,8 @@ function tabSettings() {
     let w = f.whatsapp.value.replace(/\D/g, "").replace(/^00/, "");
     if (/^0[5-7]\d{8}$/.test(w)) w = "212" + w.slice(1);
     const row = { whatsapp: w, city: f.city.value.trim(), instagram: f.instagram.value.trim(), website: f.website.value.trim(),
-      color: noColor ? "" : f.color.value.toLowerCase(), welcome_title: f.welcome_title.value.trim(), welcome_text: f.welcome_text.value.trim() };
+      color: noColor ? "" : f.color.value.toLowerCase(), welcome_title: f.welcome_title.value.trim(), welcome_text: f.welcome_text.value.trim(),
+      theme: (f.querySelector("input[name=theme]:checked") || {}).value || "luxury" };
     if (w && !/^\d{11,15}$/.test(w)) return toast("نمرة الواتساب ماشي صحيحة. مثال: 0612345678", true);
     for (const k of ["instagram", "website"]) if (!https(row[k])) return toast("الروابط خاصهم يبداو بـ https://", true);
     const b = f.querySelector("[type=submit]"); b.disabled = true;

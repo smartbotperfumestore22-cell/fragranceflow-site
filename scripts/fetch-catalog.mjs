@@ -62,7 +62,8 @@ function build(data) {
     stores[id] = { name: str(s.name), city: str(s.city), whatsapp: wa.length >= 9 ? wa : "",
       website: link(s.website || s.website_url), instagram: link(s.instagram || s.instagram_url),
       logo: link(s.logo_url || s.logo), color,
-      welcomeTitle: str(s.welcome_title).slice(0, 80), welcomeText: str(s.welcome_text).slice(0, 300), cover: link(s.cover_url) };
+      welcomeTitle: str(s.welcome_title).slice(0, 80), welcomeText: str(s.welcome_text).slice(0, 300), cover: link(s.cover_url),
+      theme: /^(luxury|oriental|modern|natural)$/.test(str(s.theme)) ? str(s.theme) : "" };
   }
   const offers = {};
   for (const o of data.offers || []) {
@@ -93,7 +94,7 @@ function build(data) {
       url, page, whatsapp, formats: fmt || [],
       // the store's own details, for the store link (header, footer)
       storeWebsite: st.website, storeInstagram: st.instagram, storeLogo: st.logo, storeColor: st.color,
-      storeWelcomeTitle: st.welcomeTitle, storeWelcomeText: st.welcomeText, storeCover: st.cover });
+      storeWelcomeTitle: st.welcomeTitle, storeWelcomeText: st.welcomeText, storeCover: st.cover, storeTheme: st.theme });
   }
   for (const pid in offers) offers[pid].forEach((x) => x.formats.sort((a, b) => (a === "full" ? -1 : b === "full" ? 1 : 0)));
   const seen = new Set(), out = [];
@@ -158,7 +159,7 @@ async function readSupabase() {
   const [perfumes, stores, offers] = await Promise.all([
     sbAll("perfumes", "*", "perfume_id"),
     // welcome text and cover of the store's quiz page (010_store_page.sql); older databases without them still work
-    sbAll("stores", "id,name,city,website,whatsapp,instagram,logo_url,color,active,welcome_title,welcome_text,cover_url", "id")
+    sbAll("stores", "id,name,city,website,whatsapp,instagram,logo_url,color,active,welcome_title,welcome_text,cover_url,theme", "id")
       .catch(() => sbAll("stores", "id,name,city,website,whatsapp,instagram,logo_url,color,active", "id")),
     // sizes per offer (008_offer_sizes.sql); older databases without the column still work
     sbAll("offers", "store_id,perfume_id,size,size_type,price,url,in_stock,variants", "id")

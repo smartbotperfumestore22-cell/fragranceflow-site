@@ -216,3 +216,16 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--v); outline
 .p-upload.is-busy { opacity: .6; pointer-events: none; }
 .p-upload:focus-within { outline: 2px solid var(--v); outline-offset: 2px; }
 @media (max-width: 640px) { .p-media { grid-template-columns: minmax(0, 1fr); } }
+
+/* settings: page atmosphere */
+.p-themes { border: 0; padding: 0; margin: 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; min-width: 0; }
+.p-themes legend { font-size: .86rem; font-weight: 700; margin-bottom: 8px; padding: 0; }
+.p-themes > .p-small { grid-column: 1 / -1; }
+.p-theme { position: relative; display: grid; gap: 0; cursor: pointer; border: 2px solid var(--line); border-radius: 14px; overflow: hidden; background: #FFF; }
+.p-theme input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+.p-theme img { width: 100%; height: auto; aspect-ratio: 16 / 9; object-fit: cover; display: block; }
+.p-theme span { display: grid; padding: 8px 10px; }
+.p-theme b { font-size: .9rem; } .p-theme small { font-size: .74rem; color: var(--muted); font-weight: 500; }
+.p-theme:has(input:checked) { border-color: var(--v); box-shadow: 0 0 0 3px var(--v-soft); }
+.p-theme:has(input:focus-visible) { outline: 2px solid var(--v); outline-offset: 2px; }
+@media (max-width: 760px) { .p-themes { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
