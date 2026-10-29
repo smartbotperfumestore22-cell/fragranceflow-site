@@ -253,20 +253,34 @@ export function startSite({ loadQuiz }) {
       // the store's welcome: its picture (or its atmosphere's), its logo, its words; same quiz and engine underneath
       var icon = function (d) { var sv = document.createElementNS('http://www.w3.org/2000/svg', 'svg'); sv.setAttribute('viewBox', '0 0 24 24'); sv.setAttribute('aria-hidden', 'true');
         sv.innerHTML = '<path d="' + d + '" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>'; return sv; };
-      var badge = function (d, t) { return h('li', null, h('span', { class: 'store-hero-ic' }, icon(d)), h('span', { text: t })); };
+      // what the customer gets, said before the first question: the signature, up to 3 perfumes from this store, the scent journey
+      var get = function (d, t, sub) { return h('li', null, h('span', { class: 'store-hero-ic' }, icon(d)), h('span', { class: 'store-hero-get' }, h('b', { text: t }), h('small', { text: sub }))); };
+      var bottle = function () { var b = h('span', { class: 'shp-bottle' }); b.appendChild(icon('M10 2.5h4v3h-4z M9 5.5h6l1.5 3v11.5a1.5 1.5 0 0 1-1.5 1.5H9A1.5 1.5 0 0 1 7.5 20V8.5z')); b.appendChild(h('i', { text: '؟' })); return b; };
+      var stage = function (t) { return h('li', null, h('span', { class: 'shp-dot' }), h('span', { text: t })); };
+      var preview = h('div', { class: 'store-hero-pv', 'aria-hidden': 'true' },
+        h('p', { class: 'shp-cap', text: 'هادشي اللي غادي تلقى فالنتيجة' }),
+        h('div', { class: 'shp-card' },
+          h('span', { class: 'shp-seal', text: '؟' }),
+          h('span', { class: 'shp-card-tx' }, h('small', { text: 'بصمتك العطرية' }), h('span', { class: 'shp-line' }), h('span', { class: 'shp-line shp-line-s' }))),
+        h('div', { class: 'shp-bottles' }, bottle(), bottle(), bottle()),
+        h('ol', { class: 'shp-journey' }, stage('أول رشة'), stage('بعد دقائق'), stage('الأثر الأخير')));
       var hero = h('section', { class: 'store-hero', id: 'store-quiz-note', 'aria-labelledby': 'store-hero-title' },
         h('div', { class: 'store-hero-in' },
-          storeSeal('store-seal-lg'),
-          STORE.welcomeTitle ? h('p', { class: 'store-hero-kicker', text: STORE.name }) : null,
-          h('h1', { class: 'store-hero-title', id: 'store-hero-title', text: STORE.welcomeTitle || ('اختبار العطور ديال ' + STORE.name) }),
-          h('p', { class: 'store-hero-text', text: STORE.welcomeText || ('جاوب على أسئلة بسيطة، ونقترحو عليك العطور الأقرب لذوقك من ' + STORE.count + ' عطر متوفر عندنا.') }),
-          h('ul', { class: 'store-hero-badges' },
-            badge('M6 4h12l3 5-9 11L3 9z M3 9h18 M9 4l3 16 3-16', 'اقتراحات خاصة بيك'),
-            badge('M5 12.5l4.5 4.5L19 7.5', 'على حساب ذوقك'),
-            badge('M4 9h16v11H4z M2 6h20v3H2z M12 6v14 M12 6c-2-4-6-3-5 0 M12 6c2-4 6-3 5 0', 'من العطور اللي عندنا')),
-          h('button', { type: 'button', class: 'store-hero-cta', onclick: function () {
-            var q = document.getElementById('ff-widget-root'); if (q) q.scrollIntoView({ behavior: 'smooth', block: 'start' });
-          } }, '✨ بدا الكويز')));
+          h('div', { class: 'store-hero-copy' },
+            storeSeal('store-seal-lg'),
+            STORE.welcomeTitle ? h('p', { class: 'store-hero-kicker', text: STORE.name }) : null,
+            h('h1', { class: 'store-hero-title', id: 'store-hero-title', text: STORE.welcomeTitle || ('اكتشف بصمتك العطرية مع ' + STORE.name) }),
+            h('p', { class: 'store-hero-text', text: STORE.welcomeText || ('جاوب على أسئلة بسيطة، ونختارو ليك من العطور المتوفرة عند ' + STORE.name + '.') })),
+          preview,
+          h('ul', { class: 'store-hero-gets' },
+            get('M12 3c-3 0-6 2.5-6 6.5 0 3 1 5.5 2.5 8 M12 7c-1.6 0-3 1.2-3 3 0 2.4.8 4.6 2 6.5 M12 11v4.5c0 1.6.5 3 1.3 4.5 M15 8.5c.6 1 1 2.2 1 3.5 0 2.2-.4 4.2-1.2 6 M17.8 6.5c.8 1.3 1.2 2.8 1.2 4.5', 'بصمتك العطرية', 'الشخصية العطرية اللي كتشبه ليك.'),
+            get('M10 2.5h4v3h-4z M9 5.5h6l1.5 3v11.5a1.5 1.5 0 0 1-1.5 1.5H9A1.5 1.5 0 0 1 7.5 20V8.5z', 'حتى 3 عطور مختارة ليك', 'من العطور المتوفرة عند ' + STORE.name + '.'),
+            get('M3 12c2.5-4 5-4 7.5 0s5 4 7.5 0 M3 17c2.5-4 5-4 7.5 0s5 4 7.5 0 M3 7c2.5-4 5-4 7.5 0s5 4 7.5 0', 'تخيّل الرائحة قبل ما تختار', 'أول رشة، بعد دقائق، والأثر الأخير.')),
+          h('div', { class: 'store-hero-go' },
+            h('button', { type: 'button', class: 'store-hero-cta', onclick: function () {
+              var q = document.getElementById('ff-widget-root'); if (q) q.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            } }, '✨ اكتشف بصمتك'),
+            h('p', { class: 'store-hero-time', text: 'تقريباً دقيقة وحدة' }))));
       hero.style.setProperty('--store-cover', 'url("' + String(STORE.cover || theme.img).replace(/["\\]/g, '') + '")');
       root.parentNode.insertBefore(hero, root);
     }

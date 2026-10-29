@@ -573,8 +573,8 @@ function tabSettings() {
           ${s.cover_url ? '<button type="button" class="p-link p-danger" data-rm="cover_url">حيد</button>' : ""}</div></div>
     </div>
     <div class="p-grid2">
-      <label>العنوان<input name="welcome_title" maxlength="80" value="${esc(s.welcome_title || "")}" placeholder="اختبار العطور ديال ${esc(s.name)}"></label>
-      <label>جملة الترحيب<textarea name="welcome_text" maxlength="300" rows="2" placeholder="جاوب على الأسئلة، ونقترحو عليك العطور الأقرب لذوقك من العطور المتوفرة عندنا.">${esc(s.welcome_text || "")}</textarea></label>
+      <label>العنوان<input name="welcome_title" maxlength="80" value="${esc(s.welcome_title || "")}" placeholder="اكتشف بصمتك العطرية مع ${esc(s.name)}"></label>
+      <label>جملة الترحيب<textarea name="welcome_text" maxlength="300" rows="2" placeholder="جاوب على أسئلة بسيطة، ونختارو ليك من العطور المتوفرة عند ${esc(s.name)}.">${esc(s.welcome_text || "")}</textarea></label>
     </div>
     <button class="d-btn" type="submit">حفظ</button></form>
     <form id="f-pass" class="p-form p-pass" novalidate>
