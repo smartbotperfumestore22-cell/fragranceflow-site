@@ -4213,6 +4213,12 @@ function WidgetContent({ onClose, lang: langProp, initialStep="intro" }) {
 }, []);
   const t = TRANSLATIONS[lang];
   const questions = buildQS(ans.sizeType, lang, ans.world);
+  // the store page's welcome says how many questions there are (first count only; the quiz itself is unchanged)
+  useEffect(() => {
+    if (typeof window === "undefined" || window.__FF_QCOUNT__) return;
+    window.__FF_QCOUNT__ = questions.length;
+    window.dispatchEvent(new CustomEvent("ff:qcount", { detail: questions.length }));
+  }, [questions.length]);
 
   function getBudgetOpts(q) {
     const st = ans.sizeType || q?.sizeType || CONFIG.DEFAULT_SIZE || "full";
