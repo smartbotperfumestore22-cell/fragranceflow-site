@@ -1681,64 +1681,82 @@ body.on-b2b .head-login svg { width: 18px; height: 18px; flex: none; }
 #quizpage .store-quiz-note.has-cover .store-seal { margin-top: -36px; position: relative; box-shadow: 0 0 0 4px #FFF; }
 
 /* store quiz page: the store's welcome (template: picture + palette + logo + words) */
-#quizpage .store-hero { position: relative; max-width: 1100px; margin: 0 auto 24px; border-radius: 22px; overflow: hidden; color: #FFF; text-align: center;
+#quizpage .store-hero { --g: var(--store-gold, #C9A45C); position: relative; max-width: 1180px; margin: 0 auto 24px; border-radius: 22px; overflow: hidden; color: #FFF; text-align: center;
   background: linear-gradient(var(--store-overlay, rgba(34, 12, 52, .72)), var(--store-overlay, rgba(34, 12, 52, .72))), var(--store-cover) center / cover no-repeat, var(--plum-deep); }
-#quizpage .store-hero::after { content: ""; position: absolute; inset: 0; pointer-events: none; background: radial-gradient(ellipse 60% 70% at 50% 45%, transparent 30%, rgba(0, 0, 0, .28) 100%); }
-#quizpage .store-hero-in { position: relative; z-index: 1; display: grid; justify-items: center; gap: 18px; padding: clamp(28px, 5vw, 56px) 20px clamp(26px, 4vw, 48px);
-  grid-template-areas: "copy" "pv" "gets" "go"; }
-#quizpage .store-hero-copy { grid-area: copy; display: flex; flex-direction: column; align-items: center; gap: 10px; }
-#quizpage .store-hero .store-seal { width: 72px; height: 72px; font-size: 1.5rem; box-shadow: 0 0 0 3px var(--store-gold, #C9A45C), 0 10px 30px -10px rgba(0, 0, 0, .6); }
-#quizpage .store-hero-kicker { margin: 0; font-size: .9rem; font-weight: 700; color: var(--store-gold, #C9A45C); letter-spacing: .02em; }
-#quizpage .store-hero-title { margin: 0; font-family: var(--font-display); font-weight: 700; font-size: clamp(1.75rem, 5.4vw, 2.8rem); line-height: 1.3; color: #FFF; max-width: 16ch; text-wrap: balance; }
-#quizpage .store-hero-with { display: block; margin-top: 4px; font-size: .62em; font-weight: 600; color: var(--store-gold, #C9A45C); }
-#quizpage .store-hero-text { margin: 0; max-width: 42ch; font-size: clamp(.95rem, 2.4vw, 1.06rem); line-height: 1.8; color: rgba(255, 255, 255, .9); }
+#quizpage .store-hero::after { content: ""; position: absolute; inset: 0; pointer-events: none; background: radial-gradient(ellipse 70% 70% at 50% 45%, transparent 35%, rgba(0, 0, 0, .3) 100%); }
+#quizpage .store-hero-in { position: relative; z-index: 1; text-shadow: 0 1px 12px rgba(0, 0, 0, .35); display: grid; justify-items: center; gap: 18px; padding: 26px 18px 28px;
+  grid-template-areas: "brand" "copy" "pv" "go"; }
+#quizpage .store-hero-gets { display: none; }
 
-/* the result, previewed: a signature card still to be revealed, three bottles, the scent journey */
-#quizpage .store-hero-pv { grid-area: pv; justify-items: stretch; width: min(100%, 340px); padding: 16px 16px 14px; border-radius: 18px; text-align: start;
-  background: rgba(255, 255, 255, .08); border: 1px solid rgba(255, 255, 255, .18); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); box-shadow: 0 24px 50px -24px rgba(0, 0, 0, .7); }
-#quizpage .shp-cap { margin: 0 0 12px; font-size: 1rem; font-weight: 800; color: #FFF; text-align: center; }
-#quizpage .shp-card { display: flex; align-items: center; gap: 12px; padding: 12px; border-radius: 14px; color: #2A1A08;
-  background: linear-gradient(135deg, #FBF1D8, color-mix(in srgb, var(--store-gold, #C9A45C) 55%, #FBF1D8)); box-shadow: inset 0 1px 0 rgba(255, 255, 255, .7); }
-#quizpage .shp-seal { flex: none; display: grid; place-items: center; width: 46px; height: 46px; border-radius: 50%; font-weight: 800; font-size: 1.3rem;
-  color: var(--store-gold, #C9A45C); background: var(--store-accent, #5B2A86); box-shadow: 0 0 0 2px rgba(255, 255, 255, .8); }
-#quizpage .shp-card-tx { flex: 1; display: flex; flex-direction: column; gap: 2px; min-width: 0; }
-#quizpage .shp-card-tx b { font-size: 1.05rem; font-weight: 800; color: var(--store-accent, #5B2A86); }
-#quizpage .shp-card-tx small { font-size: .84rem; color: rgba(42, 26, 8, .75); }
-#quizpage .shp-bottles { display: grid; justify-items: stretch; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 10px; }
-#quizpage .shp-bottle { position: relative; display: grid; place-items: center; height: 64px; border-radius: 12px; color: var(--store-gold, #C9A45C);
-  background: rgba(255, 255, 255, .07); border: 1px dashed rgba(255, 255, 255, .26); }
-#quizpage .shp-bottle svg { width: 34px; height: 34px; }
-#quizpage .shp-bottle i { position: absolute; top: 60%; left: 50%; transform: translate(-50%, -50%); font-style: normal; font-weight: 800; font-size: .8rem; color: #FFF; }
-#quizpage .shp-journey { list-style: none; margin: 12px 0 0; padding: 0; display: flex; justify-content: space-between; position: relative; font-size: .74rem; color: rgba(255, 255, 255, .85); }
-#quizpage .shp-journey::before { content: ""; position: absolute; top: 5px; inset-inline: 16%; height: 1px; background: linear-gradient(90deg, var(--store-gold, #C9A45C), rgba(255, 255, 255, .35), var(--store-gold, #C9A45C)); }
-#quizpage .shp-journey li { position: relative; flex: 1; display: flex; flex-direction: column; align-items: center; gap: 6px; text-align: center; }
-#quizpage .shp-dot { width: 11px; height: 11px; border-radius: 50%; background: var(--store-gold, #C9A45C); box-shadow: 0 0 0 3px rgba(255, 255, 255, .15); }
+/* the store's lockup */
+#quizpage .store-hero-brand { grid-area: brand; display: flex; align-items: center; gap: 12px; }
+#quizpage .store-hero .store-seal { width: 58px; height: 58px; font-size: 1.25rem; box-shadow: 0 0 0 2px var(--g), 0 10px 30px -10px rgba(0, 0, 0, .6); }
+#quizpage .store-hero-brand-tx { display: flex; flex-direction: column; align-items: flex-start; line-height: 1.2; text-align: start; }
+#quizpage .store-hero-name { font-family: var(--font-display); font-size: 1.45rem; font-weight: 600; color: #FFF; }
+#quizpage .store-hero-city { font-family: var(--font-body); font-size: .85rem; color: rgba(255, 255, 255, .75); }
 
-#quizpage .store-hero-gets { grid-area: gets; list-style: none; padding: 0; margin: 0; display: grid; gap: 12px; width: min(100%, 360px); text-align: start; }
-#quizpage .store-hero-gets li { display: flex; align-items: center; gap: 12px; }
+#quizpage .store-hero-copy { grid-area: copy; display: flex; flex-direction: column; align-items: center; gap: 12px; }
+#quizpage .store-hero-title { margin: 0; font-family: var(--font-display); font-weight: 700; font-size: clamp(1.9rem, 5.6vw, 3.3rem); line-height: 1.25; color: #FFF; text-wrap: balance; }
+#quizpage .store-hero-with { display: block; margin-top: 2px; color: var(--g); font-weight: 600; }
+#quizpage .store-hero-text { margin: 0; max-width: 44ch; font-size: clamp(.98rem, 2.4vw, 1.12rem); line-height: 1.8; color: rgba(255, 255, 255, .92); }
+
+/* what you get: the result, previewed */
+#quizpage .store-hero-pv { grid-area: pv; text-shadow: none; display: grid; gap: 12px; width: min(100%, 420px); padding: 18px 16px 16px; border-radius: 22px; text-align: center;
+  background: color-mix(in srgb, var(--store-accent, #5B2A86) 22%, rgba(20, 10, 28, .55)); border: 1px solid color-mix(in srgb, var(--g) 55%, transparent);
+  backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); box-shadow: 0 30px 60px -28px rgba(0, 0, 0, .8); }
+#quizpage .shp-cap { margin: 0; font-size: 1.1rem; font-weight: 800; color: #FFF; }
+#quizpage .shp-card { display: flex; align-items: center; gap: 14px; min-height: 96px; padding: 14px 16px; border-radius: 16px; color: #2A1A08; text-align: start;
+  border: 1px solid color-mix(in srgb, var(--g) 70%, transparent);
+  background: linear-gradient(270deg, rgba(248, 230, 204, .96) 42%, rgba(248, 230, 204, 0) 72%), var(--shp-banner, none) left center / auto 100% no-repeat, linear-gradient(180deg, #F9EBD4, #F0CFAE); }
+#quizpage .shp-seal { flex: none; display: grid; place-items: center; width: 56px; height: 56px; border-radius: 50%; color: var(--g);
+  background: var(--store-accent, #5B2A86); box-shadow: 0 0 0 2px color-mix(in srgb, var(--g) 70%, transparent), 0 8px 18px -8px rgba(0, 0, 0, .6); }
+#quizpage .shp-seal svg { width: 28px; height: 28px; }
+#quizpage .shp-card-tx { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+#quizpage .shp-card-tx b { font-size: 1.12rem; font-weight: 800; color: var(--store-accent, #5B2A86); }
+#quizpage .shp-card-tx small { font-size: .88rem; color: rgba(42, 26, 8, .75); }
+#quizpage .shp-box { display: grid; gap: 10px; padding: 12px; border-radius: 16px; background: rgba(255, 255, 255, .06); border: 1px solid rgba(255, 255, 255, .14); }
+#quizpage .shp-row { display: flex; align-items: center; gap: 10px; }
+#quizpage .shp-imgs { flex: 1; display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; min-width: 0; }
+#quizpage .shp-bottle { width: 100%; height: auto; aspect-ratio: 1; object-fit: cover; border-radius: 12px; border: 1px solid color-mix(in srgb, var(--g) 45%, transparent); }
+#quizpage .shp-note { margin: 0; display: flex; flex-direction: column; align-items: center; gap: 6px; }
+#quizpage .shp-note img { width: 100%; max-width: 92px; height: auto; aspect-ratio: 1; border-radius: 50%; box-shadow: 0 0 0 2px color-mix(in srgb, var(--g) 70%, transparent); }
+#quizpage .shp-note figcaption { font-size: .78rem; color: rgba(255, 255, 255, .88); }
+#quizpage .shp-ic { flex: none; display: grid; place-items: center; width: 44px; height: 44px; border-radius: 50%; border: 1px solid var(--g); color: var(--g); }
+#quizpage .shp-ic svg { width: 22px; height: 22px; }
+#quizpage .shp-box-tx { margin: 0; display: flex; flex-direction: column; gap: 1px; }
+#quizpage .shp-box-tx b { font-size: .98rem; color: #FFF; }
+#quizpage .shp-box-tx small { font-size: .8rem; color: rgba(255, 255, 255, .75); }
+
+#quizpage .store-hero-gets { grid-area: gets; list-style: none; padding: 0; margin: 0; gap: 18px; text-align: start; }
+#quizpage .store-hero-gets li { display: flex; align-items: center; gap: 16px; }
 #quizpage .store-hero-get { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
-#quizpage .store-hero-get b { font-size: .98rem; color: #FFF; }
-#quizpage .store-hero-get small { font-size: .84rem; line-height: 1.5; color: rgba(255, 255, 255, .78); }
-#quizpage .store-hero-ic { flex: none; display: grid; place-items: center; width: 40px; height: 40px; border-radius: 50%; border: 1px solid var(--store-gold, #C9A45C); color: var(--store-gold, #C9A45C); background: rgba(0, 0, 0, .15); }
-#quizpage .store-hero-ic svg { width: 20px; height: 20px; }
-#quizpage .store-hero-go { grid-area: go; display: flex; flex-direction: column; align-items: center; gap: 8px; }
-#quizpage .store-hero-cta { border: 0; cursor: pointer; font: inherit; font-weight: 800; font-size: 1.05rem; padding: 15px 38px; border-radius: 999px;
-  color: #2A1A08; background: linear-gradient(180deg, #F6E3B4, var(--store-gold, #C9A45C)); box-shadow: 0 10px 30px -8px rgba(201, 164, 92, .6), inset 0 1px 0 rgba(255, 255, 255, .6); }
+#quizpage .store-hero-get b { font-size: 1.12rem; color: #FFF; }
+#quizpage .store-hero-get small { font-size: .9rem; line-height: 1.5; color: rgba(255, 255, 255, .78); }
+#quizpage .store-hero-ic { flex: none; display: grid; place-items: center; width: 58px; height: 58px; border-radius: 50%; border: 1.5px solid var(--g); color: var(--g); background: rgba(0, 0, 0, .15); }
+#quizpage .store-hero-ic svg { width: 26px; height: 26px; }
+
+#quizpage .store-hero-go { grid-area: go; display: flex; flex-direction: column; align-items: center; gap: 10px; width: min(100%, 420px); }
+#quizpage .store-hero-cta { text-shadow: none; position: relative; width: 100%; display: flex; align-items: center; justify-content: center; border: 0; cursor: pointer; font: inherit; font-weight: 800; font-size: 1.12rem;
+  padding: 16px 56px; border-radius: 999px; color: #2A1A08; background: linear-gradient(180deg, #F8E9C2, var(--g)); box-shadow: 0 14px 34px -10px color-mix(in srgb, var(--g) 70%, transparent), inset 0 1px 0 rgba(255, 255, 255, .7); }
+#quizpage .store-hero-chev { position: absolute; inset-inline-end: 22px; top: 50%; transform: translateY(-50%); display: grid; }
+#quizpage .store-hero-chev svg { width: 22px; height: 22px; }
 #quizpage .store-hero-cta:hover { filter: brightness(1.04); }
 #quizpage .store-hero-cta:focus-visible { outline: 2px solid #FFF; outline-offset: 3px; }
-#quizpage .store-hero-time { margin: 0; font-size: .8rem; color: rgba(255, 255, 255, .7); }
-@media (min-width: 900px) {
-  #quizpage .store-hero { text-align: start; }
-  #quizpage .store-hero-in { grid-template-columns: 1.2fr .8fr; grid-template-areas: "copy pv" "gets pv" "go pv"; justify-items: start; align-items: start; column-gap: 48px; padding-inline: 56px; }
+#quizpage .store-hero-time { margin: 0; display: flex; align-items: center; gap: 8px; font-size: .88rem; color: rgba(255, 255, 255, .78); }
+#quizpage .store-hero-clock { display: grid; }
+#quizpage .store-hero-clock svg { width: 18px; height: 18px; }
+@media (min-width: 960px) {
+  #quizpage .store-hero { text-align: start;
+    background: linear-gradient(270deg, var(--store-overlay, rgba(34, 12, 52, .72)) 30%, color-mix(in srgb, var(--store-overlay, rgba(34, 12, 52, .72)) 45%, transparent) 100%), var(--store-cover) center / cover no-repeat, var(--plum-deep); }
+  #quizpage .store-hero-in { grid-template-columns: minmax(0, 1fr) 430px; grid-template-areas: "brand pv" "copy pv" "gets pv" "go pv"; grid-template-rows: auto auto auto 1fr;
+    justify-items: start; align-items: start; column-gap: 56px; row-gap: 26px; padding: 40px 56px 44px; }
   #quizpage .store-hero-copy { align-items: flex-start; }
-  #quizpage .store-hero-pv { align-self: center; justify-self: end; width: 340px; }
-  #quizpage .store-hero-go { align-items: flex-start; }
+  #quizpage .store-hero-gets { display: grid; }
+  #quizpage .store-hero-pv { align-self: center; justify-self: end; width: 430px; }
+  #quizpage .store-hero-go { align-items: center; width: 460px; max-width: 100%; }
 }
 @media (max-width: 640px) {
   #quizpage .store-hero { border-radius: 18px; margin-bottom: 18px; }
-  #quizpage .store-hero .store-seal { width: 60px; height: 60px; }
-  #quizpage .store-hero-in { gap: 16px; }
-  #quizpage .shp-bottle { height: 54px; }
-  #quizpage .store-hero-gets { gap: 10px; }
+  #quizpage .shp-card { min-height: 84px; background: linear-gradient(270deg, rgba(248, 230, 204, .97) 66%, rgba(248, 230, 204, 0) 94%), var(--shp-banner, none) left -46px center / auto 100% no-repeat, linear-gradient(180deg, #F9EBD4, #F0CFAE); }
 }
 @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
