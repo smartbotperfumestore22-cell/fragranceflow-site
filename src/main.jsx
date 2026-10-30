@@ -1,6 +1,6 @@
 // Order matters: config first (sets window.__FF_CONFIG__ and the catalog), then the landing page.
 // The quiz (src/widget/App.jsx) is loaded only when needed, so the homepage loads faster.
-import "./config.js";
+import { catalogReady } from "./config.js";
 import "./site.css";
 import "./track.js"; // window.track for the site pages (the quiz brings its own identical one)
 import { startSite } from "./site.js";
@@ -23,5 +23,8 @@ function loadQuiz() {
   return quizReady;
 }
 
-startSite({ loadQuiz });
-showSharedPersona(); // note above the quiz when the visitor opened a shared personality link
+// the catalogue arrives first (a small file: only the store's perfumes on a store link), then the page starts
+catalogReady.then(() => {
+  startSite({ loadQuiz });
+  showSharedPersona(); // note above the quiz when the visitor opened a shared personality link
+});

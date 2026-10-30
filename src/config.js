@@ -6,8 +6,7 @@
 import { IMG } from "./data/images.js";
 import { buildCatalog } from "./data/perfumes.js";
 import { FF_SCRIPT_URL } from "./ff-script-url.js";
-import SHEET from "./data/catalog.json"; // written at build time from the Google Sheet (scripts/fetch-catalog.mjs); null = not set up
-import { applyStoreMode } from "./store-mode.js";
+import { applyStoreMode, storeIdFromUrl } from "./store-mode.js";
 
 window.__FF_CONFIG__ = {
   STORE_NAME: "FragranceFlow",
@@ -34,8 +33,25 @@ try {
   if (utm && /^[\w.-]{1,40}$/.test(utm)) sessionStorage.setItem("ff_utm", utm);
 } catch (e) {}
 
-if (!window.__FF_CONFIG__.SHEETS_API_URL) {
-  // perfumes from the Google Sheet when the build could read it, otherwise the built-in list
+// The catalogue is loaded, not bundled (scripts/catalog-files.mjs): a store link loads only that store's perfumes
+// (catalog/s/<store>.json, 500 at most), the site without a store loads catalog/all.json. The site starts once it is here.
+async function loadJson(url) {
+  const r = await fetch(url, { cache: "no-cache" });
+  if (!r.ok) throw new Error(url + " " + r.status);
+  const data = await r.json();
+  if (!Array.isArray(data) || !data.length) throw new Error(url + " empty");
+  return data;
+}
+async function loadCatalog() {
+  const id = storeIdFromUrl();
+  try {
+    if (id) return await loadJson(`/catalog/s/${id}.json`).catch(() => loadJson("/catalog/all.json"));
+    return await loadJson("/catalog/all.json");
+  } catch (e) { return null; }
+}
+
+export const catalogReady = loadCatalog().then((SHEET) => {
+  // perfumes from Supabase when the build could read them, otherwise the built-in list
   const db = Array.isArray(SHEET) && SHEET.length
     ? SHEET.map(({ imageKey, imageUrl, ...p }) => ({ ...p, image: imageUrl || IMG[imageKey] || IMG.c2 }))
     : buildCatalog(IMG);
@@ -50,4 +66,4 @@ if (!window.__FF_CONFIG__.SHEETS_API_URL) {
     // both types: «ما مهمش» until the visitor says otherwise (the engine picks the best purchase in the budget)
     window.__FF_CONFIG__.DEFAULT_SIZE = store.hasFull && store.hasDecant ? "any" : store.hasFull ? "full" : "decant";
   }
-}
+});
