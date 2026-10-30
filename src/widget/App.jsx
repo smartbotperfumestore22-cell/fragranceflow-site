@@ -306,9 +306,10 @@ const PERSONAS_FR = {
 // ═══════════════════════════════════════════════════════════════
 function calcSprays(concentration, character, season, lang="ar") {
   const t = TRANSLATIONS[lang||"ar"];
-  const cv = { "Extrait":1, "EDP":2, "EDT":3, "EDC":4 }[concentration] ?? 2;
+  // an estimate from the perfume's own data: concentration, main family, main season
+  const cv = { "Extrait":1, "Parfum":1, "EDP":2, "EDT":3, "EDC":4 }[concentration] ?? 2;
   const ch = { "heavy":0, "floral":1, "fresh":2 }[character] ?? 1;
-  const s  = { "winter":0, "fall":0, "spring":1, "summer":2 }[season] ?? 1;
+  const s  = { "winter":0, "autumn":0, "fall":0, "spring":1, "summer":2 }[season] ?? 1;
   const total = cv + ch + s;
   if (total <= 2) return { text:t.sprays_1_2, icon:"💎", tip:t.tip_1 };
   if (total <= 3) return { text:t.sprays_2_3, icon:"✅", tip:t.tip_2 };
@@ -2972,7 +2973,7 @@ const RV_LABELS = {
     matchShort:"توافق", matchHint:"درجة التوافق بين اختياراتك وهاد العطر",
     rankLine:["✨ الأكثر مطابقة لذوقك", "اختيار قريب من ذوقك", "اختيار آخر قريب من ذوقك"],
     bridge:"وبناءً على بصمتك العطرية، هادو العطور اللي لقيناهم الأقرب لذوقك.",
-    rows:{ gender:"لمن", family:"العائلة", vibe:"الطابع", occasion:"المناسبة", season:"الفصل", alsoOcc:"مناسبات أخرى", alsoSeason:"فصول أخرى" },
+    rows:{ gender:"لمن", family:"العائلة", vibe:"الطابع", occasion:"المناسبة", season:"الفصل", alsoOcc:"مناسبات أخرى", alsoSeason:"فصول أخرى", sprays:"الرشات" }, about:"تقريباً",
     profileSub:"بناءً على اختياراتك", profileNote:"اخترنا لك العطور الأقرب لذوقك.", top3:"أفضل 3 عطور ليك",
     view:"شوف العطر", where:"فين تلقاه؟", buy:"شوف المنتج", price:"درهم",
     approx:"تقريباً", more:"يمكن يعجبوك حتى هادو", retry:"دير الاختبار من جديد", all:"اكتشف جميع العطور",
@@ -2992,7 +2993,7 @@ const RV_LABELS = {
     matchShort:"Affinité", matchHint:"Degré d'affinité entre vos choix et ce parfum",
     rankLine:["✨ Le plus proche de vos goûts", "Un choix proche de vos goûts", "Un autre choix proche de vos goûts"],
     bridge:"D'après votre signature olfactive, voici les parfums les plus proches de vos goûts.",
-    rows:{ gender:"Pour", family:"Famille", vibe:"Caractère", occasion:"Occasion", season:"Saison", alsoOcc:"Autres occasions", alsoSeason:"Autres saisons" },
+    rows:{ gender:"Pour", family:"Famille", vibe:"Caractère", occasion:"Occasion", season:"Saison", alsoOcc:"Autres occasions", alsoSeason:"Autres saisons", sprays:"Pulvérisations" }, about:"Environ",
     profileSub:"D'après vos réponses", profileNote:"Nous avons choisi les parfums les plus proches de vos goûts.", top3:"Vos 3 meilleurs parfums",
     view:"Voir le parfum", where:"Où le trouver ?", buy:"Voir le produit", price:"DH",
     approx:"environ", more:"Vous pourriez aussi aimer", retry:"Refaire le quiz", all:"Découvrir tous les parfums",
@@ -3055,7 +3056,12 @@ function rvMoreLikeThis(res, ans, n) {
 
 // Card facts: only what is specific to this fragrance. Values that just repeat the visitor's own answers
 // (shown once in the profile above the cards) are left out; anything that differs is kept.
-function RVFacts({ p, L, ans }) {
+// «الرشات»: how many sprays are enough, estimated from the perfume's data (calcSprays)
+function rvSprays(p, L, lang) {
+  const sp = calcSprays(p.concentration, p.character?.[0], p.season?.[0], lang);
+  return "💧 " + L.about + " " + sp.text + " (" + sp.tip + ")";
+}
+function RVFacts({ p, L, ans, lang }) {
   const occUser = new Set([ans.occasion, mapOccasion(ans.occasion)].filter(Boolean));
   const genderDiffers = ans.gender && !(p.gender || []).includes(ans.gender);
   const extraOcc = (p.occasion || []).filter(o => !occUser.has(o));
@@ -3069,6 +3075,7 @@ function RVFacts({ p, L, ans }) {
     genderDiffers ? [L.rows.gender, rvJoin(L.gender, p.gender)] : null,
     extraOcc.length ? [L.rows.alsoOcc, rvUniq(rvJoin(L.occasion, extraOcc))] : null,
     seasonDiffers ? [L.rows.season, rvSeasons(L, p)] : extraSeason.length ? [L.rows.alsoSeason, rvUniq(rvJoin(L.season, extraSeason))] : null,
+    [L.rows.sprays, [rvSprays(p, L, lang)]],
   ].filter(r => r && r[1].length);
   return (
     <dl className="ffr-facts">
@@ -3541,7 +3548,7 @@ function RVCard({ p, ans, lang, rank, used, peers, near }) {
             <h3 className="ffr-name">{p.name}</h3>
           </div>
         </div>
-        <RVFacts p={p} L={L} ans={ans}/>
+        <RVFacts p={p} L={L} ans={ans} lang={lang}/>
         {reasons.length > 0 && (
           <div className="ffr-why">
             <h4>{L.why}</h4>
