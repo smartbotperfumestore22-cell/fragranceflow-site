@@ -7,6 +7,9 @@
 <meta name="description" content="كويز عطور باسم متجرك، كيقترح على الزبون 3 عطور من السلعة ديالك، ويوصلو ليك فالواتساب. 299 درهم فالشهر، و7 أيام مجانية.">
 <meta name="theme-color" content="#FAF7F2">
 <meta name="color-scheme" content="only light">
+<!-- until the page knows what to show (stores homepage, a store's quiz…), show nothing rather than the wrong page -->
+<style>html.ff-boot body > * { visibility: hidden; }</style>
+<script>document.documentElement.classList.add("ff-boot"); setTimeout(function () { document.documentElement.classList.remove("ff-boot"); }, 6000);</script>
 <link rel="canonical" href="%VITE_SITE_URL%/">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 

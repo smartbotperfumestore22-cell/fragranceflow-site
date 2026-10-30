@@ -25,6 +25,10 @@ function loadQuiz() {
 
 // the catalogue arrives first (a small file: only the store's perfumes on a store link), then the page starts
 catalogReady.then(() => {
-  startSite({ loadQuiz });
-  showSharedPersona(); // note above the quiz when the visitor opened a shared personality link
+  try {
+    startSite({ loadQuiz });
+    showSharedPersona(); // note above the quiz when the visitor opened a shared personality link
+  } finally {
+    document.documentElement.classList.remove("ff-boot"); // the right page is in place (index.html hid the page until now)
+  }
 });
