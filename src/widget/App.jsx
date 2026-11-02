@@ -3310,7 +3310,7 @@ const RV_ATMOS = {
   ar: {
     fresh:[{t:"إحساس منعش وخفيف، بحال نسمة باردة فنهار صيفي", when:p=>rvHasSeason(p,["summer","spring"])}, {t:"إحساس صافي ومنعش، بحال صباح بكري ومشمس"}, {t:"خفة منعشة بحال كاس ما بارد فنهار سخون"}, {t:"إحساس خفيف ومريح بحال نافذة محلولة على صباح هادي"}],
     citrus:[{t:"إشراقة صافية، بحال قشرة حامض طرية مقشرة للتو"}, {t:"إشراقة حيوية بحال برتقالة مقشرة فشمس الصباح"}, {t:"انتعاش حامض وصافي بحال كاس عصير باردة"}],
-    aquatic:[{t:"إحساس مائي بارد، كيقرب من هوا البحر فنهار سخون", when:p=>rvHasFam(p,["marine"])}, {t:"انتعاش بارد وواسع بحال الهوا قرب الما"}, {t:"صفاء بارد بحال موجة خفيفة على الرملة"}],
+    aquatic:[{t:"إحساس مائي بارد، كيقرب من هوا البحر فنهار سخون", when:p=>rvHasFam(p,["marine"])}, {t:"انتعاش بارد بحال الهوا قرب الما"}, {t:"صفاء بارد بحال موجة خفيفة على الرملة"}],
     clean:[{t:"إحساس بالنظافة، بحال ملابس نظيفة خرجات للتو من الشمس"}, {t:"إحساس نقي بحال صابون أبيض طري"}, {t:"نظافة خفيفة بحال فوطة بيضاء خارجة من الشمس"}],
     musky:[{t:"نعومة نظيفة ودافية، بحال قماش ناعم قريب من الجلد"}, {t:"دفء ناعم قريب من الجلد بحال حضن هادي"}, {t:"نعومة مخملية بحال وشاح خفيف فالعشية"}],
     floral:[{t:"أناقة هادئة كتقرب من إحساس باقة زهور ناعمة فمكان راقي"}, {t:"رقة زهرية بحال صباح فجردة فالربيع", when:p=>rvHasSeason(p,["spring"])}, {t:"نعومة زهرية بحال باقة صغيرة فوق طبلة"}, {t:"إحساس زهري مشرق بحال جردة فالصباح"}],
@@ -3353,7 +3353,7 @@ const RV_NOTE_ATMOS = [
   { n:["Lavender"], ar:"هدوء عشبي ونظيف بحال حقل لافندر فالصيف", fr:"Un calme aromatique et propre, comme un champ de lavande en été" },
   { n:["Mint"], ar:"برودة منعشة بحال ورقة نعناع طرية مفروكة بين الصوابع", fr:"Une fraîcheur vive, comme une feuille de menthe froissée entre les doigts" },
   { n:["Tea"], ar:"صفاء هادئ بحال كاس أتاي خفيف فنهار هادي", fr:"Une clarté apaisée, comme une tasse de thé léger un jour tranquille" },
-  { n:["Sea Notes"], ar:"إحساس واسع وبارد بحال هوا البحر فالصباح بكري", fr:"Une sensation vaste et fraîche, comme l'air marin au petit matin" },
+  { n:["Sea Notes"], ar:"إحساس بارد ومنعش بحال هوا البحر فالصباح بكري", fr:"Une sensation fraîche et vivifiante, comme l'air marin au petit matin" },
   { n:["Grapefruit"], ar:"إشراقة منعشة ومرّة شوية بحال قطعة جريب فروت باردة", fr:"Un éclat vif et légèrement amer, comme un quartier de pamplemousse bien frais" },
   { n:["Leather"], ar:"حضور جريء وناعم بحال جاكيطة جلد مستعملة بعناية", fr:"Une présence audacieuse et souple, comme une veste en cuir bien portée" },
   { n:["Tobacco"], ar:"دفء جاف وأنيق بحال أوراق التبغ معلقة كيتجففو", fr:"Une chaleur sèche et élégante, comme des feuilles de tabac qui sèchent" },
