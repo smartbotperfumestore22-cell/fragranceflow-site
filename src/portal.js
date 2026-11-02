@@ -6,6 +6,7 @@ import "./portal.css";
 import { sb } from "./supabase.js";
 import { esc, fmt } from "./dash-common.js";
 import { adminHTML, wireStoreSearch } from "./admin-view.js";
+import { insightsHTML } from "./admin-insights.js";
 import { renderDashboard } from "./dashboard-view.js";
 import { renderReport, monthName, defaultMonth } from "./report-view.js";
 import { fetchStats } from "./stats-api.js";
@@ -393,6 +394,16 @@ async function tabOverview() {
     ? `<button type="button" class="d-btn a-open" data-manage="${esc(x.id)}">إدارة المتجر</button>` : "<small>ما كاينش ف Supabase</small>", "الأرقام والمتاجر والحسابات من Supabase.");
   wire(); wireStoreSearch(el);
   el.querySelectorAll("[data-manage]").forEach((b) => b.addEventListener("click", () => openStore(b.dataset.manage)));
+  // platform numbers (013_admin_insights.sql), under the alerts; nothing shown when the function is not there yet
+  const days = S.days;
+  try {
+    const r = await sb.rpc("admin_insights", { p_days: days });
+    const alerts = el.querySelector(".a-alerts");
+    if (!r.error && r.data && !r.data.error && alerts && S.days === days && S.teamTab === "overview") {
+      const box = document.createElement("div"); box.className = "a-insights"; box.innerHTML = insightsHTML(r.data);
+      alerts.after(box);
+    }
+  } catch (e) {}
 }
 
 const search = (ph) => `<div class="p-search"><input type="search" id="q" placeholder="${ph}" value="${esc(S.q)}" autocomplete="off"></div>`;
