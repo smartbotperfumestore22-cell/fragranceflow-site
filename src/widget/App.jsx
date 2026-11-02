@@ -3308,41 +3308,89 @@ const RV_FLOW = {
 // atmosphere images per family; "when" restricts an image to perfumes whose own data supports it
 const RV_ATMOS = {
   ar: {
-    fresh:[{t:"إحساس منعش وخفيف، بحال نسمة باردة فنهار صيفي", when:p=>rvHasSeason(p,["summer","spring"])}, {t:"إحساس صافي ومنعش، بحال صباح بكري ومشمس"}],
-    citrus:[{t:"إشراقة صافية، بحال قشرة حامض طرية مقشرة للتو"}],
-    aquatic:[{t:"إحساس مائي بارد، كيقرب من هوا البحر فنهار سخون", when:p=>rvHasFam(p,["marine"])}, {t:"انتعاش بارد وواسع بحال الهوا قرب الما"}],
-    clean:[{t:"إحساس بالنظافة، بحال ملابس نظيفة خرجات للتو من الشمس"}],
-    musky:[{t:"نعومة نظيفة ودافية، بحال قماش ناعم قريب من الجلد"}],
-    floral:[{t:"أناقة هادئة كتقرب من إحساس باقة زهور ناعمة فمكان راقي"}, {t:"رقة زهرية بحال صباح فجردة فالربيع", when:p=>rvHasSeason(p,["spring"])}],
-    fruity:[{t:"طابع مشرق ومرح، بحال فواكه طرية مقطعة للتو"}],
-    sweet:[{t:"دفء حلو وكريمي كيعطي إحساس بالراحة والهدوء", when:p=>rvHasSeason(p,["winter","autumn"])}, {t:"حلاوة دافية ومريحة، بحال حلوى طرية خارجة من الفران", when:p=>rvHasFam(p,["gourmand"])}],
-    oriental:[{t:"دفء غني وعميق، بحال جلسة هادئة فليلة باردة", when:p=>rvHasSeason(p,["winter"])}, {t:"حضور دافئ وغني كيبان أكثر مع مرور الوقت"}],
-    woody:[{t:"حضور دافئ وعميق، فيه إحساس بالخشب الأنيق والدفء"}, {t:"طابع خشبي جاف وهادئ، بحال خشب مصقول فبيت هادئ"}],
-    heavy:[{t:"حضور عميق وواضح فيه دفء"}],
+    fresh:[{t:"إحساس منعش وخفيف، بحال نسمة باردة فنهار صيفي", when:p=>rvHasSeason(p,["summer","spring"])}, {t:"إحساس صافي ومنعش، بحال صباح بكري ومشمس"}, {t:"خفة منعشة بحال كاس ما بارد فنهار سخون"}, {t:"إحساس خفيف ومريح بحال نافذة محلولة على صباح هادي"}],
+    citrus:[{t:"إشراقة صافية، بحال قشرة حامض طرية مقشرة للتو"}, {t:"إشراقة حيوية بحال برتقالة مقشرة فشمس الصباح"}, {t:"انتعاش حامض وصافي بحال كاس عصير باردة"}],
+    aquatic:[{t:"إحساس مائي بارد، كيقرب من هوا البحر فنهار سخون", when:p=>rvHasFam(p,["marine"])}, {t:"انتعاش بارد وواسع بحال الهوا قرب الما"}, {t:"صفاء بارد بحال موجة خفيفة على الرملة"}],
+    clean:[{t:"إحساس بالنظافة، بحال ملابس نظيفة خرجات للتو من الشمس"}, {t:"إحساس نقي بحال صابون أبيض طري"}, {t:"نظافة خفيفة بحال فوطة بيضاء خارجة من الشمس"}],
+    musky:[{t:"نعومة نظيفة ودافية، بحال قماش ناعم قريب من الجلد"}, {t:"دفء ناعم قريب من الجلد بحال حضن هادي"}, {t:"نعومة مخملية بحال وشاح خفيف فالعشية"}],
+    floral:[{t:"أناقة هادئة كتقرب من إحساس باقة زهور ناعمة فمكان راقي"}, {t:"رقة زهرية بحال صباح فجردة فالربيع", when:p=>rvHasSeason(p,["spring"])}, {t:"نعومة زهرية بحال باقة صغيرة فوق طبلة"}, {t:"إحساس زهري مشرق بحال جردة فالصباح"}],
+    fruity:[{t:"طابع مشرق ومرح، بحال فواكه طرية مقطعة للتو"}, {t:"حلاوة مرحة بحال سلة فواكه فالصيف"}, {t:"إحساس حيوي ولذيذ بحال عصير فواكه طري"}],
+    sweet:[{t:"دفء حلو وكريمي كيعطي إحساس بالراحة والهدوء", when:p=>rvHasSeason(p,["winter","autumn"])}, {t:"حلاوة دافية ومريحة، بحال حلوى طرية خارجة من الفران", when:p=>rvHasFam(p,["gourmand"])}, {t:"حلاوة ناعمة بحال حلوى ديال العيد"}, {t:"دفء حلو بحال كاس شوكولا سخون فليلة باردة", when:p=>rvHasSeason(p,["winter","autumn"])}],
+    oriental:[{t:"دفء غني وعميق، بحال جلسة هادئة فليلة باردة", when:p=>rvHasSeason(p,["winter"])}, {t:"حضور دافئ وغني كيبان أكثر مع مرور الوقت"}, {t:"غنى دافي بحال سوق التوابل فالعشية"}, {t:"فخامة شرقية بحال قعدة فرياض مزوّق"}],
+    woody:[{t:"حضور دافئ وعميق، فيه إحساس بالخشب الأنيق والدفء"}, {t:"طابع خشبي جاف وهادئ، بحال خشب مصقول فبيت هادئ"}, {t:"هدوء خشبي بحال مكتبة قديمة فيها خشب دافي"}, {t:"دفء جاف ونظيف بحال غابة فالخريف"}],
+    heavy:[{t:"حضور عميق وواضح فيه دفء"}, {t:"حضور قوي ودافي كيبقى مدة طويلة"}, {t:"عمق غامق وفخم بحال ليلة هادئة وباردة"}],
   },
   fr: {
-    fresh:[{t:"Une sensation fraîche et légère, comme une brise froide un jour d'été", when:p=>rvHasSeason(p,["summer","spring"])}, {t:"Une fraîcheur limpide, comme un matin ensoleillé de bonne heure"}],
-    citrus:[{t:"Un éclat limpide, comme un zeste fraîchement pelé"}],
-    aquatic:[{t:"Une fraîcheur aquatique, proche de l'air marin un jour de chaleur", when:p=>rvHasFam(p,["marine"])}, {t:"Une fraîcheur ample, comme l'air au bord de l'eau"}],
-    clean:[{t:"Une sensation de propreté, comme un linge qui sort du soleil"}],
-    musky:[{t:"Une douceur propre et tiède, comme un tissu doux contre la peau"}],
-    floral:[{t:"Une élégance calme, proche d'un bouquet de fleurs douces dans un lieu raffiné"}, {t:"Une délicatesse florale, comme un matin au jardin au printemps", when:p=>rvHasSeason(p,["spring"])}],
-    fruity:[{t:"Un caractère lumineux et gai, comme des fruits tout juste coupés"}],
-    sweet:[{t:"Une chaleur sucrée et crémeuse qui donne une sensation de confort et de calme", when:p=>rvHasSeason(p,["winter","autumn"])}, {t:"Une douceur tiède et réconfortante, comme une pâtisserie qui sort du four", when:p=>rvHasFam(p,["gourmand"])}],
-    oriental:[{t:"Une chaleur riche et profonde, comme une soirée calme par une nuit froide", when:p=>rvHasSeason(p,["winter"])}, {t:"Une présence chaude et riche qui s'affirme avec le temps"}],
-    woody:[{t:"Une présence chaude et profonde, avec l'idée d'un bois élégant"}, {t:"Un boisé sec et calme, comme un bois poli dans une maison tranquille"}],
-    heavy:[{t:"Une présence profonde et nette, avec de la chaleur"}],
+    fresh:[{t:"Une sensation fraîche et légère, comme une brise froide un jour d'été", when:p=>rvHasSeason(p,["summer","spring"])}, {t:"Une fraîcheur limpide, comme un matin ensoleillé de bonne heure"}, {t:"Une légèreté fraîche, comme un verre d'eau froide un jour de chaleur"}, {t:"Une sensation légère et apaisante, comme une fenêtre ouverte sur un matin calme"}],
+    citrus:[{t:"Un éclat limpide, comme un zeste fraîchement pelé"}, {t:"Un éclat vivant, comme une orange épluchée au soleil du matin"}, {t:"Une fraîcheur acidulée et limpide, comme un verre de jus bien frais"}],
+    aquatic:[{t:"Une fraîcheur aquatique, proche de l'air marin un jour de chaleur", when:p=>rvHasFam(p,["marine"])}, {t:"Une fraîcheur ample, comme l'air au bord de l'eau"}, {t:"Une clarté fraîche, comme une vague légère sur le sable"}],
+    clean:[{t:"Une sensation de propreté, comme un linge qui sort du soleil"}, {t:"Une sensation pure, comme un savon blanc tout neuf"}, {t:"Une propreté légère, comme une serviette blanche séchée au soleil"}],
+    musky:[{t:"Une douceur propre et tiède, comme un tissu doux contre la peau"}, {t:"Une chaleur douce près de la peau, comme une étreinte tranquille"}, {t:"Une douceur veloutée, comme une écharpe légère en fin de journée"}],
+    floral:[{t:"Une élégance calme, proche d'un bouquet de fleurs douces dans un lieu raffiné"}, {t:"Une délicatesse florale, comme un matin au jardin au printemps", when:p=>rvHasSeason(p,["spring"])}, {t:"Une douceur florale, comme un petit bouquet posé sur une table"}, {t:"Une sensation florale lumineuse, comme un jardin au matin"}],
+    fruity:[{t:"Un caractère lumineux et gai, comme des fruits tout juste coupés"}, {t:"Une douceur enjouée, comme un panier de fruits en été"}, {t:"Une sensation vive et gourmande, comme un jus de fruits frais"}],
+    sweet:[{t:"Une chaleur sucrée et crémeuse qui donne une sensation de confort et de calme", when:p=>rvHasSeason(p,["winter","autumn"])}, {t:"Une douceur tiède et réconfortante, comme une pâtisserie qui sort du four", when:p=>rvHasFam(p,["gourmand"])}, {t:"Une douceur tendre, comme les gâteaux d'un jour de fête"}, {t:"Une chaleur sucrée, comme un chocolat chaud par une nuit froide", when:p=>rvHasSeason(p,["winter","autumn"])}],
+    oriental:[{t:"Une chaleur riche et profonde, comme une soirée calme par une nuit froide", when:p=>rvHasSeason(p,["winter"])}, {t:"Une présence chaude et riche qui s'affirme avec le temps"}, {t:"Une richesse chaleureuse, comme un souk aux épices en fin de journée"}, {t:"Un luxe oriental, comme une soirée dans un riad décoré"}],
+    woody:[{t:"Une présence chaude et profonde, avec l'idée d'un bois élégant"}, {t:"Un boisé sec et calme, comme un bois poli dans une maison tranquille"}, {t:"Un calme boisé, comme une vieille bibliothèque au bois chaleureux"}, {t:"Une chaleur sèche et nette, comme une forêt en automne"}],
+    heavy:[{t:"Une présence profonde et nette, avec de la chaleur"}, {t:"Une présence forte et chaude qui dure longtemps"}, {t:"Une profondeur sombre et luxueuse, comme une nuit calme et froide"}],
   },
+};
+// atmosphere images tied to one of the fragrance's own notes (more precise and more varied than the family alone)
+const RV_NOTE_ATMOS = [
+  { n:["Oud"], ar:"عمق دافي ومدخّن، بحال عود كيتبخّر فدار هادئة فالليل", fr:"Une profondeur chaude et fumée, comme du oud qui brûle doucement dans une maison calme le soir" },
+  { n:["Vanilla"], ar:"نعومة دافية بحال قرن فانيليا محلول فكاس حليب سخون", fr:"Une douceur tiède, comme une gousse de vanille infusée dans un lait chaud" },
+  { n:["Coffee"], ar:"دفء محمّص بحال ريحة قهوة طرية فالصباح", fr:"Une chaleur torréfiée, comme l'odeur d'un café fraîchement moulu le matin" },
+  { n:["Cacao","Chocolate"], ar:"حلاوة غامقة وناعمة بحال مربعة شوكولاتة كتدوب", fr:"Une douceur sombre et fondante, comme un carré de chocolat qui fond" },
+  { n:["Caramel","Brown Sugar"], ar:"حلاوة ذهبية بحال كراميل كيتصاوب على نار هادئة", fr:"Une douceur dorée, comme un caramel qui cuit à feu doux" },
+  { n:["Honey"], ar:"دفء ذهبي بحال عسل حر تحت شمس العشية", fr:"Une chaleur dorée, comme un miel de fleurs sous le soleil de fin de journée" },
+  { n:["Tonka Bean"], ar:"دفء ناعم ومحمّص بحال حبوب التونكا مع لمسة ديال اللوز", fr:"Une chaleur douce et grillée, comme la fève tonka avec un soupçon d'amande" },
+  { n:["Dates"], ar:"حلاوة غنية ومألوفة بحال تمر طري مع كاس أتاي", fr:"Une douceur riche et familière, comme des dattes fraîches avec un verre de thé" },
+  { n:["Praline","Almond","Chestnut"], ar:"حلاوة محمّصة بحال لوز مكرمل خارج من الفران", fr:"Une gourmandise grillée, comme des amandes caramélisées qui sortent du four" },
+  { n:["Rose","White Rose"], ar:"أناقة كلاسيكية بحال وردة طرية مقطوفة فالصباح", fr:"Une élégance classique, comme une rose fraîchement cueillie le matin" },
+  { n:["Jasmine"], ar:"نعومة بيضاء ومضيئة بحال ياسمين مفتّح فعشية صيف", fr:"Une douceur blanche et lumineuse, comme un jasmin ouvert un soir d'été" },
+  { n:["Orange Blossom","Neroli"], ar:"إشراقة بيضاء ونقية بحال زهر الليمون فجردة فالربيع", fr:"Un éclat blanc et pur, comme la fleur d'oranger dans un jardin au printemps" },
+  { n:["Tuberose","Gardenia"], ar:"حضور زهري كريمي وواضح، بحال باقة مسك رومي فليلة دافية", fr:"Une présence florale crémeuse, comme un bouquet de tubéreuses par une nuit tiède" },
+  { n:["Iris","Orris","Violet","Heliotrope"], ar:"نعومة بودرية راقية بحال بودرة فخزانة قديمة", fr:"Une douceur poudrée et raffinée, comme une boîte à poudre dans une vieille commode" },
+  { n:["Lavender"], ar:"هدوء عشبي ونظيف بحال حقل لافندر فالصيف", fr:"Un calme aromatique et propre, comme un champ de lavande en été" },
+  { n:["Mint"], ar:"برودة منعشة بحال ورقة نعناع طرية مفروكة بين الصوابع", fr:"Une fraîcheur vive, comme une feuille de menthe froissée entre les doigts" },
+  { n:["Tea"], ar:"صفاء هادئ بحال كاس أتاي خفيف فنهار هادي", fr:"Une clarté apaisée, comme une tasse de thé léger un jour tranquille" },
+  { n:["Sea Notes"], ar:"إحساس واسع وبارد بحال هوا البحر فالصباح بكري", fr:"Une sensation vaste et fraîche, comme l'air marin au petit matin" },
+  { n:["Grapefruit"], ar:"إشراقة منعشة ومرّة شوية بحال قطعة جريب فروت باردة", fr:"Un éclat vif et légèrement amer, comme un quartier de pamplemousse bien frais" },
+  { n:["Leather"], ar:"حضور جريء وناعم بحال جاكيطة جلد مستعملة بعناية", fr:"Une présence audacieuse et souple, comme une veste en cuir bien portée" },
+  { n:["Tobacco"], ar:"دفء جاف وأنيق بحال أوراق التبغ معلقة كيتجففو", fr:"Une chaleur sèche et élégante, comme des feuilles de tabac qui sèchent" },
+  { n:["Incense"], ar:"هدوء مدخّن بحال بخور فمكان هادئ", fr:"Un calme fumé, comme de l'encens dans un lieu paisible" },
+  { n:["Saffron"], ar:"فخامة دافية بحال خيوط زعفران فطبق ديال المناسبات", fr:"Un luxe chaleureux, comme des filaments de safran dans un plat de fête" },
+  { n:["Amber","Labdanum","Styrax","Peru Balsam"], ar:"دفء ذهبي وعميق بحال ضو شمعة فبيت دافي", fr:"Une chaleur dorée et profonde, comme la lueur d'une bougie dans une maison chaude" },
+  { n:["Patchouli"], ar:"عمق ترابي وغامق بحال تراب مبلول من بعد الشتا", fr:"Une profondeur terreuse et sombre, comme la terre mouillée après la pluie" },
+  { n:["Sandalwood"], ar:"نعومة خشبية كريمية بحال خشب الصندل مصقول", fr:"Une douceur boisée et crémeuse, comme du santal poli" },
+  { n:["Cedar"], ar:"خشب جاف ونظيف بحال غابة الأرز فالأطلس", fr:"Un bois sec et net, comme une forêt de cèdres dans l'Atlas" },
+  { n:["Vetiver","Java Vetiver"], ar:"خضرة ترابية بحال جذور طرية من بعد الشتا", fr:"Une verdure terreuse, comme des racines fraîches après la pluie" },
+  { n:["Cardamom"], ar:"توابل باردة وأنيقة بحال حبة هيل فكاس قهوة", fr:"Une épice fraîche et élégante, comme une graine de cardamome dans un café" },
+  { n:["Cinnamon","Clove","Nutmeg"], ar:"دفء توابلي حلو بحال قرفة فحلوى ديال الشتا", fr:"Une chaleur épicée et sucrée, comme la cannelle d'un gâteau d'hiver" },
+  { n:["Pink Pepper","Pepper","Sichuan Pepper"], ar:"لمسة حارة خفيفة كتعطي الحيوية من أول لحظة", fr:"Une pointe poivrée qui donne de l'élan dès le premier instant" },
+  { n:["Pineapple","Tropical Fruits"], ar:"حيوية استوائية بحال أناناس مقطع فنهار سخون", fr:"Une énergie tropicale, comme un ananas coupé un jour de chaleur" },
+  { n:["Peach","Apricot"], ar:"حلاوة مخملية بحال خوخة ناضجة", fr:"Une douceur veloutée, comme une pêche bien mûre" },
+  { n:["Pear"], ar:"انتعاش فاكهي ناعم بحال إجاصة طرية وباردة", fr:"Une fraîcheur fruitée et douce, comme une poire juteuse et fraîche" },
+  { n:["Apple","Green Apple"], ar:"قرمشة منعشة بحال تفاحة خضرا باردة", fr:"Un croquant frais, comme une pomme verte bien fraîche" },
+  { n:["Red Berries","Raspberry","Strawberry","Black Currant","Blackberry"], ar:"حلاوة حامضة شوية بحال توت أحمر مقطوف للتو", fr:"Une douceur acidulée, comme des fruits rouges tout juste cueillis" },
+  { n:["White Musk","Musk"], ar:"نعومة نظيفة قريبة من الجلد بحال قميص قطني نظيف", fr:"Une douceur propre, près de la peau, comme une chemise en coton fraîche" },
+  { n:["Ambroxan","Ambergris"], ar:"دفء شفاف ومالح شوية بحال الجلد من بعد نهار فالبحر", fr:"Une chaleur transparente et légèrement salée, comme la peau après une journée à la mer" },
+];
+// which note families may set the atmosphere for each main character of a fragrance
+const RV_ATMOS_FIT = {
+  fresh:["citrus","marine","green","fruit","aldehyde","mineral"], citrus:["citrus","green","fruit"], aquatic:["marine","citrus","green","mineral"],
+  clean:["musk","aldehyde","green","citrus"], musky:["musk","powder","floral","white_floral"], floral:["floral","white_floral","powder","fruit"],
+  fruity:["fruit","floral","citrus"], sweet:["gourmand","fruit","powder","floral"], oriental:["resin","spice","gourmand","leather","wood","white_floral"],
+  woody:["wood","spice","leather","resin","green"], heavy:["resin","leather","spice","wood","gourmand"],
 };
 // personal context: only when the fragrance's own data supports the visitor's answer
 const RV_CONTEXT = {
-  ar: { occasion:{ evening:["كيناسب الأجواء الليلية","كيتلبس مزيان فالسهرات","مناسب لليالي والخرجات"], dates:["كيناسب الأمسيات الخاصة","مناسب للمواعيد","كيتلبس مزيان فالأمسيات الهادئة"],
-                   daily:["كيناسب النهار والخدمة","مناسب للاستعمال اليومي","كيتلبس بسهولة فالنهار"], travel:["كيناسب الخرجات والسفر","مناسب للسفر","كيرافق الخرجات"], allday:["كيتلبس فبزاف ديال المناسبات"] },
+  ar: { occasion:{ evening:["كيناسب الأجواء الليلية","كيتلبس مزيان فالسهرات","مناسب لليالي والخرجات","كيبان مزيان فالعشيات","كيليق للسهرات والمناسبات"], dates:["كيناسب الأمسيات الخاصة","مناسب للمواعيد","كيتلبس مزيان فالأمسيات الهادئة","كيليق للحظات الخاصة","مناسب لعشية هادئة ومميزة"],
+                   daily:["كيناسب النهار والخدمة","مناسب للاستعمال اليومي","كيتلبس بسهولة فالنهار","كيرافقك نهار كامل بلا ما يتقل","مريح للخدمة والقراية"], travel:["كيناسب الخرجات والسفر","مناسب للسفر","كيرافق الخرجات","مزيان للخرجات والتحويسات","كيرافقك فالسفر بسهولة"], allday:["كيتلبس فبزاف ديال المناسبات"] },
         season:{ summer:["فالأيام السخونة","فالصيف","ملي كيسخن الجو"], spring:["فالربيع"], winter:["فالأيام الباردة","فالشتا","ملي كيبرد الجو"], autumn:["فالخريف"], fall:["فالخريف"], allseasons:["فكل الفصول","طول العام"] },
         impression:{ luxury:"الفخامة", elegant:"الأناقة الهادئة", confident:"الثقة", attractive:"الجاذبية", fresh_imp:"الخفة والراحة", mysterious:"الغموض", firstlook:"حضور واضح من البداية" },
         withImp:["، مع إحساس ب", "، وفيه لمسة ديال ", " — والإحساس اللي كيبقى هو "], general:"الإحساس العام: " },
-  fr: { occasion:{ evening:["idéal pour les ambiances du soir","parfait pour les soirées","fait pour les nuits et les sorties"], dates:["idéal pour les soirées à deux","parfait pour un rendez-vous","agréable pour les soirées calmes"],
-                   daily:["idéal pour la journée et le travail","facile à porter au quotidien","naturel en journée"], travel:["idéal pour les sorties et les voyages","parfait en voyage","agréable pour les sorties"], allday:["facile à porter en toute occasion"] },
+  fr: { occasion:{ evening:["idéal pour les ambiances du soir","parfait pour les soirées","fait pour les nuits et les sorties","très beau en fin de journée","à sa place lors des soirées et des fêtes"], dates:["idéal pour les soirées à deux","parfait pour un rendez-vous","agréable pour les soirées calmes","fait pour les moments à part","idéal pour une soirée calme et spéciale"],
+                   daily:["idéal pour la journée et le travail","facile à porter au quotidien","naturel en journée","agréable toute la journée sans peser","confortable au travail comme en cours"], travel:["idéal pour les sorties et les voyages","parfait en voyage","agréable pour les sorties","parfait pour les balades","un compagnon de voyage facile"], allday:["facile à porter en toute occasion"] },
         season:{ summer:["par temps chaud","en été","quand il fait chaud"], spring:["au printemps"], winter:["par temps froid","en hiver","quand il fait froid"], autumn:["en automne"], fall:["en automne"], allseasons:["en toute saison","toute l'année"] },
         impression:{ luxury:"luxe", elegant:"élégance discrète", confident:"assurance", attractive:"séduction", fresh_imp:"légèreté", mysterious:"mystère", firstlook:"présence affirmée dès le départ" },
         withImp:[", avec une sensation de ", ", avec une touche de ", " — et ce qui reste, c'est une impression de "], general:"Impression générale : " },
@@ -3398,7 +3446,17 @@ function rvSensory(p, ans, lang, used) {
   // atmosphere: first family of the fragrance that has an image supported by its own data, not used yet on this page
   const A = RV_ATMOS[isFr ? "fr" : "ar"];
   let image = null;
-  for (const fam of (p.character || [])) {
+  // first an image tied to one of its own notes (heart and base first: they last), then one for its family
+  const own = [...(p.notes?.middle || []), ...(p.notes?.base || []), ...(p.notes?.top || [])];
+  // only notes that belong with its main character: a fresh perfume is not described by the amber in its base
+  // (its first family decides; the second one only when the first finds nothing)
+  for (const c of (p.character || []).slice(0, 2)) {
+    const fits = RV_ATMOS_FIT[c] || [];
+    const byNote = RV_NOTE_ATMOS.filter(g => g.n.some(n => own.includes(n)) && fits.includes((RV_NOTES[g.n[0]] || [])[2]))
+      .map(g => isFr ? g.fr : g.ar).filter(t => !used.atmos.has(t));
+    if (byNote.length) { image = byNote[seed % byNote.length]; break; }
+  }
+  if (!image) for (const fam of (p.character || [])) {
     const cands = (A[fam] || []).filter(c => (!c.when || c.when(p)) && !used.atmos.has(c.t));
     if (cands.length) { image = cands[seed % cands.length].t; break; }
   }
@@ -3412,7 +3470,7 @@ function rvSensory(p, ans, lang, used) {
   const impOk = ans.impression && C.impression[ans.impression] && autoImpressions(p.character, p.occasion).includes(ans.impression);
   let atmosphere = image || "";
   if (ctx) atmosphere = atmosphere ? atmosphere + (isFr ? " — " : "، ") + ctx : C.general + ctx;
-  if (impOk) atmosphere = (atmosphere || C.general.trim()) + C.withImp[seed % C.withImp.length] + C.impression[ans.impression];
+  if (impOk) atmosphere = ((atmosphere || C.general.trim()) + C.withImp[seed % C.withImp.length] + C.impression[ans.impression]).replace(/ de ([aeiouéèêh])/gi, " d'$1");
   if (atmosphere) atmosphere += ".";
   return { stages: stages.length >= 2 ? stages : [], single: stages.length === 1 ? stages[0].text : null, atmosphere };
 }
