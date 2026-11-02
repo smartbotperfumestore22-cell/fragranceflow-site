@@ -3212,7 +3212,76 @@ const RV_NOTES = {
   "Violet Leaf":["ورق البنفسج","la feuille de violette","green"], "White Amber":["العنبر الأبيض","l'ambre blanc","musk"], "White Musk":["المسك الأبيض","le musc blanc","musk"],
   "White Rose":["الورد الأبيض","la rose blanche","floral"], "White Woods":["الأخشاب البيضاء","les bois blancs","wood"], "Woody Notes":["نوتات خشبية","des notes boisées","wood"],
   "Ylang-Ylang":["اليلانغ يلانغ","l'ylang-ylang","white_floral"],
+  "Lily-of-the-Valley":["زنبق الوادي","le muguet","white_floral"],
+  "Benzoin":["الجاوي","le benjoin","resin"],
+  "Citrus":["الحوامض","les agrumes","citrus"],
+  "Sage":["المريمية","la sauge","green"],
+  "Green Notes":["نوتات خضراء","des notes vertes","green"],
+  "Sugar":["السكر","le sucre","gourmand"],
+  "Blood Orange":["البرتقال الأحمر","l'orange sanguine","citrus"],
+  "Calone":["نوتات بحرية","la calone","marine"],
+  "Moss":["الطحلب","la mousse","green"],
+  "Suede":["الجلد الناعم","le daim","leather"],
+  "Anise":["اليانسون","l'anis","spice"],
+  "Cassia":["القرفة الصينية","la cassia","spice"],
+  "Magnolia":["الماغنوليا","le magnolia","floral"],
+  "Coconut":["جوز الهند","la noix de coco","gourmand"],
+  "Bitter Orange":["الليمون المر","l'orange amère","citrus"],
+  "Basil":["الحبق","le basilic","green"],
+  "Caraway":["الكروية","le carvi","spice"],
+  "Cypress":["السرو","le cyprès","wood"],
+  "Fruity Notes":["نوتات فاكهية","des notes fruitées","fruit"],
+  "Papaya":["البابايا","la papaye","fruit"],
+  "Beeswax":["شمع العسل","la cire d'abeille","gourmand"],
+  "Licorice":["عرق السوس","la réglisse","gourmand"],
+  "Mimosa":["الميموزا","le mimosa","powder"],
+  "Tiare Flower":["زهرة التياري","la fleur de tiaré","white_floral"],
+  "Ginger Flower":["زهرة الزنجبيل","la fleur de gingembre","floral"],
+  "Salt":["الملح","le sel","mineral"],
+  "Cashmere Wood":["خشب الكشمير","le bois de cachemire","wood"],
+  "Marigold":["القطيفة","le souci","floral"],
+  "Aloe Vera":["الألوفيرا","l'aloe vera","green"],
+  "Meringue":["المرنغ","la meringue","gourmand"],
+  "Pear Blossom":["زهر الإجاص","la fleur de poirier","floral"],
+  "Frangipani":["الفرانجيباني","le frangipanier","white_floral"],
+  "Almond Blossom":["زهر اللوز","la fleur d'amandier","floral"],
+  "Toffee":["التوفي","le caramel au beurre","gourmand"],
+  "Mastic":["المسكة الحرة","le mastic","resin"],
+  "Mineral Notes":["نوتات معدنية","des notes minérales","mineral"],
+  "Coriander":["القصبر","la coriandre","spice"],
+  "Carnation":["القرنفل الزهري","l'œillet","floral"],
+  "Fir":["التنوب","le sapin","wood"],
+  "Spicy Notes":["نوتات حارة","des notes épicées","spice"],
+  "Elemi":["الإيليمي","l'élémi","resin"],
+  "Floral Notes":["نوتات زهرية","des notes florales","floral"],
+  "Thyme":["الزعتر","le thym","green"],
+  "Animalic Notes":["نوتات حيوانية","des notes animales","leather"],
+  "Datura":["الداتورا","le datura","white_floral"],
+  "Red Currant Leaf":["ورق الكشمش","la feuille de groseillier","green"],
+  "Cactus":["الصبار","le cactus","green"],
+  "Pimento Leaf":["ورق البهار","la feuille de piment","spice"],
+  "Oriental Notes":["نوتات شرقية","des notes orientales","resin"],
 };
+// the same note written another way in the catalogue: origin words, spellings, close names
+const RV_NOTE_ALIAS = {
+  "Mandarin Orange":"Mandarin", "Green Mandarin":"Mandarin", "Orris Root":"Orris", "Agarwood":"Oud", "Cedarwood":"Cedar", "Red Cedar":"Cedar",
+  "Vanila":"Vanilla", "Black Vanilla Husk":"Vanilla", "Sandlwood":"Sandalwood", "Freeseia":"Freesia", "Olibanum":"Incense", "Frankincense":"Incense",
+  "Seawater":"Sea Notes", "Sea Water":"Sea Notes", "Water Notes":"Sea Notes", "Watery Notes":"Sea Notes", "Marine Notes":"Sea Notes", "Aquozone":"Sea Notes", "Calypsone":"Sea Notes",
+  "Juniper Berries":"Juniper", "Jasmine Sambac":"Jasmine", "Water Jasmine":"Jasmine", "Patchouli Leaf":"Patchouli", "Granny Smith Apple":"Green Apple",
+  "Red Apple":"Apple", "Candy Apple":"Apple", "White Peach":"Peach", "White Pear":"Pear", "Pink Grapefruit":"Grapefruit", "Chinese Cinnamon Wood":"Cinnamon",
+  "White Honey":"Honey", "White Sandalwood":"Sandalwood", "Cappuccino":"Coffee", "Green Leaves":"Green Notes", "Green Accord":"Green Notes",
+  "Tahitian Tiare Flower":"Tiare Flower", "Mastic Or Lentisque":"Mastic", "Brown sugar":"Brown Sugar", "Lily Of The Valley":"Lily-of-the-Valley",
+};
+const RV_ORIGIN = /^(sicilian|calabrian|madagascar|moroccan|bulgarian|egyptian|indonesian|tunisian|haitian|brazilian|italian|chinese|cambodian|turkish|indian|mysore|virginia|bourbon|tahitian|french|damask|taif|laotian|tonkin)\s+/i;
+const RV_NOTE_LC = {}; Object.keys(RV_NOTES).forEach(k => { RV_NOTE_LC[k.toLowerCase()] = k; });
+Object.keys(RV_NOTE_ALIAS).forEach(k => { RV_NOTE_LC[k.toLowerCase()] = RV_NOTE_ALIAS[k]; });
+// the RV_NOTES key for a note as written in the catalogue, or "" when it is not known
+function rvNote(n) {
+  const t = String(n || "").trim().replace(/\s+/g, " ");
+  if (RV_NOTES[t]) return t;
+  return RV_NOTE_LC[t.toLowerCase()] || RV_NOTE_LC[t.replace(RV_ORIGIN, "").toLowerCase()] || "";
+}
+
 // texture of each note family — describes how the family feels, never a performance claim
 const RV_TEXTURE = {
   ar: {
@@ -3396,7 +3465,7 @@ const RV_CONTEXT = {
         withImp:[", avec une sensation de ", ", avec une touche de ", " — et ce qui reste, c'est une impression de "], general:"Impression générale : " },
 };
 function rvHasSeason(p, list) { const s = p.season || []; return s.includes("allseasons") || list.some(x => s.includes(x)); }
-function rvNoteFams(p) { return [...(p.notes?.top||[]), ...(p.notes?.middle||[]), ...(p.notes?.base||[])].map(n => (RV_NOTES[n]||[])[2]).filter(Boolean); }
+function rvNoteFams(p) { return [...(p.notes?.top||[]), ...(p.notes?.middle||[]), ...(p.notes?.base||[])].map(n => (RV_NOTES[rvNote(n)]||[])[2]).filter(Boolean); }
 function rvHasFam(p, fams) { const f = rvNoteFams(p); return fams.some(x => f.includes(x)); }
 function rvSeed(str) { let h = 0; for (let i = 0; i < str.length; i++) h = (h * 31 + str.charCodeAt(i)) >>> 0; return h; }
 
@@ -3407,7 +3476,7 @@ const RV_AFFINITY = { fresh:["citrus","green","marine"], citrus:["citrus"], aqua
 // one stage sentence from the notes of that layer (max 3 named), texture from their dominant family
 function rvStageText(layer, notes, lang, seed, usedTex, character) {
   const isFr = lang === "fr";
-  const known = (notes || []).filter(n => RV_NOTES[n]);
+  const known = [...new Set((notes || []).map(rvNote).filter(Boolean))];
   if (!known.length) return null;
   const names = known.slice(0, 3).map(n => RV_NOTES[n][isFr ? 1 : 0]);
   const S = RV_STAGE[isFr ? "fr" : "ar"];
@@ -3447,7 +3516,7 @@ function rvSensory(p, ans, lang, used) {
   const A = RV_ATMOS[isFr ? "fr" : "ar"];
   let image = null;
   // first an image tied to one of its own notes (heart and base first: they last), then one for its family
-  const own = [...(p.notes?.middle || []), ...(p.notes?.base || []), ...(p.notes?.top || [])];
+  const own = [...(p.notes?.middle || []), ...(p.notes?.base || []), ...(p.notes?.top || [])].map(rvNote).filter(Boolean);
   // only notes that belong with its main character: a fresh perfume is not described by the amber in its base
   // (its first family decides; the second one only when the first finds nothing)
   for (const c of (p.character || []).slice(0, 2)) {
