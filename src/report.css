@@ -114,3 +114,9 @@
   .r-box, .r-kpi, .r-chip { box-shadow: none; }
   * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
 }
+
+/* who the perfume is for, under the customer journey */
+.r-gender { margin-top: 12px; padding-top: 10px; border-top: 1px solid #EEE8F3; }
+.r-gender h3 { margin: 0 0 8px; font-size: .85rem; }
+.r-gender .d-split { height: 12px; }
+.r-gender .d-split-legend { margin-top: 8px; gap: 6px 16px; font-size: .78rem; }
