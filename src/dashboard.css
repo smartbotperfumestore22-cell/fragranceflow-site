@@ -76,3 +76,15 @@ main > * { min-width: 0; }
 .d-report { margin-inline-start: auto; flex: none; }
 @media (max-width: 640px) { .d-head { flex-wrap: wrap; } .d-report { margin-inline-start: 0; width: 100%; text-align: center; } }
 .p-back { flex: none; font-weight: 700; font-size: .85rem; color: var(--v); }
+
+/* who the perfume is for: one split bar */
+.d-sub { margin: -4px 0 12px; font-size: .8rem; color: var(--muted, #6C6072); }
+.d-split { display: flex; height: 18px; border-radius: 999px; overflow: hidden; gap: 2px; background: #EEE8F3; }
+.d-split i, .d-split-legend i { display: block; }
+.g-women { background: #B24C7E; } .g-men { background: #3E5C8A; } .g-unisex { background: #B08A3E; }
+.d-split-legend { list-style: none; padding: 0; margin: 12px 0 0; display: flex; flex-wrap: wrap; gap: 10px 22px; font-size: .88rem; }
+.d-split-legend li { display: flex; align-items: center; gap: 8px; }
+.d-split-legend li i { width: 10px; height: 10px; border-radius: 3px; }
+.d-split-legend b { font-variant-numeric: tabular-nums; }
+.d-split-legend small { color: var(--muted, #6C6072); font-variant-numeric: tabular-nums; }
+.d-split-legend small::before { content: "("; } .d-split-legend small::after { content: ")"; }

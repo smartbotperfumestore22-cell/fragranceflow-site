@@ -1,7 +1,7 @@
 // The monthly report as a view (one A4 page when printed): used by /dashboard/report.html and inside the portal («📄 التقرير الشهري»).
 import "./dashboard.css";
 import "./report.css";
-import { FAMILY, IMPRESSION, esc, fmt, pct, sorted, delta, dayLabel } from "./dash-common.js";
+import { FAMILY, IMPRESSION, GENDER, esc, fmt, pct, sorted, delta, dayLabel } from "./dash-common.js";
 
 export const MONTHS = ["يناير", "فبراير", "مارس", "أبريل", "ماي", "يونيو", "يوليوز", "غشت", "شتنبر", "أكتوبر", "نونبر", "دجنبر"];
 export const monthName = (m) => MONTHS[Number(m.slice(5, 7)) - 1] + " " + m.slice(0, 4);
@@ -17,6 +17,8 @@ function summary(d) {
   if (fam) out.push(`العائلة اللي كيقلبو عليها أكثر هي «${FAMILY[fam[0]] || fam[0]}» (${pct(fam[1], famTotal)}% من الاختيارات).`);
   const imp = sorted(d.impression)[0], impTotal = sorted(d.impression).reduce((s, x) => s + x[1], 0);
   if (imp) out.push(`والانطباع اللي باغيين يخليو هو «${IMPRESSION[imp[0]] || imp[0]}» (${pct(imp[1], impTotal)}%).`);
+  const g = d.gender || {}, gT = (g.women || 0) + (g.men || 0) + (g.unisex || 0);
+  if (gT) out.push(`العطر كان ${["women", "men", "unisex"].map((k) => `${GENDER[k]} فـ${pct(g[k] || 0, gT)}%`).join("، ")} من المرات.`);
   return out;
 }
 

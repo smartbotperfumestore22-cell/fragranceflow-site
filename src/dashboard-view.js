@@ -1,6 +1,6 @@
 // The store dashboard as a view: used by /dashboard/ (secret link or portal login) and inside the portal («📊 الإحصائيات»).
 import "./dashboard.css";
-import { FAMILY, IMPRESSION, SOURCE, esc, fmt, pct, sorted, bars, line, delta } from "./dash-common.js";
+import { FAMILY, IMPRESSION, SOURCE, esc, fmt, pct, sorted, bars, line, delta, genderSplit } from "./dash-common.js";
 
 // one plain sentence from the numbers, only when there are enough of them to say something
 function insight(d) {
@@ -78,6 +78,11 @@ export function renderDashboard(root, d, opts = {}) {
         <h2>منين كيجيو الزوار</h2>
         ${bars(d.source, SOURCE)}
       </div>` : ""}
+      <div class="d-card d-wide">
+        <h2>العطر لمن؟</h2>
+        <p class="d-sub">الجواب على أول سؤال فالكويز، من الزبناء اللي كمّلوه.</p>
+        ${genderSplit(d.gender)}
+      </div>
       <div class="d-card">
         <h2>العائلات اللي كيختارو زبنائك</h2>
         ${bars(d.family, FAMILY, 9)}

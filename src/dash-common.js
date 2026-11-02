@@ -3,6 +3,8 @@ export const FAMILY = { floral: "زهري", woody: "خشبي", fresh: "منعش 
   sweet: "حلو ودافئ", clean: "نظيف", musky: "مسكي وناعم", fruity: "فاكهي وحيوي", heavy: "عميق" };
 export const IMPRESSION = { firstlook: "يتفكروك من أول لقاء", attractive: "حضور جذاب", elegant: "أناقة هادئة", confident: "قوة وثقة",
   mysterious: "غموض يخلّي الفضول", longlast: "أثر يبقى", luxury: "فخامة وثراء", fresh_imp: "حضور خفيف ومريح" };
+// who the perfume is for: the quiz's first question
+export const GENDER = { women: "نسائي", men: "رجالي", unisex: "للجميع" };
 export const SOURCE = { instagram: "Instagram", whatsapp: "WhatsApp", qr: "QR فالمحل", website: "الموقع ديالك", facebook: "Facebook",
   tiktok: "TikTok", direct: "مباشر (بلا مصدر)", other: "مصادر أخرى" };
 
@@ -46,3 +48,12 @@ export function delta(now, before) {
   return `<em class="d-delta ${p >= 0 ? "is-up" : "is-down"}">${p >= 0 ? "↗" : "↘"} ${Math.abs(p)}%</em>`;
 }
 
+
+// women / men / for everyone as one split bar with the share of each (finished quizzes only)
+export function genderSplit(obj) {
+  const order = ["women", "men", "unisex"], vals = order.map((k) => Number((obj || {})[k]) || 0), total = vals.reduce((a, b) => a + b, 0);
+  if (!total) return '<p class="d-empty">مازال ما كاين حتى معلومة.</p>';
+  return `<div class="d-split" role="img" aria-label="${order.map((k, i) => `${GENDER[k]} ${pct(vals[i], total)}%`).join("، ")}">
+    ${order.map((k, i) => (vals[i] ? `<i class="g-${k}" style="flex:${vals[i]}"></i>` : "")).join("")}</div>
+    <ul class="d-split-legend">${order.map((k, i) => `<li><i class="g-${k}"></i><span>${GENDER[k]}</span><b>${pct(vals[i], total)}%</b><small>${fmt(vals[i])}</small></li>`).join("")}</ul>`;
+}
