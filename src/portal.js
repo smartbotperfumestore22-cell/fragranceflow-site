@@ -5,7 +5,7 @@ import "./dashboard.css";
 import "./portal.css";
 import { sb } from "./supabase.js";
 import { esc, fmt } from "./dash-common.js";
-import { adminHTML, wireStoreSearch } from "./admin-view.js";
+import { adminHTML, storesHTML, wireStoreSearch } from "./admin-view.js";
 import { insightsHTML } from "./admin-insights.js";
 import { renderDashboard } from "./dashboard-view.js";
 import { renderReport, monthName, defaultMonth } from "./report-view.js";
@@ -359,12 +359,12 @@ function openStore(id) {
   loadStore();
 }
 function renderTeam() {
-  const tabs = [["overview", "🌐 اللوحة العامة"], ["perfumes", "🧴 العطور"], ["accounts", "👥 الحسابات"], ["review", "📝 الطلبات"]];
+  const tabs = [["overview", "🌐 اللوحة العامة"], ["perfumes", "🧴 العطور"], ["accounts", "👥 الحسابات"], ["review", "📝 الطلبات"], ["stores", `🏪 المتاجر <small>${S.stores.length}</small>`]];
   app.innerHTML = `
     <section class="d-head p-head"><div><h1>لوحة FragranceFlow</h1><p>${fmt(S.stores.length)} متجر · غير لفريق FragranceFlow</p></div>
       <button type="button" class="d-btn p-publish" id="b-publish">🚀 نشر الموقع دابا</button></section>
     <nav class="p-tabs" role="tablist">${tabs.map(([k, l]) => `<button role="tab" type="button" data-team="${k}" aria-selected="${S.teamTab === k}">${l}</button>`).join("")}</nav>
-    <section id="tab" class="${S.teamTab === "overview" ? "p-overview" : "d-card p-panel"}"></section>`;
+    <section id="tab" class="${S.teamTab === "overview" || S.teamTab === "stores" ? "p-overview" : "d-card p-panel"}"></section>`;
   app.querySelectorAll("[data-team]").forEach((b) => b.addEventListener("click", () => { S.teamTab = b.dataset.team; renderTeam(); }));
   document.getElementById("b-publish").addEventListener("click", async (e) => {
     e.target.disabled = true;
@@ -374,7 +374,31 @@ function renderTeam() {
     else if (r.queued) toast("تسجل الطلب: كاين نشر ديجا قبل شوية، غادي يتعاود ف 10 دقايق.");
     else toast("ما تنشرش. تأكد من Apps Script (New version) ورابط النشر.", true);
   });
-  ({ overview: tabOverview, perfumes: tabPerfumes, accounts: tabAccounts, review: tabReview }[S.teamTab] || tabOverview)();
+  ({ overview: tabOverview, stores: tabStores, perfumes: tabPerfumes, accounts: tabAccounts, review: tabReview }[S.teamTab] || tabOverview)();
+}
+const manageCell = (x) => S.stores.some((y) => y.id === x.id)
+  ? `<button type="button" class="d-btn a-open" data-manage="${esc(x.id)}">إدارة المتجر</button>` : "<small>ما كاينش ف Supabase</small>";
+// numbers per store for the chosen period (admin_stats), plus the stores that have none yet
+async function adminData() {
+  let d = null;
+  try { const r = await sb.rpc("admin_stats", { p_days: S.days }); if (!r.error && r.data && Array.isArray(r.data.stores)) d = r.data; } catch (e) {}
+  if (!d) return null;
+  const known = new Set(d.stores.map((x) => x.id));
+  S.stores.forEach((x) => { if (!known.has(x.id)) d.stores.push({ id: x.id, name: x.name, active: x.active !== false, perfumes: 0, experiences: 0, completed: 0, whatsapp: 0, last: "" }); });
+  return d;
+}
+// 🏪 المتاجر: every store, its activity in the period, and «إدارة المتجر»
+async function tabStores() {
+  const el = document.getElementById("tab");
+  const range = `<div class="p-range dh-range" role="group" aria-label="المدة">${[[1, "اليوم"], [7, "7 أيام"], [30, "30 يوم"]].map(([d, l]) => `<button type="button" data-days="${d}" aria-pressed="${S.days === d}">${l}</button>`).join("")}</div>`;
+  el.innerHTML = range + '<p class="d-msg">كنجيبو المتاجر…</p>';
+  const wire = () => el.querySelectorAll("[data-days]").forEach((b) => b.addEventListener("click", () => { S.days = Number(b.dataset.days); tabStores(); }));
+  wire();
+  const d = await adminData();
+  if (!d) { el.innerHTML = range + '<p class="d-msg">ما قدرناش نجيبو المتاجر من Supabase دابا. عاود جرب من بعد شوية.</p>'; wire(); return; }
+  el.innerHTML = range + storesHTML(d, manageCell);
+  wire(); wireStoreSearch(el);
+  el.querySelectorAll("[data-manage]").forEach((b) => b.addEventListener("click", () => openStore(b.dataset.manage)));
 }
 async function tabOverview() {
   const el = document.getElementById("tab");
@@ -390,10 +414,8 @@ async function tabOverview() {
   // stores that exist in Supabase but have no numbers yet still appear, so every store can be opened from here
   const known = new Set(d.stores.map((x) => x.id));
   S.stores.forEach((x) => { if (!known.has(x.id)) d.stores.push({ id: x.id, name: x.name, active: x.active !== false, perfumes: 0, experiences: 0, completed: 0, whatsapp: 0, last: "" }); });
-  el.innerHTML = range + adminHTML({ ...d, title: "اللوحة العامة" }, (x) => S.stores.some((y) => y.id === x.id)
-    ? `<button type="button" class="d-btn a-open" data-manage="${esc(x.id)}">إدارة المتجر</button>` : "<small>ما كاينش ف Supabase</small>", "الأرقام والمتاجر والحسابات من Supabase.");
-  wire(); wireStoreSearch(el);
-  el.querySelectorAll("[data-manage]").forEach((b) => b.addEventListener("click", () => openStore(b.dataset.manage)));
+  el.innerHTML = range + adminHTML({ ...d, title: "اللوحة العامة" }, manageCell, "الأرقام والمتاجر والحسابات من Supabase.", { stores: false });
+  wire();
   // platform numbers (013_admin_insights.sql), under the alerts; nothing shown when the function is not there yet
   const days = S.days;
   try {

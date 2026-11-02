@@ -16,7 +16,7 @@ function ago(day, today) {
 const ALERT = { inactive: "💤", token: "🔑", catalog: "🧴", data: "⚠️" };
 const RANGE = { 1: "اليوم", 7: "آخر 7 أيام", 30: "آخر 30 يوم" };
 
-export function adminHTML(d, storeCell, foot = "لوحة خاصة بيك. ما تصيفطش هاد الرابط لحتى واحد.") {
+export function adminHTML(d, storeCell, foot = "لوحة خاصة بيك. ما تصيفطش هاد الرابط لحتى واحد.", opts = {}) {
   const t = d.totals, pv = d.prev;
   return `
     <section class="d-head"><div><h1>${d.title ? esc(d.title) : "لوحة الـ admin"}</h1>
@@ -33,6 +33,14 @@ export function adminHTML(d, storeCell, foot = "لوحة خاصة بيك. ما �
       ${d.alerts.length ? `<ul>${d.alerts.map((a) => `<li class="is-${a.type}"><span aria-hidden="true">${ALERT[a.type] || "•"}</span><div>${a.store ? `<b>${esc(a.store)}</b> ` : ""}${esc(a.text)}</div></li>`).join("")}</ul>`
         : '<p class="d-empty">كلشي مزيان ✅</p>'}
     </section>
+    ${opts.stores === false ? "" : storesHTML(d, storeCell)}
+    <p class="d-foot">${esc(foot)}</p>`;
+}
+
+
+// the stores list (activity in the chosen period, status, and the button to manage each one)
+export function storesHTML(d, storeCell) {
+  return `
     <section class="d-card" aria-labelledby="a-stores-title">
       <div class="a-stores-head"><h2 id="a-stores-title">المتاجر <span class="a-count a-count-n" dir="ltr">${d.stores.length}</span></h2>
         <label class="a-search"><span class="sr">قلب على متجر</span><input type="search" placeholder="🔎 قلب على متجر (السمية ولا store_id)…" autocomplete="off" data-a-search></label></div>
@@ -48,9 +56,8 @@ export function adminHTML(d, storeCell, foot = "لوحة خاصة بيك. ما �
       </table></div>
       <p class="d-empty" data-a-none hidden>ما كاين حتى متجر بهاد الاسم.</p>
     </section>
-    <p class="d-foot">${esc(foot)}</p>`;
+`;
 }
-
 
 // the search box above the stores list: filters the rows as you type (name or store_id)
 export function wireStoreSearch(root) {
