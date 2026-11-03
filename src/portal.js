@@ -1,4 +1,4 @@
-// Merchant portal: /portal/ — sign in (accounts are created by FragranceFlow, no public sign-up),
+// Merchant portal: /portal/ — sign in (accounts are created by RihaFlow, no public sign-up),
 // then the merchant manages its own offers (price, stock, remove/restore, add from the catalogue) and sends requests
 // for perfumes that are not in the catalogue yet. Every rule is enforced again by Supabase row-level security.
 import "./dashboard.css";
@@ -36,7 +36,7 @@ function toast(msg, bad) {
 const errText = (e) => {
   const m = String((e && (e.message || e.error_description)) || e || "");
   if (/Invalid login credentials/i.test(m)) return "الإيميل ولا كلمة السر غالطين.";
-  if (/Email not confirmed/i.test(m)) return "الحساب مازال ما تفعّلش. تواصل مع FragranceFlow.";
+  if (/Email not confirmed/i.test(m)) return "الحساب مازال ما تفعّلش. تواصل مع RihaFlow.";
   if (/rate limit|too many/i.test(m)) return "حاولتي بزاف ديال المرات. عاود من بعد شوية.";
   if (/Password should be at least/i.test(m)) return "كلمة السر خاصها تكون 8 حروف ولا أكثر.";
   if (/network|fetch/i.test(m)) return "ما كاينش الاتصال. تأكد من الأنترنت وعاود.";
@@ -55,7 +55,7 @@ function viewLogin(msg) {
       <button class="d-btn p-wide" type="submit">دخول</button>
     </form>
     <button class="p-link" type="button" id="b-forgot">نسيتي كلمة السر؟</button>
-    <p class="p-small">ما عندكش حساب؟ الحسابات كيصاوبهم FragranceFlow. تواصل معانا فالواتساب.</p>
+    <p class="p-small">ما عندكش حساب؟ الحسابات كيصاوبهم RihaFlow. تواصل معانا فالواتساب.</p>
   </section>`;
   const f = document.getElementById("f-login");
   f.addEventListener("submit", async (e) => {
@@ -129,7 +129,7 @@ async function start_() {
     if (S.mode === "team") return renderTeam();
     return loadStore();
   }
-  if (!S.stores.length) { app.innerHTML = '<section class="d-card p-auth"><h1>ما لقينا حتى متجر مربوط بهاد الحساب</h1><p class="p-sub">تواصل مع FragranceFlow باش يربطو الحساب ديالك بالمتجر.</p></section>'; return; }
+  if (!S.stores.length) { app.innerHTML = '<section class="d-card p-auth"><h1>ما لقينا حتى متجر مربوط بهاد الحساب</h1><p class="p-sub">تواصل مع RihaFlow باش يربطو الحساب ديالك بالمتجر.</p></section>'; return; }
   const saved = sessionStorage.getItem("ff_store");
   S.store = S.stores.find((s) => s.id === saved) || S.stores[0];
   await loadStore();
@@ -197,9 +197,9 @@ function trialBanner(s) {
   if (s.subscription_status === "trial" && s.trial_ends_at) {
     const n = daysLeft(s.trial_ends_at);
     if (n > 0) return `<p class="p-banner">الفترة التجريبية: باقي ليك <b>${n} ${n === 1 ? "نهار" : "أيام"}</b> (حتى ${dateAr(s.trial_ends_at)}). العطور ديالك كيبانو للزبناء.</p>`;
-    return `<p class="p-banner is-bad">سالات الفترة التجريبية نهار ${dateAr(s.trial_ends_at)}. العطور ديالك ما بقاوش كيبانو للزبناء. تواصل مع FragranceFlow باش تفعّل الاشتراك.</p>`;
+    return `<p class="p-banner is-bad">سالات الفترة التجريبية نهار ${dateAr(s.trial_ends_at)}. العطور ديالك ما بقاوش كيبانو للزبناء. تواصل مع RihaFlow باش تفعّل الاشتراك.</p>`;
   }
-  if (s.subscription_status === "paused" || s.subscription_status === "cancelled") return '<p class="p-banner is-bad">الاشتراك موقوف، والعطور ديالك ما كيبانوش للزبناء. تواصل مع FragranceFlow.</p>';
+  if (s.subscription_status === "paused" || s.subscription_status === "cancelled") return '<p class="p-banner is-bad">الاشتراك موقوف، والعطور ديالك ما كيبانوش للزبناء. تواصل مع RihaFlow.</p>';
   return "";
 }
 
@@ -352,7 +352,7 @@ function wireLinkCard(s) {
   }).catch(() => { canvas.replaceWith(Object.assign(document.createElement("small"), { textContent: "ما قدرناش نوجدو الـ QR دابا." })); });
 }
 
-// the FragranceFlow team's own space: overview of every store, accounts, requests
+// the RihaFlow team's own space: overview of every store, accounts, requests
 function openStore(id) {
   S.store = S.stores.find((x) => x.id === id); if (!S.store) return;
   S.mode = "store"; S.tab = "offers"; sessionStorage.setItem("ff_mode", "store");
@@ -361,7 +361,7 @@ function openStore(id) {
 function renderTeam() {
   const tabs = [["overview", "🌐 اللوحة العامة"], ["perfumes", "🧴 العطور"], ["accounts", "👥 الحسابات"], ["review", "📝 الطلبات"], ["stores", `🏪 المتاجر <small>${S.stores.length}</small>`]];
   app.innerHTML = `
-    <section class="d-head p-head"><div><h1>لوحة FragranceFlow</h1><p>${fmt(S.stores.length)} متجر · غير لفريق FragranceFlow</p></div>
+    <section class="d-head p-head"><div><h1>لوحة RihaFlow</h1><p>${fmt(S.stores.length)} متجر · غير لفريق RihaFlow</p></div>
       <button type="button" class="d-btn p-publish" id="b-publish">🚀 نشر الموقع دابا</button></section>
     <nav class="p-tabs" role="tablist">${tabs.map(([k, l]) => `<button role="tab" type="button" data-team="${k}" aria-selected="${S.teamTab === k}">${l}</button>`).join("")}</nav>
     <section id="tab" class="${S.teamTab === "overview" || S.teamTab === "stores" ? "p-overview" : "d-card p-panel"}"></section>`;
@@ -587,7 +587,7 @@ function askPublish() {
   publishTimer = setTimeout(() => { teamCall("publish").catch(() => {}); }, 4000);
 }
 
-// add a perfume from the FragranceFlow catalogue
+// add a perfume from the RihaFlow catalogue
 async function tabAdd() {
   const el = document.getElementById("tab");
   el.innerHTML = `${search("قلب بالسمية ولا الماركة…")}<p class="p-small">ما لقيتيش العطر؟ صيفط «طلب عطر جديد» ونزيدوه.</p><p class="p-count" id="cnt"></p>
@@ -650,12 +650,12 @@ function tabRequests() {
   });
 }
 
-// store details the merchant may change (contact and branding); the rest is set by FragranceFlow
+// store details the merchant may change (contact and branding); the rest is set by RihaFlow
 function tabSettings() {
   const s = S.store, el = document.getElementById("tab");
   const wa = String(s.whatsapp || "");
   el.innerHTML = `<form id="f-set" class="p-form" novalidate>
-    <p class="p-small">هاد المعلومات كتبان للزبون فالكويز ديال متجرك. السمية والاشتراك كيبدلهم FragranceFlow.</p>
+    <p class="p-small">هاد المعلومات كتبان للزبون فالكويز ديال متجرك. السمية والاشتراك كيبدلهم RihaFlow.</p>
     <div class="p-grid2">
       <label>نمرة الواتساب<input name="whatsapp" inputmode="tel" dir="ltr" placeholder="0612345678" value="${esc(wa.startsWith("212") ? "0" + wa.slice(3) : wa)}"><small class="p-small">فين كيوصلوك طلبات الزبناء.</small></label>
       <label>المدينة<input name="city" maxlength="60" value="${esc(s.city || "")}"></label>
@@ -762,10 +762,10 @@ async function shrinkImage(file, maxW, maxH) {
   return b;
 }
 
-// FragranceFlow team: create merchant logins (and new stores), new temporary passwords, remove access
+// RihaFlow team: create merchant logins (and new stores), new temporary passwords, remove access
 function shareBox(r) {
   const url = location.origin + "/portal/";
-  const msg = `مرحبا 👋\nهادا الحساب ديالك ف FragranceFlow:\n${url}\nالإيميل: ${r.email}\nكلمة السر المؤقتة: ${r.password}\nملي تدخل، بدل كلمة السر من «⚙️ إعدادات المتجر».`;
+  const msg = `مرحبا 👋\nهادا الحساب ديالك ف RihaFlow:\n${url}\nالإيميل: ${r.email}\nكلمة السر المؤقتة: ${r.password}\nملي تدخل، بدل كلمة السر من «⚙️ إعدادات المتجر».`;
   return `<div class="p-share"><p><b>${esc(r.email)}</b></p>
     <p>كلمة السر المؤقتة: <code dir="ltr">${esc(r.password)}</code></p>
     <p class="p-small">ما غاديش تبان مرة أخرى. صيفطها للتاجر دابا.</p>
@@ -835,7 +835,7 @@ async function tabAccounts() {
   loadList();
 }
 
-// FragranceFlow team: the master catalogue (what the quiz knows about every perfume)
+// RihaFlow team: the master catalogue (what the quiz knows about every perfume)
 const P_FAMILY = { fresh: "منعش", citrus: "حمضي", woody: "خشبي", aquatic: "أكواتيك", oriental: "شرقي", sweet: "حلو", heavy: "ثقيل وعميق", fruity: "فاكهي", floral: "زهري", clean: "نظيف", musky: "مسكي" };
 const P_OCCASION = { daily: "يومي / الخدمة", dates: "الأمسيات الخاصة", evening: "السهرات", travel: "السفر", allday: "كل الأوقات" };
 const P_SEASON = { spring: "ربيع", summer: "صيف", autumn: "خريف", winter: "شتاء", allseasons: "طول العام" };
@@ -912,7 +912,7 @@ async function perfumeForm(afterLi, p, onSaved, prefill = {}) {
   });
 }
 
-// FragranceFlow team: review requests from every store
+// RihaFlow team: review requests from every store
 async function tabReview() {
   const el = document.getElementById("tab");
   el.innerHTML = '<p class="d-empty">كنجيبو الطلبات…</p>';

@@ -70,10 +70,10 @@ export function startSite({ loadQuiz }) {
   function seasons(p) { return p.season.indexOf('allseasons') > -1 ? 'كل الفصول' : p.season.map(function (s) { return SEA[s] || s; }).join('، '); }
 
   /* ---------- store link (?store=…): the whole visit becomes the store's own experience ----------
-     The store's name (and logo / colour when the Stores tab has them) replaces the FragranceFlow lockup,
-     the general menu, search, «for stores» pages and FragranceFlow sections are hidden, the footer shows
-     the store's contacts, and FragranceFlow stays as a quiet «بدعم من FragranceFlow». Engine unchanged. */
-  // the store's seal: its logo when there is one, else its initials on its colour (or the FragranceFlow plum)
+     The store's name (and logo / colour when the Stores tab has them) replaces the RihaFlow lockup,
+     the general menu, search, «for stores» pages and RihaFlow sections are hidden, the footer shows
+     the store's contacts, and RihaFlow stays as a quiet «بدعم من RihaFlow». Engine unchanged. */
+  // the store's seal: its logo when there is one, else its initials on its colour (or the RihaFlow plum)
   function storeSeal(cls) {
     var seal = h('span', { class: 'store-seal' + (cls ? ' ' + cls : ''), 'aria-hidden': 'true' });
     if (STORE.logo) seal.appendChild(h('img', { src: STORE.logo, alt: '', loading: 'eager', decoding: 'async' }));
@@ -106,7 +106,7 @@ export function startSite({ loadQuiz }) {
     css.setProperty('--lavender', mix(accent, '#FFFFFF', .62));
     css.setProperty('--mist', mix(accent, '#FFFFFF', .92));
     css.setProperty('--rose', theme.gold);
-    // header: the store's lockup instead of FragranceFlow's
+    // header: the store's lockup instead of RihaFlow's
     var logoBtn = document.getElementById('logo');
     if (logoBtn) {
       logoBtn.textContent = '';
@@ -118,14 +118,14 @@ export function startSite({ loadQuiz }) {
     }
     var headCta = document.querySelector('.head-cta');
     if (headCta) headCta.firstChild.textContent = 'اكتشف عطرك ';
-    // footer: one quiet line — the store's own contacts, and FragranceFlow as a credit
+    // footer: one quiet line — the store's own contacts, and RihaFlow as a credit
     var footWrap = document.querySelector('footer.foot .wrap');
     if (footWrap) {
       var line = h('div', { class: 'store-foot' });
       if (STORE.whatsapp) line.appendChild(h('a', { class: 'textlink', href: STORE.whatsapp + '?text=' + encodeURIComponent('السلام عليكم، جيت من اختبار العطور ديالكم.'), target: '_blank', rel: 'noopener', text: '💬 واتساب ' + STORE.name }));
       if (STORE.instagram) line.appendChild(h('a', { class: 'textlink', href: STORE.instagram, target: '_blank', rel: 'noopener', text: 'Instagram' }));
       if (STORE.website) line.appendChild(h('a', { class: 'textlink', href: STORE.website, target: '_blank', rel: 'noopener', text: 'الموقع' }));
-      line.appendChild(h('p', { class: 'store-credit' }, 'بدعم من ', h('span', { class: 'latin', text: 'FragranceFlow' })));
+      line.appendChild(h('p', { class: 'store-credit' }, 'بدعم من ', h('span', { class: 'latin', text: 'RihaFlow' })));
       footWrap.insertBefore(line, footWrap.firstChild);
     }
   }
@@ -156,7 +156,7 @@ export function startSite({ loadQuiz }) {
     }
   });
 
-  /* ---------- «FragranceFlow للمتاجر» (#stores): page for perfume shops ---------- */
+  /* ---------- «RihaFlow للمتاجر» (#stores): page for perfume shops ---------- */
   // «انضم» and «دخول المتاجر» use the addresses in src/footer-links.js (join, else contact; portal).
   // Without an address the button is not shown, so nothing on the page leads nowhere.
   (function () {
@@ -175,7 +175,7 @@ export function startSite({ loadQuiz }) {
     document.title = BASE_TITLE;
     if (qrDrawn) return;
     qrDrawn = true;
-    // demonstration QR: it opens the FragranceFlow quiz (a real store gets its own link ?store=…)
+    // demonstration QR: it opens the RihaFlow quiz (a real store gets its own link ?store=…)
     if (!document.getElementById('pv-qr')) return;
     import('qrcode').then(function (m) {
       var QR = m.default || m;
@@ -217,12 +217,12 @@ export function startSite({ loadQuiz }) {
     // through a store link the visit is the store's quiz: home, catalogue and other pages lead into it
     // (a fragrance opened from the results, #f-…, stays available)
     if (STORE && hsh.indexOf('#f-') !== 0) { location.replace(location.pathname + location.search + '#quiz'); return; }
-    // FragranceFlow is for perfume stores now: outside a store link, the consumer pages lead to the stores homepage
+    // RihaFlow is for perfume stores now: outside a store link, the consumer pages lead to the stores homepage
     if (!STORE && (hsh === '#fragrances' || hsh === '#about')) { location.replace(location.pathname + location.search); return; }
-    if (hsh === '#fragrances') { show('catalog'); window.scrollTo(0, 0); document.title = STORE ? 'العطور | ' + STORE.name : 'اكتشف العطور | FragranceFlow'; return; }
-    // through a store link, the pages for perfume shops and about FragranceFlow are not part of the visit
+    if (hsh === '#fragrances') { show('catalog'); window.scrollTo(0, 0); document.title = STORE ? 'العطور | ' + STORE.name : 'اكتشف العطور | RihaFlow'; return; }
+    // through a store link, the pages for perfume shops and about RihaFlow are not part of the visit
     if (hsh === '#stores' && !STORE) { renderPartners(); return; }
-    if (hsh === '#about' && !STORE) { show('about'); window.scrollTo(0, 0); document.title = 'About | FragranceFlow'; return; }
+    if (hsh === '#about' && !STORE) { show('about'); window.scrollTo(0, 0); document.title = 'About | RihaFlow'; return; }
     if (hsh.indexOf('#f-') === 0) { var p = byId(decodeURIComponent(hsh.slice(3))); if (p) { renderPerfume(p); return; } }
     if (window.FF_CLOSE) window.FF_CLOSE();
     quizOpen = false;
@@ -235,7 +235,7 @@ export function startSite({ loadQuiz }) {
   /* ---------- store QR code: <site>/?store=<id>#qr (for the shop counter, packaging, stories) ---------- */
   function renderQR() {
     show('detail'); window.scrollTo(0, 0); stage.textContent = '';
-    document.title = 'QR | FragranceFlow';
+    document.title = 'QR | RihaFlow';
     if (!STORE) {
       stage.appendChild(h('section', { class: 'stage qr-page' }, h('h1', { text: 'QR ديال المحل' }),
         h('p', { text: 'زيد ?store= ومعاه store_id ديال المحل ف الرابط، مثلا: ?store=parfumerie-x#qr' })));
@@ -334,7 +334,7 @@ export function startSite({ loadQuiz }) {
       hero.style.setProperty('--store-cover', 'url("' + String(STORE.cover || theme.img).replace(/["\\]/g, '') + '")');
       root.parentNode.insertBefore(hero, root);
     }
-    document.title = STORE ? 'اكتشف عطرك | ' + STORE.name : 'اكتشف بصمتك العطرية | FragranceFlow';
+    document.title = STORE ? 'اكتشف عطرك | ' + STORE.name : 'اكتشف بصمتك العطرية | RihaFlow';
     if (quizOpen) return;
     quizOpen = true;
     if (window.FF_OPEN) { window.FF_OPEN(); return; }
@@ -548,7 +548,7 @@ export function startSite({ loadQuiz }) {
   function renderPerfume(p) {
     if (window.track) window.track('perfume_view', { perfume: p.name, pid: p.id });
     show('detail'); window.scrollTo(0, 0);
-    document.title = p.name + ' – ' + p.brand + ' | FragranceFlow';
+    document.title = p.name + ' – ' + p.brand + ' | RihaFlow';
     stage.textContent = '';
     var tags = h('div', { class: 'tags' }, h('span', { class: 'tag', text: GEN[p.gender[0]] }));
     p.character.forEach(function (c) { tags.appendChild(h('span', { class: 'tag', text: charLabel(c) })); });

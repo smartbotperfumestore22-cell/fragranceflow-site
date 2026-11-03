@@ -1,5 +1,5 @@
 // ─────────────────────────────────────────────────────────────
-//  FragranceFlow — إعدادات الموقع
+//  RihaFlow — إعدادات الموقع
 // ─────────────────────────────────────────────────────────────
 //  للتجربة: اترك SHEETS_API_URL فارغاً، فيستعمل الموقع العطور الـ 41 الموجودة في src/data/perfumes.js
 //  للربط بالقاعدة الحقيقية: ضع رابط Apps Script و STORE_KEY، فيجلب الكويز العطور من Master Database
@@ -9,7 +9,7 @@ import { FF_SCRIPT_URL } from "./ff-script-url.js";
 import { applyStoreMode, storeIdFromUrl } from "./store-mode.js";
 
 window.__FF_CONFIG__ = {
-  STORE_NAME: "FragranceFlow",
+  STORE_NAME: "RihaFlow",
   STORE_ID: "",
   STORE_KEY: "",
   SHEETS_API_URL: "",

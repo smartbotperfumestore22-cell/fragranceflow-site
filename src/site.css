@@ -1,4 +1,4 @@
-/* FragranceFlow — visual identity
+/* RihaFlow — visual identity
    Idea: fragrance + fingerprint + flow. Warm ivory pages, deep purple as the brand colour, lavender for quiet
    surfaces, rose gold only as a fine detail. The fingerprint (nested arches, #fp in index.html) is the recurring mark:
    hero bottle, quiz progress, the signature block, section backgrounds. One bold moment per page, the rest stays calm.
@@ -136,7 +136,7 @@ a { color: inherit; }
   .head-cta .arrow { display: none; }
 }
 
-/* «FragranceFlow للمتاجر»: its own small brand mark, like a company's business line */
+/* «RihaFlow للمتاجر»: its own small brand mark, like a company's business line */
 .biz-link { display: inline-flex !important; align-items: center; gap: 7px; padding: 5px 6px 5px 12px !important; border: 1px solid rgba(201, 154, 139, .7) !important; border-radius: 999px; background: linear-gradient(135deg, #FFFFFF, #F6EEF8) !important; color: var(--plum) !important; line-height: 1; transition: border-color .25s, box-shadow .3s; }
 .biz-link:hover { border-color: var(--plum) !important; box-shadow: 0 0 0 3px rgba(216, 180, 232, .35); }
 .biz-ic { width: 18px; height: 18px; flex: none; color: var(--rose-ink); }
@@ -518,7 +518,7 @@ a { color: inherit; }
   .foot-art { width: 620px; }
 }
 
-/* ═════════ «FragranceFlow للمتاجر» (#stores) ═════════ */
+/* ═════════ «RihaFlow للمتاجر» (#stores) ═════════ */
 .partners { background: var(--ivory); }
 .pt-hero { position: relative; overflow: hidden; padding-block: 40px 56px; background: radial-gradient(80% 70% at 15% 40%, rgba(216, 180, 232, .28), rgba(216, 180, 232, 0) 70%), linear-gradient(to bottom, #FBF4EE, var(--ivory)); }
 .pt-hero-grid { display: grid; gap: 40px; align-items: center; }
@@ -1131,7 +1131,7 @@ a.dstore-name:hover { color: var(--purple); text-decoration-color: currentColor;
 .store-seal { flex: none; width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; overflow: hidden; background: var(--store-accent); color: var(--store-on-accent); font-family: var(--font-latin); font-weight: 600; font-size: 1.05rem; letter-spacing: .02em; box-shadow: 0 0 0 1px rgba(201, 154, 139, .55), 0 0 0 4px rgba(250, 247, 242, .9), 0 0 0 5px rgba(75, 23, 111, .12); }
 .store-seal img { width: 100%; height: 100%; object-fit: cover; display: block; background: #FFFFFF; }
 .store-seal-lg { width: 64px; height: 64px; font-size: 1.5rem; }
-/* header: the store's lockup; FragranceFlow's menu, search and «for stores» link are not part of the visit */
+/* header: the store's lockup; RihaFlow's menu, search and «for stores» link are not part of the visit */
 .in-store .menu, .in-store .search, .in-store .burger { display: none !important; }
 .in-store .head .wrap { flex-wrap: nowrap; justify-content: space-between; }
 .in-store .head-cta { display: none !important; }
@@ -1145,7 +1145,7 @@ a.dstore-name:hover { color: var(--purple); text-decoration-color: currentColor;
 #quizpage .store-quiz-note { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 22px 20px 20px; }
 #quizpage .store-quiz-note .store-seal { margin-bottom: 6px; }
 #quizpage .store-quiz-title { font-family: var(--font-display); font-weight: 700; font-size: 1.35rem; color: var(--plum); }
-/* footer: the store's contacts first; FragranceFlow as a quiet credit */
+/* footer: the store's contacts first; RihaFlow as a quiet credit */
 .in-store .foot-main, .in-store .foot-social, .in-store .foot-legal, .in-store .fine, .in-store .foot-copy, .in-store .store-exit { display: none !important; }
 .in-store .foot-bottom { border-top: 0; padding-top: 0; margin-top: 0; }
 .store-foot { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 10px 22px; text-align: center; padding-block: 4px; font-size: .95rem; }
@@ -1173,7 +1173,7 @@ a.dstore-name:hover { color: var(--purple); text-decoration-color: currentColor;
 /* the quiz's «back to home» has no destination through a store link: the store's quiz is the whole visit */
 .in-store .ff-page-back { visibility: hidden; }
 
-/* ═══ FragranceFlow for perfume stores: homepage (.b2) ═══ */
+/* ═══ RihaFlow for perfume stores: homepage (.b2) ═══ */
 .b2 { --v: #5B35C8; --v-deep: #3E1F9C; --v-soft: #F3EFFF; --v-line: #E5DCFB; --b2-ink: #1D1430; --b2-muted: #5F5873; background: #FFFFFF; color: var(--b2-ink); }
 .b2 h1, .b2 h2, .b2 h3 { font-family: var(--font-body); font-weight: 800; letter-spacing: -.01em; color: var(--b2-ink); }
 body.on-b2b .foot { display: none; }
@@ -1200,7 +1200,7 @@ body.on-b2b .head-cta:hover { background: #3E1F9C; border-color: #3E1F9C; }
 .b2-hero-grid { display: grid; gap: 32px; align-items: center; }
 .b2-hero-copy { display: flex; flex-direction: column; align-items: flex-start; gap: 18px; }
 .b2-badge { padding: 6px 14px; border-radius: 999px; background: var(--v-soft); color: var(--v); font-size: .85rem; font-weight: 700; }
-.b2-hero h1 { font-size: clamp(2.3rem, 9vw, 3.7rem); line-height: 1.2; }
+.b2-hero h1 { font-size: clamp(1.75rem, 7vw, 2.9rem); line-height: 1.3; }
 .b2-hero h1 span { color: var(--v); }
 .b2-lead { font-size: 1.12rem; line-height: 1.9; color: #3A3150; max-width: 44ch; }
 .b2-ctas { display: flex; flex-wrap: wrap; gap: 12px; width: 100%; }

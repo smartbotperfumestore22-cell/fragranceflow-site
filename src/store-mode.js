@@ -15,10 +15,10 @@ export function storeIdFromUrl() {
 function withMessage(url, name, inStore) {
   if (!/^https:\/\/wa\.me\/\d+$/.test(url)) return url;
   const text = inStore === "demo"
-    ? `السلام عليكم، جربت الديمو ديال FragranceFlow وطلع ليا ${name}. بغيت نعرف أكثر على الخدمة للمتجر ديالي.`
+    ? `السلام عليكم، جربت الديمو ديال RihaFlow وطلع ليا ${name}. بغيت نعرف أكثر على الخدمة للمتجر ديالي.`
     : inStore
     ? `السلام عليكم، دوزت اختبار العطور ديالكم وطلع ليا ${name}. واش متوفر عندكم؟`
-    : `السلام عليكم، شفت ${name} ف FragranceFlow. واش متوفر عندكم؟`;
+    : `السلام عليكم، شفت ${name} ف RihaFlow. واش متوفر عندكم؟`;
   return url + "?text=" + encodeURIComponent(text);
 }
 

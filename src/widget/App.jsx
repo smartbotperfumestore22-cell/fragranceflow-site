@@ -30,7 +30,7 @@ if (typeof window !== "undefined" && !_EXT.SHEETS_API_URL) {
 
 const CONFIG = {
   // ── هوية المتجر ──────────────────────────────────────────────
-  STORE_NAME:       _EXT.STORE_NAME       || "Fragrance Flow",
+  STORE_NAME:       _EXT.STORE_NAME       || "RihaFlow",
   STORE_ID:         _EXT.STORE_ID         || _EXT.STORE_NAME || "",
   WHATSAPP:         _EXT.WHATSAPP         || "212600000000",
   STORE_LOGO:       _EXT.STORE_LOGO       || "",
@@ -106,7 +106,7 @@ const TRANSLATIONS = {
     talkToUs:    "تحدث معنا",
     spraysLabel: "رشات تكفي",
     persona:     "بصمتك العطرية",
-    poweredBy:   "powered by FragranceFlow",
+    poweredBy:   "powered by RihaFlow",
     statsCount:  "عطر",
     statsSec:    "30 ثانية",
     statsSmart:  "نتيجة ذكية",
@@ -179,7 +179,7 @@ const TRANSLATIONS = {
     talkToUs:    "Nous contacter",
     spraysLabel: "sprays suffisent",
     persona:     "Votre signature olfactive",
-    poweredBy:   "powered by FragranceFlow",
+    poweredBy:   "powered by RihaFlow",
     statsCount:  "parfums",
     statsSec:    "30 secondes",
     statsSmart:  "Résultat intelligent",
@@ -1841,7 +1841,7 @@ async function loadProductsFromSheets() {
     return false;
   } catch(e) {
     window.__ffLE__ = "network_error";
-    console.warn("FragranceFlow: failed to load perfumes from Sheets.", e);
+    console.warn("RihaFlow: failed to load perfumes from Sheets.", e);
     return false;
   }
 }
@@ -2589,7 +2589,7 @@ function getOccasionBadge(productOccasion, lang, userOccasion) {
 function waLink(p) {
   const storeName = window.__FF_CONFIG__?.STORE_NAME || "المتجر";
   const waNumber = window.__FF_CONFIG__?.WHATSAPP || "212600000000";
-  const msg = `سلام 👋\nجربت FragranceFlow في ${storeName} واختار ليا:\n\n✦ *${p.name}* ${p.size}\n💰 ${p.price} درهم\n🌿 ${(p.notes?.base||[]).join("، ")}\n\n🔗 ${p.url}\n\nبغيت نطلبو 🙏`;
+  const msg = `سلام 👋\nجربت RihaFlow في ${storeName} واختار ليا:\n\n✦ *${p.name}* ${p.size}\n💰 ${p.price} درهم\n🌿 ${(p.notes?.base||[]).join("، ")}\n\n🔗 ${p.url}\n\nبغيت نطلبو 🙏`;
   return `https://wa.me/${waNumber}?text=${encodeURIComponent(msg)}`;
 }
 
@@ -3685,7 +3685,7 @@ function RVCard({ p, ans, lang, rank, used, peers, near }) {
         )}
         <RVSensory p={p} ans={ans} lang={lang} used={used}/>
         {window.__FF_STORE__ ? <RVStoreActions p={p} lang={lang} ans={ans}/> : <RVStores p={p} L={L} lang={lang}/>}
-        {/* through a store link, WhatsApp is the action: no «شوف العطر» to a FragranceFlow page */}
+        {/* through a store link, WhatsApp is the action: no «شوف العطر» to a RihaFlow page */}
         {window.__FF_STORE__ ? null : <div className="ffr-actions">
           <a className={"ffr-btn" + (featured ? "" : " ffr-btn-ghost")} href={"#f-" + encodeURIComponent(p.id)}>{L.view}</a>
           {/* no price on the results page: prices are on the fragrance page, store by store */}
@@ -3695,7 +3695,7 @@ function RVCard({ p, ans, lang, rank, used, peers, near }) {
   );
 }
 
-// FragranceFlow fingerprint: nested arches. `done`/`total` turn it into the quiz progress.
+// RihaFlow fingerprint: nested arches. `done`/`total` turn it into the quiz progress.
 function ffArches(n) {
   const step = n > 1 ? Math.min(6, 42 / (n - 1)) : 6;
   return Array.from({ length: n }, (_, k) => {
@@ -4480,12 +4480,12 @@ window.track && window.track("favorite_pick", {
     const err = getLoadError();
     const msg = lang === "fr"
       ? err === "invalid_key"    ? "Clé de licence invalide."
-      : err === "licence_expired" ? "Licence expirée. Contactez FragranceFlow."
+      : err === "licence_expired" ? "Licence expirée. Contactez RihaFlow."
       : err === "empty_catalog"   ? "Aucun parfum disponible pour le moment."
       : err === "network_error"   ? "Impossible de charger les parfums. Réessayez plus tard."
       : "Erreur de chargement. Contactez le support."
       : err === "invalid_key"    ? "مفتاح الترخيص غير صحيح."
-      : err === "licence_expired" ? "انتهت صلاحية الترخيص. تواصل مع FragranceFlow."
+      : err === "licence_expired" ? "انتهت صلاحية الترخيص. تواصل مع RihaFlow."
       : err === "empty_catalog"   ? "لا توجد عطور متاحة حالياً."
       : err === "network_error"   ? "تعذر تحميل العطور. المرجو المحاولة لاحقاً."
       : "خطأ في التحميل. تواصل مع الدعم.";
@@ -4512,7 +4512,7 @@ window.track && window.track("favorite_pick", {
             </div>
             <div style={{ fontSize:12, color:"rgba(91,42,134,0.7)", lineHeight:1.8 }}>
               {t.subtitle}
-              <span style={{ color:"#5B2A86", fontWeight:700 }}> {(window.__FF_CONFIG__?.STORE_NAME || "FragranceFlow").toUpperCase()} </span>
+              <span style={{ color:"#5B2A86", fontWeight:700 }}> {(window.__FF_CONFIG__?.STORE_NAME || "RihaFlow").toUpperCase()} </span>
               {t.exclusive}
             </div>
           </div>
@@ -4559,7 +4559,7 @@ window.track && window.track("favorite_pick", {
         </div>
       )}
 
-      {/* QUESTIONS — site page: same questions, answers and flow, presented as the FragranceFlow experience */}
+      {/* QUESTIONS — site page: same questions, answers and flow, presented as the RihaFlow experience */}
       {step==="questions" && CONFIG.PAGE_MODE && (() => {
         const q = questions[qi];
         const opts = q?.id==="budget" ? (getBudgetOpts(q) || []) : (q?.opts || []);
@@ -4824,7 +4824,7 @@ window.track && window.track("favorite_pick", {
             </div>
             <div style={{ fontSize:11, color:"rgba(91,42,134,0.6)", marginBottom:10, display:"flex", alignItems:"center", justifyContent:"center", gap:6 }}>
               <span>•</span>
-            <span>{t.fromStore} {(window.__FF_CONFIG__?.STORE_NAME || "FragranceFlow").toUpperCase()}</span>              <span>•</span>
+            <span>{t.fromStore} {(window.__FF_CONFIG__?.STORE_NAME || "RihaFlow").toUpperCase()}</span>              <span>•</span>
             </div>
             {ans.isGift === "gift" ? (
               <div style={{ background:"rgba(251,191,36,0.06)",
@@ -5133,7 +5133,7 @@ function Header({ onClose, isMobile, lang, setLang }) {
               justifyContent:"center", fontSize:16, color:"#FFFFFF", fontWeight:900 }}>✦</div>
             <div>
               <div style={{ fontSize:13, fontWeight:900, color:"#211F23", lineHeight:1.1 }}>
-  {(window.__FF_CONFIG__?.STORE_NAME || "FragranceFlow").toUpperCase()}
+  {(window.__FF_CONFIG__?.STORE_NAME || "RihaFlow").toUpperCase()}
 </div>
               <div style={{ fontSize:10, color:"rgba(91,42,134,0.8)", fontWeight:700 }}>
                 {(TRANSLATIONS[lang||"ar"]).assistant}
@@ -5311,7 +5311,7 @@ function TriggerBtn({ onClick, lang="ar" }) {
       {/* Logo */}
       <img
         src={FF_LOGO}
-        alt="FragranceFlow"
+        alt="RihaFlow"
         style={{
           width:  isExpanded ? 36 : 42,
           height: isExpanded ? 36 : 42,
@@ -5390,7 +5390,7 @@ console.log('FF_BUILD_2026');
 window.track = async function track(event, data) {
   try {
     const cfg = window.__FF_CONFIG__ || {};
-    // ANALYTICS_URL = a script that only records events (the FragranceFlow site); it needs no store key.
+    // ANALYTICS_URL = a script that only records events (the RihaFlow site); it needs no store key.
     // Without it, the partner widget keeps its original behaviour: SHEETS_API_URL + store + key.
     const own = !!cfg.ANALYTICS_URL;
     const base = cfg.ANALYTICS_URL || cfg.SHEETS_API_URL || "";
@@ -5415,7 +5415,7 @@ window.track = async function track(event, data) {
       ...extra,
       ...data 
     });
-    // Phase 3: FragranceFlow's own site records events in Supabase only; an external widget keeps its own endpoint
+    // Phase 3: RihaFlow's own site records events in Supabase only; an external widget keeps its own endpoint
     if (own) sbTrack(Object.fromEntries(params));
     else fetch(`${base}?${params.toString()}`, { mode: 'no-cors' }).catch(() => {}); // blocked (ad-blocker) or offline: ignore
   } catch(e) {}

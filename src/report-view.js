@@ -81,8 +81,8 @@ export function renderReport(root, d, opts = {}) {
   root.innerHTML = `
   <article class="r-sheet">
     <header class="r-hero">
-      <div class="r-title"><img class="r-logo" src="/images/brand/logo-lockup.webp" alt="FragranceFlow" width="720" height="161">
-        <h1>التقرير الشهري</h1><p>أداء متجرك مع FragranceFlow</p></div>
+      <div class="r-title"><img class="r-logo" src="/images/brand/logo-lockup.webp" alt="RihaFlow" width="583" height="161">
+        <h1>التقرير الشهري</h1><p>أداء متجرك مع RihaFlow</p></div>
       <div class="r-visual" aria-hidden="true"><img src="/images/hero-bottles.webp" alt=""></div>
       <div class="r-meta">
         <div class="r-chip"><span class="d-seal" style="${d.store.color ? "background:" + esc(d.store.color) : ""}">${d.store.logo ? `<img src="${esc(d.store.logo)}" alt="">` : esc(initials)}</span>
@@ -124,8 +124,8 @@ export function renderReport(root, d, opts = {}) {
         ${tips.length ? `<ul>${tips.slice(0, 2).map((x) => `<li>${esc(x)}</li>`).join("")}</ul>` : "<p>غادي تبان هنا فكرة عملية ملي تكون الأرقام كافية.</p>"}</div>
     </section>
     <footer class="r-foot">
-      <div><img src="/images/brand/logo-lockup.webp" alt="FragranceFlow" width="720" height="161"><small>من الذوق للطلب</small></div>
-      <ul><li>${icon("cal")}تقرير ${esc(name)}</li><li>${esc(d.store.name)}</li><li dir="ltr">${esc(location.host.includes("vercel.app") ? "FragranceFlow" : location.host)}</li></ul>
+      <div><img src="/images/brand/logo-lockup.webp" alt="RihaFlow" width="583" height="161"><small>اعرف زبونك. اقترح عليه العطر المناسب. قرّبو للشرا.</small></div>
+      <ul><li>${icon("cal")}تقرير ${esc(name)}</li><li>${esc(d.store.name)}</li><li dir="ltr">${esc(location.host.includes("vercel.app") ? "RihaFlow" : location.host)}</li></ul>
     </footer>
   </article>`;
 }

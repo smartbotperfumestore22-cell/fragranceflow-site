@@ -1,4 +1,4 @@
-// The FragranceFlow team's platform numbers (admin_insights, 013): all stores together, aggregates only.
+// The RihaFlow team's platform numbers (admin_insights, 013): all stores together, aggregates only.
 // Shown in the portal's team overview, under the alerts.
 import { FAMILY, IMPRESSION, SOURCE, esc, fmt, pct, bars, line, genderSplit } from "./dash-common.js";
 

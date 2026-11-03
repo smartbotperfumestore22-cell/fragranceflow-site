@@ -14,7 +14,7 @@ const TXT = {
     copy: "نسخ الرابط",
     copied: "تنسخ الرابط ✓",
     copyFail: "ما قدرناش ننسخو. هادا هو الرابط:",
-    line1: "اكتشفت بصمتي العطرية مع FragranceFlow ✨",
+    line1: "اكتشفت بصمتي العطرية مع RihaFlow ✨",
     line2: (icon, name) => `بصمتي: ${icon ? icon + " " : ""}${name}`,
     line3: "شنو هي بصمتك العطرية؟ اكتشفها هنا 👇",
     igTitle: "صورة لـ Instagram Story",
@@ -33,7 +33,7 @@ const TXT = {
     copy: "Copier le lien",
     copied: "Lien copié ✓",
     copyFail: "Copie impossible. Voici le lien :",
-    line1: "J'ai découvert ma signature olfactive avec FragranceFlow ✨",
+    line1: "J'ai découvert ma signature olfactive avec RihaFlow ✨",
     line2: (icon, name) => `Ma signature : ${icon ? icon + " " : ""}${name}`,
     line3: "Et vous, quelle est la vôtre ? Découvrez-la ici 👇",
     igTitle: "Image pour Instagram Story",
@@ -131,8 +131,8 @@ async function storyCardPhoto(T, persona, lang, img) {
   if (dark) { g.shadowColor = "rgba(0, 0, 0, .45)"; g.shadowBlur = 24; }
   const fit = (text, weight, size, min, maxW, family) => { let z = size; g.font = `${weight} ${z}px ${family}`; while (z > min && g.measureText(text).width > maxW) { z -= 2; g.font = `${weight} ${z}px ${family}`; } };
   const store = window.__FF_STORE__;
-  g.fillStyle = ink; fit(store ? store.name : "FragranceFlow", store ? 700 : 600, store ? 60 : 72, 36, W - 240, store ? DISPLAY : LATIN);
-  g.fillText(store ? store.name : "FragranceFlow", W / 2, 200);
+  g.fillStyle = ink; fit(store ? store.name : "RihaFlow", store ? 700 : 600, store ? 60 : 72, 36, W - 240, store ? DISPLAY : LATIN);
+  g.fillText(store ? store.name : "RihaFlow", W / 2, 200);
   g.fillStyle = accent; fit(T.cardKicker, 600, 42, 28, W - 240, BODY);
   g.fillText(T.cardKicker, W / 2, 290);
   let y = 470;
@@ -174,7 +174,7 @@ async function storyCard(T, persona, lang) {
   const LATIN = '"Cormorant Garamond", Georgia, serif';
 
   g.fillStyle = "#FAF7F2"; g.fillRect(0, 0, W, H);              // warm ivory
-  // the FragranceFlow fingerprint: faint nested arches rising from the foot of the card
+  // the RihaFlow fingerprint: faint nested arches rising from the foot of the card
   g.save(); g.strokeStyle = "rgba(123, 63, 160, 0.10)"; g.lineWidth = 5; g.lineCap = "round";
   for (let k = 0; k < 9; k++) { const r = 70 + k * 58; g.beginPath(); g.moveTo(W / 2 - r, H + 40); g.lineTo(W / 2 - r, 1330); g.arc(W / 2, 1330, r, Math.PI, 0); g.lineTo(W / 2 + r, H + 40 - k * 14); g.stroke(); }
   g.restore();
@@ -182,10 +182,10 @@ async function storyCard(T, persona, lang) {
   g.strokeStyle = "#C99A8B"; g.lineWidth = 1.5; g.strokeRect(74, 74, W - 148, H - 148);
   g.textAlign = "center"; g.textBaseline = "middle";
 
-  // shared from a store link: the card carries the store's name (FragranceFlow stays as a small credit at the foot)
+  // shared from a store link: the card carries the store's name (RihaFlow stays as a small credit at the foot)
   const store = window.__FF_STORE__;
   g.fillStyle = "#4B176F"; g.font = store ? `700 64px ${DISPLAY}` : `600 80px ${LATIN}`;
-  g.fillText(store ? store.name : "FragranceFlow", W / 2, 230);
+  g.fillText(store ? store.name : "RihaFlow", W / 2, 230);
   g.fillStyle = "#A87666"; g.font = `600 44px ${BODY}`;
   const fit = (text, weight, size, min, maxW, family) => { let z = size; g.font = `${weight} ${z}px ${family}`; while (z > min && g.measureText(text).width > maxW) { z -= 2; g.font = `${weight} ${z}px ${family}`; } };
   fit(T.cardKicker, 600, 44, 30, W - 240, BODY);
@@ -275,7 +275,7 @@ export default function ShareResult({ name, latin, icon, desc, lang, img, tone, 
     const url = shareUrl("copy", persona);
     flash((await copyText(url)) ? T.copied : T.copyFail + " " + url);
   };
-  const cardFile = (c) => new File([c.blob], "fragranceflow-persona.png", { type: "image/png" });
+  const cardFile = (c) => new File([c.blob], "rihaflow-persona.png", { type: "image/png" });
   const canShareFile = !!(card && navigator.canShare && (() => { try { return navigator.canShare({ files: [cardFile(card)] }); } catch (e) { return false; } })());
   const onShareCard = async () => {
     if (!card) return;
@@ -288,7 +288,7 @@ export default function ShareResult({ name, latin, icon, desc, lang, img, tone, 
   const onSaveCard = async () => {
     if (!card) return;
     const a = document.createElement("a");
-    a.href = card.url; a.download = "fragranceflow-persona.png";
+    a.href = card.url; a.download = "rihaflow-persona.png";
     document.body.appendChild(a); a.click(); a.remove();
     flash((await copyText(shareUrl("instagram", persona))) ? T.igCopied : T.igNote);
   };

@@ -13,7 +13,7 @@ async function load(days) {
     const data = await fetchStats({ days });
     if (data.error === "net") { root.innerHTML = '<p class="d-msg">ما قدرناش نجيبو الإحصائيات دابا. عاود جرب من بعد شوية.</p>'; return; }
     if (data.error === "login") { root.innerHTML = '<p class="d-msg">دخل لفضاء التاجر باش تشوف الإحصائيات. <a href="/portal/">دخول</a></p>'; return; }
-    if (data.error) { root.innerHTML = portalMode ? '<p class="d-msg">ما قدرناش نلقاو المتجر ديالك. خرج ودخل من جديد، ولا تواصل مع FragranceFlow.</p>' : '<p class="d-msg">هاد الرابط ما خدامش ولا تبدّل. تواصل مع FragranceFlow باش ياخد رابط جديد.</p>'; return; }
+    if (data.error) { root.innerHTML = portalMode ? '<p class="d-msg">ما قدرناش نلقاو المتجر ديالك. خرج ودخل من جديد، ولا تواصل مع RihaFlow.</p>' : '<p class="d-msg">هاد الرابط ما خدامش ولا تبدّل. تواصل مع RihaFlow باش ياخد رابط جديد.</p>'; return; }
     renderDashboard(root, data, { token, portalMode });
   } catch (e) {
     root.innerHTML = '<p class="d-msg">ما قدرناش نجيبو الإحصائيات دابا. عاود جرب من بعد شوية.</p>';

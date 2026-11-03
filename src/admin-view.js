@@ -1,4 +1,4 @@
-// The FragranceFlow team's overview (totals, alerts, stores), shared by /admin/ and the portal's team view.
+// The RihaFlow team's overview (totals, alerts, stores), shared by /admin/ and the portal's team view.
 import "./admin.css";
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 const fmt = (n) => Number(n || 0).toLocaleString("en-US");

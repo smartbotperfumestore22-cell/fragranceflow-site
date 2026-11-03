@@ -1,4 +1,4 @@
-// FragranceFlow admin: /admin/?t=<admin token> (the token is kept in Apps Script's Script Properties).
+// RihaFlow admin: /admin/?t=<admin token> (the token is kept in Apps Script's Script Properties).
 // Read only: totals across stores, the list of stores with their numbers and dashboard links, and alerts.
 import "./dashboard.css";
 import { adminHTML, wireStoreSearch } from "./admin-view.js";
@@ -13,7 +13,7 @@ function render(d) {
 }
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 
-// two ways in: the secret admin link (?t=…), or a FragranceFlow team login on the portal (Supabase)
+// two ways in: the secret admin link (?t=…), or a RihaFlow team login on the portal (Supabase)
 async function fetchAdmin(days) {
   if (token) return (await fetch(`${API}?action=admin&t=${encodeURIComponent(token)}&days=${days}`)).json();
   const { sb } = await import("./supabase.js");
@@ -27,7 +27,7 @@ async function load(days) {
   try {
     const data = await fetchAdmin(days);
     if (data.error === "login") { root.innerHTML = '<p class="d-msg">دخل لفضاء التاجر بالحساب ديالك. <a href="/portal/">دخول</a></p>'; return; }
-    if (data.error) { root.innerHTML = token ? '<p class="d-msg">هاد الرابط ما خدامش. صاوب رابط جديد من الشيت: FragranceFlow ← 🔐 رابط لوحة الـ admin.</p>' : '<p class="d-msg">هاد الصفحة غير لفريق FragranceFlow. <a href="/portal/">رجوع لفضاء التاجر</a></p>'; return; }
+    if (data.error) { root.innerHTML = token ? '<p class="d-msg">هاد الرابط ما خدامش. صاوب رابط جديد من الشيت: FragranceFlow ← 🔐 رابط لوحة الـ admin.</p>' : '<p class="d-msg">هاد الصفحة غير لفريق RihaFlow. <a href="/portal/">رجوع لفضاء التاجر</a></p>'; return; }
     render(data);
     wireStoreSearch(root);
     if (!token) {
