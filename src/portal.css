@@ -242,3 +242,33 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--v); outline
 .p-path { display: inline-block; font-size: .8rem; padding: 1px 6px; border-radius: 6px; background: #F3ECF5; unicode-bidi: isolate; }
 .p-more { display: block; margin: 12px auto 0; }
 .p-count { margin: 4px 0 0; font-size: .8rem; font-weight: 700; color: var(--muted, #6C6072); }
+
+/* the store's opinion: quick questions */
+.p-rvq { margin-bottom: 14px; border: 1px solid #E6DCFA; background: linear-gradient(180deg, #FBF8FF, #FFF); }
+.p-rvq h2 { margin: 0 0 4px; font-size: 1.05rem; }
+.p-rvq h2 small { font-size: .78rem; font-weight: 500; color: var(--muted); margin-inline-start: 6px; }
+.p-rvq-done p { margin: 0; font-weight: 700; }
+.p-rv { display: grid; gap: 12px; margin-top: 10px; }
+.p-rv-head { display: flex; align-items: center; gap: 12px; }
+.p-rv-head img, .p-rv-head .p-bottle { width: 52px; height: 52px; border-radius: 10px; object-fit: cover; flex: none; }
+.p-rv-head div { display: flex; flex-direction: column; min-width: 0; }
+.p-rv-head small { color: var(--muted); font-size: .8rem; }
+.p-rv-seen { color: #5B3CC4 !important; font-weight: 700; }
+.p-rv-q { border: 0; padding: 0; margin: 0; }
+.p-rv-q legend { font-weight: 800; font-size: .92rem; margin-bottom: 6px; padding: 0; }
+.p-rv-opts { display: flex; flex-wrap: wrap; gap: 6px; }
+.p-rv-opt { position: relative; cursor: pointer; }
+.p-rv-opt input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+.p-rv-opt span { display: inline-block; padding: 8px 14px; border-radius: 999px; border: 1px solid #DCD3EE; background: #FFF; font-size: .86rem; font-weight: 700; }
+.p-rv-opt input:checked + span { background: #5B3CC4; border-color: #5B3CC4; color: #FFF; }
+.p-rv-opt input:focus-visible + span { outline: 2px solid var(--v); outline-offset: 2px; }
+.p-rv-acts { display: flex; align-items: center; gap: 14px; }
+.p-rv-sum { display: grid; gap: 8px; margin-bottom: 12px; }
+.p-rv-sum p { margin: 0; }
+.p-rv-bar { display: block; height: 8px; border-radius: 999px; background: #EEE8F7; overflow: hidden; }
+.p-rv-bar i { display: block; height: 100%; background: #5B3CC4; }
+.p-rv-mine { color: #2F7D4B !important; font-weight: 700; }
+.p-rv-none { color: var(--muted); }
+.p-rv-edit { list-style: none; padding: 12px; margin: 4px 0 10px; border-radius: 12px; background: #FBF8FF; border: 1px solid #E6DCFA; }
+.p-rv-edit .p-rv { margin-top: 0; }
+.p-rv-mine b { color: #B5651D; }

@@ -144,7 +144,13 @@ async function loadStore() {
   if (o.error) { toast(errText(o.error), true); }
   S.offers = (o.data || []).sort((a, b) => (a.perfumes?.brand || "").localeCompare(b.perfumes?.brand || "") || (a.perfumes?.name || "").localeCompare(b.perfumes?.name || ""));
   S.requests = r.data || [];
+  S.queue = await loadQueue();
   render();
+}
+// one or two perfumes to ask the store about (review_queue, 014); nothing when the function is not there yet
+async function loadQueue() {
+  try { const q = await sb.rpc("review_queue", { p_store: S.store.id, p_n: 2 }); return q.error ? [] : (q.data || []); }
+  catch (e) { return []; }
 }
 
 async function loadCatalog() {
@@ -208,7 +214,7 @@ function render() {
   const s = S.store, live = S.offers.filter((o) => o.active), off = live.filter((o) => !o.in_stock).length;
   const pending = S.requests.filter((r) => r.status === "pending").length;
   const tabs = [["offers", `عطوري <small>${live.length}</small>`], ["add", "زيد عطر"], ["requests", `طلب عطر جديد${pending ? ` <small>${pending}</small>` : ""}`],
-    ["stats", "📊 الإحصائيات"], ["report", "📄 التقرير الشهري"], ["settings", "⚙️ إعدادات المتجر"]];
+    ["reviews", "⭐ رأي المتجر"], ["stats", "📊 الإحصائيات"], ["report", "📄 التقرير الشهري"], ["settings", "⚙️ إعدادات المتجر"]];
   if (!tabs.some(([k]) => k === S.tab)) S.tab = "offers";
   app.innerHTML = `
     ${S.admin ? '<div class="p-backbar"><button type="button" class="p-link" id="b-team">← رجوع للوحة العامة</button><span>كتشوف المتجر بحال التاجر</span></div>' : ""}
@@ -219,6 +225,7 @@ function render() {
     </section>
     ${trialBanner(s)}
     ${linkCard(s)}
+    <div id="p-rvq"></div>
     <nav class="p-tabs" role="tablist">${tabs.map(([k, l]) => `<button role="tab" type="button" data-tab="${k}" aria-selected="${S.tab === k}">${l}</button>`).join("")}</nav>
     <section id="tab" class="${S.tab === "stats" || S.tab === "report" ? "p-wide-tab" : "d-card p-panel"}"></section>
     <p class="d-foot">التبديلات كتبان للزبناء فالكويز فـ 10 حتى 15 دقيقة.</p>`;
@@ -228,7 +235,93 @@ function render() {
   wireLinkCard(s);
   const back = document.getElementById("b-team");
   if (back) back.addEventListener("click", () => { S.mode = "team"; sessionStorage.setItem("ff_mode", "team"); renderTeam(); });
-  ({ offers: tabOffers, add: tabAdd, requests: tabRequests, settings: tabSettings, stats: tabStats, report: tabReport }[S.tab] || tabOffers)();
+  drawQueue();
+  ({ offers: tabOffers, add: tabAdd, requests: tabRequests, reviews: tabReviews, settings: tabSettings, stats: tabStats, report: tabReport }[S.tab] || tabOffers)();
+}
+
+// ───────────── the store's opinion (014): two quick questions, never the whole catalogue ─────────────
+const RV_SALES = [[3, "كيتباع بزاف"], [2, "عادي"], [1, "قليل"], [0, "ما متأكدش"]];
+const RV_LONG = [[1, "ضعيف"], [2, "متوسط"], [3, "قوي"], [4, "قوي بزاف"], [0, "ما متأكدش"]];
+const pctOf = (a, b) => (b ? Math.round((a * 100) / b) : 0);
+const rvLabel = (list, v) => (list.find(([k]) => k === v) || [])[1] || "";
+function reviewForm(p) {
+  const id = esc(p.perfume_id), group = (name, legend, list, cur) => `<fieldset class="p-rv-q"><legend>${legend}</legend><div class="p-rv-opts">
+    ${list.map(([v, l]) => `<label class="p-rv-opt"><input type="radio" name="${name}-${id}" value="${v}"${cur === v ? " checked" : ""}><span>${l}</span></label>`).join("")}</div></fieldset>`;
+  return `<div class="p-rv" data-pid="${id}">
+    <div class="p-rv-head">${thumb({ image_url: p.image })}<div><b dir="ltr">${esc(p.name)}</b><small dir="ltr">${esc(p.brand)}</small>
+      ${p.shown ? `<small class="p-rv-seen">طلع لزبنائك ${fmt(p.shown)} مرة فـ 30 يوم${p.whatsapp ? ` · ${fmt(p.whatsapp)} نقرة واتساب` : ""}</small>` : ""}</div></div>
+    ${group("sales", "كيفاش كيتباع عندك؟", RV_SALES, p.sales)}
+    ${group("long", "الثبات حسب الزبناء ديالك؟", RV_LONG, p.longevity)}
+    <div class="p-rv-acts"><button type="button" class="d-btn" data-rv="save"${p.sales == null && p.longevity == null ? " disabled" : ""}>حفظ الرأي</button>
+      <button type="button" class="p-link" data-rv="skip">من بعد</button></div>
+  </div>`;
+}
+// answers → Supabase; done(saved) once it is stored
+function wireReviewForm(box, p, done) {
+  const form = box.querySelector(".p-rv"), save = form.querySelector('[data-rv="save"]');
+  const val = (n) => { const x = form.querySelector(`input[name="${n}-${CSS.escape(p.perfume_id)}"]:checked`); return x ? Number(x.value) : null; };
+  form.addEventListener("change", () => { save.disabled = val("sales") == null && val("long") == null; });
+  const send = async (skip) => {
+    save.disabled = true;
+    const r = await sb.rpc("save_store_review", { p_store: S.store.id, p_perfume: p.perfume_id, p_sales: skip ? null : val("sales"), p_longevity: skip ? null : val("long"), p_skip: !!skip });
+    if (r.error || r.data !== true) { toast(r.error ? errText(r.error) : "ما تسجّلش. عاود جرب.", true); save.disabled = false; return; }
+    done(!skip, { sales: val("sales"), longevity: val("long") });
+  };
+  save.addEventListener("click", () => send(false));
+  form.querySelector('[data-rv="skip"]').addEventListener("click", () => send(true));
+}
+// the card above the tabs: one perfume at a time, then a thank-you; gone once answered or put off
+function drawQueue() {
+  const box = document.getElementById("p-rvq");
+  if (!box) return;
+  const q = S.queue || [];
+  if (!q.length) { box.innerHTML = S.queueThanks ? '<section class="d-card p-rvq p-rvq-done"><p>شكراً 🙏 رأيك تسجّل. كيبقى خاص بالمتجر ديالك.</p></section>' : ""; return; }
+  const p = q[0];
+  box.innerHTML = `<section class="d-card p-rvq" aria-labelledby="p-rvq-t">
+    <h2 id="p-rvq-t">رأيك فـ${q.length > 1 ? " جوج عطور" : " عطر واحد"} <small>كياخد 10 ثواني</small></h2>
+    <p class="p-small">باش نعرفو العطور ديالك مزيان. جاوب غير على اللي عارف، ورأيك ما كيشوفوش المتاجر الآخرين.</p>
+    ${reviewForm(p)}</section>`;
+  wireReviewForm(box, p, (saved) => {
+    S.queue = q.slice(1); if (saved) S.queueThanks = true;
+    drawQueue();
+    if (S.tab === "reviews") tabReviews();
+  });
+}
+// ⭐ رأي المتجر: how many perfumes have an opinion, the ones customers see most first, edit any of them
+async function tabReviews() {
+  const el = document.getElementById("tab");
+  el.innerHTML = '<p class="d-msg">كنجيبو العطور…</p>';
+  const r = await sb.rpc("store_review_list", { p_store: S.store.id });
+  if (r.error) { el.innerHTML = `<p class="d-msg">${/store_review_list|PGRST202|42883/.test((r.error.message || "") + r.error.code) ? "هاد القسم كيخدم من بعد ما يتشغّل <span dir=\"ltr\">014_store_reviews.sql</span> فـ Supabase." : errText(r.error)}</p>`; return; }
+  const rows = (r.data || []).sort((a, b) => (b.shown + 3 * b.whatsapp) - (a.shown + 3 * a.whatsapp) || a.name.localeCompare(b.name));
+  const old = (x) => x.reviewed_at && (Date.now() - new Date(x.reviewed_at)) > 180 * 864e5;
+  const done = rows.filter((x) => x.reviewed_at && !old(x)).length;
+  let only = false;
+  const draw = () => {
+    const list = only ? rows.filter((x) => !x.reviewed_at || old(x)) : rows;
+    el.innerHTML = `<div class="p-rv-sum">
+        <p><b>${fmt(done)}</b> من <b>${fmt(rows.length)}</b> عطر فيهم رأيك</p>
+        <span class="p-rv-bar" role="img" aria-label="${pctOf(done, rows.length)}%"><i style="width:${pctOf(done, rows.length)}%"></i></span>
+        <p class="p-small">ما خاصكش تقيّم كلشي: كل مرة كتدخل كنسولوك على عطر ولا جوج، اللي كيشوفوهم زبنائك أكثر. رأيك خاص بالمتجر ديالك، وما كيبدلش ترتيب الكويز.</p>
+        <label class="p-chk"><input type="checkbox" id="rv-only"${only ? " checked" : ""}> غير اللي محتاجين رأيك</label>
+      </div>
+      <ul class="p-list p-rv-list">${list.length ? list.map((x) => `<li class="p-item p-item-add" data-pid="${esc(x.perfume_id)}">${thumb({ image_url: x.image })}
+        <div class="p-name"><b dir="ltr">${esc(x.name)}</b><small><span dir="ltr">${esc(x.brand)}</span>${x.shown ? ` · طلع ${fmt(x.shown)} مرة` : ""}</small>
+          ${x.reviewed_at ? `<small class="p-rv-mine">${[x.sales != null ? "المبيعات: " + rvLabel(RV_SALES, x.sales) : "", x.longevity != null ? "الثبات: " + rvLabel(RV_LONG, x.longevity) : ""].filter(Boolean).join(" · ")}${old(x) ? " · <b>محتاج تحديث</b>" : ""}</small>` : '<small class="p-rv-none">مازال ما عطيتيش رأيك</small>'}</div>
+        <span class="p-have"><button type="button" class="p-link" data-rv-edit="${esc(x.perfume_id)}">${x.reviewed_at ? "✏️ بدّل" : "⭐ عطي رأيك"}</button></span></li>`).join("") : '<li class="d-empty">كلشي فيه رأيك. شكراً!</li>'}</ul>`;
+    el.querySelector("#rv-only").addEventListener("change", (e) => { only = e.target.checked; draw(); });
+    el.querySelectorAll("[data-rv-edit]").forEach((b) => b.addEventListener("click", () => {
+      const x = rows.find((y) => y.perfume_id === b.dataset.rvEdit), li = b.closest("li");
+      const holder = document.createElement("li"); holder.className = "p-rv-edit"; holder.innerHTML = reviewForm(x);
+      li.after(holder); b.disabled = true;
+      wireReviewForm(holder, x, (saved, v) => {
+        if (saved) { if (v.sales != null) x.sales = v.sales; if (v.longevity != null) x.longevity = v.longevity; x.reviewed_at = new Date().toISOString(); toast("رأيك تسجّل ✓"); }
+        S.queue = (S.queue || []).filter((y) => y.perfume_id !== x.perfume_id); drawQueue();
+        draw();
+      });
+    }));
+  };
+  draw();
 }
 
 // statistics and monthly report, inside the store space (same numbers as /dashboard/, read with the login)
