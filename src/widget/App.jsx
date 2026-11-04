@@ -81,28 +81,28 @@ const TRANSLATIONS = {
     subtitle:    "واحصل على أفضل العطور المناسبة لك في 30 ثانية — من مجموعة",
     exclusive:   "الحصرية",
     start:       "ابدأ الآن — مجانًا",
-    loading:     "بنحلل ذوقك...",
+    loading:     "نحلّل ذوقك...",
     loadingMsgs: [
       "جاري تحليل عائلتك العطرية المفضلة...",
       `البحث في ${getProducts().length} عطر أصيل...`,
-      "نطابق اختياراتك مع أحسن التركيبات...",
+      "نطابق اختياراتك مع أفضل التركيبات...",
       "تجهيز استشارتك الشخصية المخصصة...",
     ],
-    loadingGift: "كنبحثو على أحسن هدية 🎁",
-    searching:   "كنبحثو في",
+    loadingGift: "نبحث عن أفضل هدية 🎁",
+    searching:   "نبحث في",
     perfumes:    "عطر",
-    results:     "هاد العطور كتناسبك",
+    results:     "هذه العطور تناسبك",
     fromStore:   "من مجموعة",
     similar:     "🔀 قد يعجبك أيضاً",
     tryAgain:    "← جرب مرة أخرى",
     favoriteQ:   "أي عطر شعرت أنه الأقرب لذوقك؟",
     favoriteThanks: "شكراً 🙏",
     favoriteSubthanks: "سنستخدم اختيارك لتحسين اقتراحات العطور.",
-    favoriteHint: "رأيك يساعدنا نحسنو التوصيات",
+    favoriteHint: "رأيك يساعدنا على تحسين التوصيات",
     buyBtn:      "اشتري الآن ↗",
     waBtn:       "WA",
-    noResult:    "ما لقيناش نتيجة مطابقة",
-    noResultSub: "تواصل معنا وغنعاونوك",
+    noResult:    "لم نجد نتيجة مطابقة",
+    noResultSub: "تواصل معنا وسنساعدك",
     talkToUs:    "تحدث معنا",
     spraysLabel: "رشات تكفي",
     persona:     "بصمتك العطرية",
@@ -138,10 +138,10 @@ const TRANSLATIONS = {
     // Persona label
     personaLabel:  "بصمتك العطرية",
     // Decant hint
-    decantHint:    "💡 إلا ماجربتيه قبل — ابدأ بـ Décante. إلا كنتي متأكد — خد الزجاجة الكاملة وفر أكثر.",
+    decantHint:    "💡 إذا لم تجربه من قبل، ابدأ بـ Décante. وإذا كنت متأكداً، خذ الزجاجة الكاملة ووفّر أكثر.",
     // Gift badge
     giftBadge:     "عطور مناسبة للإهداء",
-    giftPersona:   "🎁 اخترنا ليك عطور مناسبة للإهداء",
+    giftPersona:   "🎁 اخترنا لك عطوراً مناسبة للإهداء",
     giftPersonaSub:"راقية، معروفة، وتترك أثر لا يُنسى",
     triggerBtn:    "اكتشف عطرك",
     // Empty
@@ -912,7 +912,7 @@ return NOTE_SHORT_LOCAL[key];
         return `يختلف قليلاً عن اختيارك نحو الفخامة الثقيلة — يقدم لك بديلاً أكثر انتعاشاً وحيوية${occCtx ? ` · ${occCtx}` : ""}، مع الحفاظ على لمسة من الأناقة والتميز.`;
       } else if (userIsFresh && prodIsHeavy) {
         // زبون يبغي منعش — العطر ثقيل
-        return `أثقل قليلاً من اختيارك المنعش — لكنه يضيف حضوراً وعمقاً أكثر${occCtx ? ` · ${occCtx}` : ""}، مناسب إلا أردت تغيير الأسلوب أحياناً.`;
+        return `أثقل قليلاً من اختيارك المنعش — لكنه يضيف حضوراً وعمقاً أكثر${occCtx ? ` · ${occCtx}` : ""}، مناسب إذا أردت تغيير الأسلوب أحياناً.`;
       } else {
         // نفس العائلة — فرق في النوتات أو الثبات
         const baseDesc = charBase || "عطر مميز";
@@ -2050,7 +2050,7 @@ const PERSONAS = {
   "heavy-evening": {
     ar:"الملكي الفاخر", fr:"Le Royal Somptueux", icon:"🕯️",
     tags:{ ar:["عميق","سهرات","فاخر"],   fr:["Profond","Soirée","Luxe"] },
-    desc:"ذوقك يميل للعطور العميقة الراقية اللي تجمع بين الخشب الدافئ ولمسة مسكية ثقيلة — شخصية واثقة وتهتم بالتفاصيل.",
+    desc:"ذوقك يميل للعطور العميقة الراقية التي تجمع بين الخشب الدافئ ولمسة مسكية ثقيلة — شخصية واثقة وتهتم بالتفاصيل.",
     desc_fr:"Votre goût penche vers les fragrances profondes et luxueuses qui mêlent bois chauds et muscs intenses.",
   },
   "heavy-daily": {
@@ -2081,7 +2081,7 @@ const PERSONAS = {
     ar:"الأنيق العصري", ar_male:"الأنيق العصري", ar_female:"الأنيقة العصرية",
     fr:"L'Élégant Moderne", icon:"🌺",
     tags:{ ar:["زهري","يومي","ناعم"],    fr:["Floral","Quotidien","Doux"] },
-    desc:"ذوقك يميل للعطور الزهرية الراقية اللي تجمع بين الزهور الناعمة ولمسة خشبية مسكية — شخصية واثقة وتهتم بالتفاصيل.",
+    desc:"ذوقك يميل للعطور الزهرية الراقية التي تجمع بين الزهور الناعمة ولمسة خشبية مسكية — شخصية واثقة وتهتم بالتفاصيل.",
     desc_male:"تميل للعطور الزهرية الراقية التي تعكس الأناقة الحديثة — زهري منعش وخفيف يناسب كل يوم.",
     desc_female:"تميلين للعطور الزهرية العصرية — ناعمة وأنيقة تعكس شخصيتك الراقية في كل يوم.",
     desc_fr:"Votre goût penche vers les floraux raffinés qui mêlent fleurs douces et touches musquées boisées.",
@@ -2098,7 +2098,7 @@ const PERSONAS = {
   "woody-daily": {
     ar:"الجريء الواثق", fr:"L'Audacieux Confiant", icon:"🌲",
     tags:{ ar:["خشبي","يومي","قوي"],    fr:["Boisé","Quotidien","Fort"] },
-    desc:"ذوقك يميل للعطور الخشبية الدافئة اللي تجمع بين الأرز والصندل — شخصية واثقة وجريئة.",
+    desc:"ذوقك يميل للعطور الخشبية الدافئة التي تجمع بين الأرز والصندل — شخصية واثقة وجريئة.",
     desc_fr:"Votre goût penche vers les boisés chauds mêlant cèdre et santal — personnalité assurée et audacieuse.",
   },
   "woody-evening": {
@@ -2110,7 +2110,7 @@ const PERSONAS = {
   "oriental-daily": {
     ar:"الحلو الراقي", fr:"Le Doux Raffiné", icon:"🍬",
     tags:{ ar:["شرقي","يومي","حلو"],    fr:["Oriental","Quotidien","Doux"] },
-    desc:"ذوقك يميل للعطور الشرقية الحلوة اللي تجمع بين الفانيليا والعنبر — دافئة ومميزة.",
+    desc:"ذوقك يميل للعطور الشرقية الحلوة التي تجمع بين الفانيليا والعنبر — دافئة ومميزة.",
     desc_fr:"Votre goût va vers les orientaux doux mêlant vanille et ambre — chaleureux et distinctif.",
   },
   "oriental-evening": {
@@ -2122,7 +2122,7 @@ const PERSONAS = {
   "clean-daily": {
     ar:"المنعش النظيف", fr:"Le Frais Propre", icon:"🧼",
     tags:{ ar:["مسكي","يومي","نظيف"],   fr:["Musqué","Quotidien","Propre"] },
-    desc:"ذوقك يميل للعطور النظيفة المسكية اللي تعطي إحساس بالنظافة والانتعاش طول اليوم.",
+    desc:"ذوقك يميل للعطور النظيفة المسكية التي تمنح إحساساً بالنظافة والانتعاش طوال اليوم.",
     desc_fr:"Votre goût va vers les muscs propres qui donnent une sensation de fraîcheur et de propreté toute la journée.",
   },
   "clean-evening": {
@@ -2264,7 +2264,7 @@ const ICON_MAP = {
 
 const QS_BASE = [
   // Q1 — لمن؟
-  { id:"gender", q:"العطر لمن؟", sub:"كنبدأو من الأساس",
+  { id:"gender", q:"العطر لمن؟", sub:"نبدأ من الأساس",
     opts:[
       {v:"men",   l:"رجل",      i:"👨", d:"عطور رجالية",       ic:"#1E3A5F", bg:"#1a3a6b"},
       {v:"women", l:"امرأة",    i:"👩", d:"عطور نسائية",       ic:"#8B1A4A", bg:"#6b1a45"},
@@ -2272,17 +2272,17 @@ const QS_BASE = [
     ] },
 
   // Q2 — المناسبة
-  { id:"occasion", q:"شنو المناسبة الرئيسية؟", sub:"كنختار حسب سياقك",
+  { id:"occasion", q:"ما هي المناسبة الرئيسية؟", sub:"نختار حسب احتياجك",
     opts:[
-      {v:"daily",   l:"الخدمة / يومي",   i:"🏢", d:"خفيف ومريح طول اليوم",    ic:"#1A3A5F", bg:"#1a2a4f"},
+      {v:"daily",   l:"العمل / يومي",   i:"🏢", d:"خفيف ومريح طول اليوم",    ic:"#1A3A5F", bg:"#1a2a4f"},
       {v:"evening", l:"السهرات",          i:"🎉", d:"حضور قوي لا يُنسى",        ic:"#4A1A6B", bg:"#3a1a5f"},
       {v:"dates",   l:"الأمسيات الخاصة",         i:"❤️", d:"جذاب ومميز",               ic:"#6B1A1A", bg:"#5f1a1a"},
       {v:"travel",  l:"السفر والخروج",    i:"✈️", d:"منعش ومناسب لكل الأجواء",  ic:"#1A5F3A", bg:"#1a4f2a"},
-      {v:"allday",  l:"كلشي",             i:"🎁", d:"متعدد الاستخدامات",        ic:"#5F4A1E", bg:"#4f3a1a"},
+      {v:"allday",  l:"كل المناسبات",             i:"🎁", d:"متعدد الاستخدامات",        ic:"#5F4A1E", bg:"#4f3a1a"},
     ] },
 
   // Q3 — الموسم
-  { id:"season", q:"شنو الموسم اللي غادي تستعمل فيه العطر أكثر؟", sub:"الموسم يغير كل شيء",
+  { id:"season", q:"في أي موسم ستستعمل العطر أكثر؟", sub:"الموسم يغير كل شيء",
     opts:[
       {v:"summer",  l:"ربيع / صيف",    i:"☀️", d:"منعش وخفيف",         ic:"#7A5C00", bg:"#8B6914"},
       {v:"winter",  l:"خريف / شتاء",   i:"🍂", d:"دافئ وعميق",         ic:"#1A4A6B", bg:"#1a3a5f"},
@@ -2290,7 +2290,7 @@ const QS_BASE = [
     ] },
 
   // Q4 — العائلة العطرية
-{ id:"character", q:"شنو العائلة العطرية اللي كتميل ليها؟", sub:"هذا هو قلب الاختيار",
+{ id:"character", q:"ما هي العائلة العطرية التي تميل إليها؟", sub:"هذا هو قلب الاختيار",
    opts:[
   {v:"floral",  l:"زهري",              i:"🌸", d:"Rose · Jasmin · Iris",             ic:"#6B1A45", bg:"#5f1a3a"},
   {v:"woody",   l:"خشبي",              i:"🌲", d:"Cedarwood · Sandalwood · Oud",      ic:"#3A2A0A", bg:"#4a3a0a"},
@@ -2304,16 +2304,16 @@ const QS_BASE = [
 ] },
 
   // Q5 — الانطباع
-  { id:"impression", q:"شنو الانطباع اللي بغيتي تخلي من وراك؟", sub:"الإحساس اللي تبغي يحسه من حواليك",
+  { id:"impression", q:"ما هو الانطباع الذي تريد أن تتركه؟", sub:"الإحساس الذي تريد أن يشعر به من حولك",
     opts:[
-      {v:"firstlook", l:"يتفكروك من أول لقاء",      i:"✨", d:"انطباع أول قوي ومميز",            ic:"#5F4A00", bg:"#4f3a00"},
+      {v:"firstlook", l:"يتذكرونك من أول لقاء",      i:"✨", d:"انطباع أول قوي ومميز",            ic:"#5F4A00", bg:"#4f3a00"},
       {v:"attractive",l:"حضور جذاب يلفت الانتباه",  i:"🔥", d:"جاذبية وكاريزما",           ic:"#6B1A00", bg:"#5f1500"},
-      {v:"elegant",   l:"أناقة هادئة وراقية",        i:"🤍", d:"تميز بلا صخب",             ic:"#3A3A6B", bg:"#2a2a5f"},
+      {v:"elegant",   l:"أناقة هادئة وراقية",        i:"🤍", d:"تميّز دون صخب",             ic:"#3A3A6B", bg:"#2a2a5f"},
       {v:"confident", l:"قوة وثقة",                  i:"👑", d:"شخصية قوية وحضور واثق",         ic:"#1A3A1A", bg:"#1a4a1a"},
-      {v:"mysterious",l:"غموض يخلّي الفضول",          i:"🌙", d:"حضور آسر يخلي الناس باغين يعرفوك أكثر", ic:"#1E1430", bg:"#1a1030"},
-      {v:"longlast",  l:"أثر يبقى بعد ما تمشي",     i:"🖤", d:"تبقى ريحتك حاضرة حتى من بعد ما تغادر", ic:"#3A1A0A", bg:"#4a2a0a"},
+      {v:"mysterious",l:"غموض يثير الفضول",          i:"🌙", d:"حضور آسر يجعل الناس يرغبون في معرفتك أكثر", ic:"#1E1430", bg:"#1a1030"},
+      {v:"longlast",  l:"أثر يبقى بعد رحيلك",     i:"🖤", d:"تبقى رائحتك حاضرة حتى بعد مغادرتك", ic:"#3A1A0A", bg:"#4a2a0a"},
       {v:"luxury",    l:"فخامة وثراء",               i:"💎", d:"حضور فاخر وملكي",            ic:"#5F3A00", bg:"#6b4500"},
-      {v:"fresh_imp", l:"حضور خفيف ومريح",           i:"🍃", d:"ما كيقلقش اللي حداك", ic:"#0A3A5F", bg:"#0a2a4f"},
+      {v:"fresh_imp", l:"حضور خفيف ومريح",           i:"🍃", d:"لا يزعج من حولك", ic:"#0A3A5F", bg:"#0a2a4f"},
     ] },
 
   // Q6 — الثبات
@@ -2322,7 +2322,7 @@ const QS_BASE = [
 const BUDGET_OPTIONS = {
   decant:[
     {v:"any",   l:"الثمن غير مهم",     i:"🌟", d:"كل العطور المناسبة", min:0, max:99999},
-    {v:"low",   l:"أقل من 100 درهم",   i:"💚", d:"تجرب بسعر صغير",    min:0,   max:99},
+    {v:"low",   l:"أقل من 100 درهم",   i:"💚", d:"للتجربة بثمن صغير",    min:0,   max:99},
     {v:"mid",   l:"100 – 300 درهم",    i:"💙", d:"الأكثر مبيعاً",     min:100, max:300},
     {v:"high",  l:"+300 درهم",         i:"💛", d:"نيش وفخامة",        min:301, max:99999},
   ],
@@ -2331,7 +2331,7 @@ const BUDGET_OPTIONS = {
     {v:"low",   l:"أقل من 300 درهم",   i:"💚", d:"قيمة ممتازة",       min:0,   max:299},
     {v:"mid",   l:"300 – 700 درهم",    i:"💙", d:"الأكثر مبيعاً",     min:300, max:700},
     {v:"high",  l:"700 – 1000 درهم",   i:"💛", d:"فخامة راقية",       min:701, max:1000},
-    {v:"luxury",l:"+1000 درهم",        i:"💎", d:"نيش بلا حدود",      min:1001,max:99999},
+    {v:"luxury",l:"+1000 درهم",        i:"💎", d:"نيش بدون حدود",      min:1001,max:99999},
   ],
 };
 
@@ -2393,7 +2393,7 @@ function worldOf(p) {
 const WORLD_LABELS = {
   ar: { designer:["Designer","🖤","ماركات الموضة الكبيرة"], niche:["Niche","✨","دور عطور متخصصة"],
         ultra_niche:["Ultra-Niche","🖤","إصدارات نادرة ومحدودة"], arabian:["Arabian","🌙","دور العطور العربية"],
-        any:["ما عنديش تفضيل","🤍","كل الأنواع"] },
+        any:["ليس لدي تفضيل","🤍","كل الأنواع"] },
   fr: { designer:["Designer","🖤","Les grandes maisons de mode"], niche:["Niche","✨","Maisons de parfum spécialisées"],
         ultra_niche:["Ultra-Niche","🖤","Créations rares et limitées"], arabian:["Arabian","🌙","Maisons de parfum arabes"],
         any:["Pas de préférence","🤍","Tous les univers"] },
@@ -2409,8 +2409,8 @@ function buildWorldQ(sizeType, lang="ar") {
   const opt = (w) => ({ v:w, l:L[w][0], i:L[w][1], d:L[w][2] });
   return {
     id: "world",
-    q:   lang === "fr" ? "Quel univers de parfums vous attire le plus ?" : "شنو نوع العطور اللي كيجذبك أكثر؟",
-    sub: lang === "fr" ? "Le budget s'adapte à votre choix" : "الميزانية غادي تتبدل حسب اختيارك",
+    q:   lang === "fr" ? "Quel univers de parfums vous attire le plus ?" : "ما نوع العطور التي تجذبك أكثر؟",
+    sub: lang === "fr" ? "Le budget s'adapte à votre choix" : "تتغيّر الميزانية حسب اختيارك",
     opts: [...present.map(opt), opt("any")],
   };
 }
@@ -2443,7 +2443,7 @@ function calcDynamicBudget(sizeType, lang="ar", world) {
       const nb = pool.filter(p => bestOffer(p, sizeType, c)).length;
       return { v: "c" + c, l: isAr ? `حتى ${c} ${cur}` : `Jusqu'à ${c} ${cur}`, i: ICO[j] || "💎", d: isAr ? `${nb} ${nb === 1 ? "عطر" : "عطور"}` : `${nb} parfum${nb > 1 ? "s" : ""}`, min: 0, maxEx: c + 1, cap: c, nb };
     }).filter(o => o.nb > 0);
-    return [{ ...anyOpt, l: isAr ? "بلا حد" : "Sans limite", d: isAr ? "كل العطور المناسبة" : "Tous les parfums" }, ...opts];
+    return [{ ...anyOpt, l: isAr ? "بدون حد" : "Sans limite", d: isAr ? "كل العطور المناسبة" : "Tous les parfums" }, ...opts];
   };
   if (inStore && sizeType === "any") {
     const out = prices.length ? capOpts([200, 500, 1000]) : null;
@@ -2452,8 +2452,8 @@ function calcDynamicBudget(sizeType, lang="ar", world) {
   let out;
   if (!prices.length) {
     // no usable price in this world: no invented ranges, the visitor continues without a budget filter
-    out = [{ ...anyOpt, l: isAr ? "كمل بلا ميزانية" : "Continuer sans budget",
-             d: isAr ? "مازال ما عندناش أثمنة كافية لهاد الفئة" : "Pas encore assez de prix pour cette catégorie" }];
+    out = [{ ...anyOpt, l: isAr ? "أكمل بدون ميزانية" : "Continuer sans budget",
+             d: isAr ? "لا توجد أثمنة كافية لهذه الفئة بعد" : "Pas encore assez de prix pour cette catégorie" }];
   } else if (prices[prices.length - 1] - prices[0] < 50) {
     out = null; // all prices practically the same → nothing to choose
   } else {
@@ -2508,13 +2508,13 @@ function buildQS(sizeType, lang="ar", world) {
   const askType = !!(typeof window !== "undefined" && window.__FF_STORE__) && hasDecant && hasFull;
   if (askType) pre.push({
     id: "sizeType",
-    q:   lang === "fr" ? "Vous cherchez plutôt…" : "شنو بغيتي تشري؟",
-    sub: lang === "fr" ? "On choisit le meilleur format dans votre budget" : "كنختارو ليك أحسن صيغة داخل الميزانية ديالك",
+    q:   lang === "fr" ? "Vous cherchez plutôt…" : "ماذا تريد أن تشتري؟",
+    sub: lang === "fr" ? "On choisit le meilleur format dans votre budget" : "نختار لك أفضل صيغة ضمن ميزانيتك",
     opts: lang === "fr"
       ? [{ v:"any", l:"Peu importe, le parfum qui me va", i:"✨", d:"Flacon ou décante, selon votre budget" },
          { v:"full", l:"Flacon complet", i:"🧴", d:"La bouteille entière" }, { v:"decant", l:"Décante", i:"🧪", d:"Un petit format (3 – 20 ml) pour essayer" }]
-      : [{ v:"any", l:"ما مهمش، بغيت العطر اللي يناسبني", i:"✨", d:"قنينة ولا ديكونط، حسب الميزانية ديالك" },
-         { v:"full", l:"قنينة كاملة", i:"🧴", d:"القارورة كاملة" }, { v:"decant", l:"ديكونط", i:"🧪", d:"حجم صغير (3 – 20 ml) باش تجرب" }],
+      : [{ v:"any", l:"لا يهم، أريد العطر الذي يناسبني", i:"✨", d:"قنينة أو ديكونط، حسب ميزانيتك" },
+         { v:"full", l:"قنينة كاملة", i:"🧴", d:"القارورة كاملة" }, { v:"decant", l:"ديكونط", i:"🧪", d:"حجم صغير (3 – 20 ml) للتجربة" }],
   });
 
   // سؤال الميزانية — يمكن تحييده من CONFIG
@@ -2526,8 +2526,8 @@ function buildQS(sizeType, lang="ar", world) {
 
   const budgetQ = {
     id:       "budget",
-    q:        (typeof window !== "undefined" && window.__FF_STORE__) ? (lang==="fr" ? "Votre budget maximum ?" : "شحال أقصى ميزانية ديالك؟") : (lang==="fr" ? "Votre budget ?" : "شحال الميزانية ديالك؟"),
-    sub:      lang==="fr" ? "On adapte les prix selon votre choix" : "كنبدلوا الأثمان حسب اختيارك",
+    q:        (typeof window !== "undefined" && window.__FF_STORE__) ? (lang==="fr" ? "Votre budget maximum ?" : "ما هي ميزانيتك القصوى؟") : (lang==="fr" ? "Votre budget ?" : "ما هي ميزانيتك؟"),
+    sub:      lang==="fr" ? "On adapte les prix selon votre choix" : "نعدّل الأثمنة حسب اختيارك",
     sizeType: effectiveSizeType,
     hasToggle: hasDecant && hasFull && !askType,   // no switch when the type was just asked as its own question
     opts:     dynamicOpts,
@@ -2589,7 +2589,7 @@ function getOccasionBadge(productOccasion, lang, userOccasion) {
 function waLink(p) {
   const storeName = window.__FF_CONFIG__?.STORE_NAME || "المتجر";
   const waNumber = window.__FF_CONFIG__?.WHATSAPP || "212600000000";
-  const msg = `سلام 👋\nجربت RihaFlow في ${storeName} واختار ليا:\n\n✦ *${p.name}* ${p.size}\n💰 ${p.price} درهم\n🌿 ${(p.notes?.base||[]).join("، ")}\n\n🔗 ${p.url}\n\nبغيت نطلبو 🙏`;
+  const msg = `السلام عليكم 👋\nجرّبت RihaFlow في ${storeName} واختار لي:\n\n✦ *${p.name}* ${p.size}\n💰 ${p.price} درهم\n🌿 ${(p.notes?.base||[]).join("، ")}\n\n🔗 ${p.url}\n\nأريد طلبه 🙏`;
   return `https://wa.me/${waNumber}?text=${encodeURIComponent(msg)}`;
 }
 
@@ -2719,7 +2719,7 @@ function PCard({ p, ans, isSmall=false, lang="ar" }) {
                 <line x1="3" y1="6" x2="21" y2="6"/>
                 <path d="M16 10a4 4 0 0 1-8 0"/>
               </svg>
-              {CONFIG.MARKETPLACE ? (p.url ? (lang==="fr" ? "Voir chez " : "شوف عند ") + (p.store || (lang==="fr" ? "le magasin" : "المحل")) : (lang==="fr" ? "Bientôt chez nos partenaires" : "قريبا عند المحلات الشريكة")) : (TRANSLATIONS[lang||"ar"]).buyBtn}
+              {CONFIG.MARKETPLACE ? (p.url ? (lang==="fr" ? "Voir chez " : "متوفر عند ") + (p.store || (lang==="fr" ? "le magasin" : "المحل")) : (lang==="fr" ? "Bientôt chez nos partenaires" : "قريباً عند المحلات الشريكة")) : (TRANSLATIONS[lang||"ar"]).buyBtn}
             </span>
           </a>
         <a href={waLink(p)} target="_blank" rel="noopener noreferrer"
@@ -2933,7 +2933,7 @@ function PCard({ p, ans, isSmall=false, lang="ar" }) {
                 <line x1="3" y1="6" x2="21" y2="6"/>
                 <path d="M16 10a4 4 0 0 1-8 0"/>
               </svg>
-              {CONFIG.MARKETPLACE ? (p.url ? (lang==="fr" ? "Voir chez " : "شوف عند ") + (p.store || (lang==="fr" ? "le magasin" : "المحل")) : (lang==="fr" ? "Bientôt chez nos partenaires" : "قريبا عند المحلات الشريكة")) : (TRANSLATIONS[lang||"ar"]).buyBtn}
+              {CONFIG.MARKETPLACE ? (p.url ? (lang==="fr" ? "Voir chez " : "متوفر عند ") + (p.store || (lang==="fr" ? "le magasin" : "المحل")) : (lang==="fr" ? "Bientôt chez nos partenaires" : "قريباً عند المحلات الشريكة")) : (TRANSLATIONS[lang||"ar"]).buyBtn}
             </span>
         </a>
        <a href={waLink(p)} target="_blank" rel="noopener noreferrer"
@@ -2966,19 +2966,19 @@ const RV_LABELS = {
     occasion:{ daily:"يومي", evening:"سهرات", dates:"مواعيد", travel:"سفر", allday:"كل وقت" },
     season:  { summer:"صيف", spring:"ربيع", autumn:"خريف", fall:"خريف", winter:"شتاء", allseasons:"كل الفصول" },
     vibe:    { luxury:"فخامة", elegant:"أناقة", confident:"ثقة", attractive:"جاذبية", fresh_imp:"خفة", mysterious:"غموض", longlast:"أثر طويل", firstlook:"انطباع أول" },
-    title:"العطور المناسبة ليك",
-    sub:"بناءً على اختياراتك، هادو أفضل العطور اللي لقيناها ليك.",
-    featured:"أفضل اختيار ليك", alt:"اختيار قوي",
-    match:"Match", why:"علاش اخترناه ليك؟",
-    matchShort:"توافق", matchHint:"درجة التوافق بين اختياراتك وهاد العطر",
+    title:"العطور المناسبة لك",
+    sub:"بناءً على اختياراتك، هذه أفضل العطور التي وجدناها لك.",
+    featured:"أفضل اختيار لك", alt:"اختيار قوي",
+    match:"Match", why:"لماذا اخترناه لك؟",
+    matchShort:"توافق", matchHint:"درجة التوافق بين اختياراتك وهذا العطر",
     rankLine:["✨ الأكثر مطابقة لذوقك", "اختيار قريب من ذوقك", "اختيار آخر قريب من ذوقك"],
-    bridge:"وبناءً على بصمتك العطرية، هادو العطور اللي لقيناهم الأقرب لذوقك.",
+    bridge:"وبناءً على بصمتك العطرية، هذه العطور الأقرب إلى ذوقك.",
     rows:{ gender:"لمن", family:"العائلة", vibe:"الطابع", occasion:"المناسبة", season:"الفصل", alsoOcc:"مناسبات أخرى", alsoSeason:"فصول أخرى", sprays:"الرشات" }, about:"تقريباً",
-    profileSub:"بناءً على اختياراتك", profileNote:"اخترنا لك العطور الأقرب لذوقك.", top3:"أفضل 3 عطور ليك",
-    view:"شوف العطر", where:"فين تلقاه؟", buy:"شوف المنتج", price:"درهم",
-    approx:"تقريباً", more:"يمكن يعجبوك حتى هادو", retry:"دير الاختبار من جديد", all:"اكتشف جميع العطور",
+    profileSub:"بناءً على اختياراتك", profileNote:"اخترنا لك العطور الأقرب لذوقك.", top3:"أفضل 3 عطور لك",
+    view:"عرض العطر", where:"أين تجده؟", buy:"عرض المنتج", price:"درهم",
+    approx:"تقريباً", more:"قد تعجبك هذه أيضاً", retry:"أعد الاختبار", all:"اكتشف جميع العطور",
     sponsored:"Sponsorisé",
-    reasons:{ gender:"عطر", family:"من العائلة العطرية اللي كتفضل", occasion:"مناسب للمناسبة اللي اخترتي", season:"كيناسب الفصل", notes:"فيه نوتات قريبة من ذوقك", impression:"كيعطي الانطباع اللي بغيتي", longevity:"الثبات اللي بغيتي" },
+    reasons:{ gender:"عطر", family:"من العائلة العطرية التي تفضّلها", occasion:"مناسب للمناسبة التي اخترتها", season:"يناسب الفصل", notes:"فيه نوتات قريبة من ذوقك", impression:"يعطي الانطباع الذي تريده", longevity:"الثبات الذي تريده" },
   },
   fr: {
     gender:  { men:"Homme", women:"Femme", unisex:"Mixte" },
@@ -3098,24 +3098,24 @@ function rvDistinct(p, peers, ans, lang) {
   // a family no other result has
   const peerFams = new Set(peers.flatMap(x => x.character || []));
   const ownFam = (p.character || []).find(c => !peerFams.has(c) && L.family[c]);
-  if (ownFam) out.push(fr ? `Le seul des trois avec une touche ${L.family[ownFam].toLowerCase()}` : `الوحيد فالثلاثة اللي فيه طابع ${L.family[ownFam]}`);
+  if (ownFam) out.push(fr ? `Le seul des trois avec une touche ${L.family[ownFam].toLowerCase()}` : `الوحيد بين الثلاثة الذي فيه طابع ${L.family[ownFam]}`);
   // its main family is the one the visitor chose, while the others only have it as a secondary note
   const userFam = mapCharacter(ans.character);
   const primary = (p.character || [])[0];
   if (!ownFam && (primary === ans.character || primary === userFam) && peers.some(x => (x.character || [])[0] !== primary) && L.family[primary])
-    out.push(fr ? `La famille ${L.family[primary].toLowerCase()} est son caractère principal` : `الطابع الأساسي ديالو ${L.family[primary]}`);
+    out.push(fr ? `La famille ${L.family[primary].toLowerCase()} est son caractère principal` : `طابعه الأساسي ${L.family[primary]}`);
   // a dominant impression the other two do not lead with
   const vibe = autoImpressions(p.character, p.occasion)[0];
   if (vibe && L.vibe[vibe] && peers.every(x => autoImpressions(x.character, x.occasion)[0] !== vibe))
-    out.push(fr ? `Il penche davantage vers : ${L.vibe[vibe].toLowerCase()}` : `كيميل أكثر ل${"ل" + (RV_VIBE_DEF[vibe] || ("ال" + L.vibe[vibe])).slice(2)}`);
+    out.push(fr ? `Il penche davantage vers : ${L.vibe[vibe].toLowerCase()}` : `يميل أكثر إلى ${RV_VIBE_DEF[vibe] || ("ال" + L.vibe[vibe])}`);
   // notes close to the visitor's family: the most of the three
   const count = x => { const prefs = NOTES_PREFS[mapCharacter(ans.character || "heavy")] || []; return [...(x.notes?.top||[]), ...(x.notes?.middle||[]), ...(x.notes?.base||[])].filter(n => prefs.some(pn => n.toLowerCase().includes(pn.toLowerCase()))).length; };
   const n = count(p);
-  if (n > 0 && peers.every(x => count(x) < n)) out.push(fr ? `Le plus de notes proches de vos goûts (${n})` : `فيه أكثر نوتات قريبة من الذوق ديالك (${n})`);
+  if (n > 0 && peers.every(x => count(x) < n)) out.push(fr ? `Le plus de notes proches de vos goûts (${n})` : `فيه أكثر نوتات قريبة من ذوقك (${n})`);
   // price, only when it is the most affordable of the three
   if (p.price && peers.length && peers.every(x => x.price && x.price > p.price))
     out.push(fr ? `Le plus abordable des trois (≈ ${p.price} ${L.price})` : `الأقل ثمناً بين الثلاثة (≈ ${p.price} ${L.price})`);
-  if (!out.length && n > 0) out.push(fr ? `${n} notes proches de vos goûts` : `فيه ${n} نوتات قريبة من الذوق ديالك`);
+  if (!out.length && n > 0) out.push(fr ? `${n} notes proches de vos goûts` : `فيه ${n} نوتات قريبة من ذوقك`);
   if (!out.length) out.push(fr ? "Proche de vos réponses" : "قريب من اختياراتك");
   return out.slice(0, 3);
 }
@@ -3286,21 +3286,21 @@ function rvNote(n) {
 const RV_TEXTURE = {
   ar: {
     citrus:["نفحة مشرقة ومنعشة","إشراقة حمضية صافية","انتعاش حمضي خفيف"],
-    spice:["دفء حار خفيف","لمسة حارة فيها شوية حدة","دفء متبل"],
+    spice:["دفء حار خفيف","لمسة حارة فيها بعض الحدة","دفء متبل"],
     floral:["نعومة زهرية","طابع زهري رقيق","زهور ناعمة ومشرقة"],
     white_floral:["زهور بيضاء غنية وناعمة","نعومة زهرية كريمية","طابع زهري أبيض دافئ"],
     fruit:["حلاوة فاكهية مشرقة","طابع فاكهي عصيري","نضارة فاكهية حلوة"],
     green:["انتعاش عشبي","طابع عشبي هادئ","خضرة باردة ونظيفة"],
-    marine:["برودة مائية","إحساس مائي خفيف","انتعاش بارد بحال الما"],
+    marine:["برودة مائية","إحساس مائي خفيف","انتعاش بارد مثل الماء"],
     wood:["دفء خشبي جاف","حضور خشبي أنيق","طابع خشبي هادئ"],
     resin:["عمق دافئ وغني","دفء راتنجي كثيف","عمق مخملي دافئ"],
-    gourmand:["حلاوة كريمية","دفء حلو ومخملي","حلاوة دافية ناعمة"],
+    gourmand:["حلاوة كريمية","دفء حلو ومخملي","حلاوة دافئة ناعمة"],
     musk:["نعومة نظيفة","أثر مسكي ناعم","دفء نظيف وهادئ"],
     powder:["لمسة بودرية ناعمة","نعومة بودرية أنيقة","طابع بودري هادئ"],
     leather:["عمق جاف فيه دفء","دفء داكن وجاف","طابع جاف وغني"],
-    aldehyde:["إشراقة نظيفة فيها شوية بودرة","لمعة نظيفة وبودرية"],
+    aldehyde:["إشراقة نظيفة فيها قليل من البودرة","لمعة نظيفة وبودرية"],
     mineral:["لمسة معدنية باردة","برودة حجرية خفيفة"],
-    boozy:["دفء كحولي حلو","لمسة دافية بحال الروم"],
+    boozy:["دفء كحولي حلو","لمسة دافئة مثل الروم"],
   },
   fr: {
     citrus:["une touche lumineuse et fraîche","un éclat hespéridé limpide","une fraîcheur zestée"],
@@ -3324,9 +3324,9 @@ const RV_TEXTURE = {
 // sentence openers for each stage — several variants so the three cards do not read alike
 const RV_STAGE = {
   ar: {
-    top:[(n,t,pl)=>`${pl?"كيبانو":"كيبان"} ${n} مباشرة، ${t}.`, (n,t)=>`كتفتح الرائحة ب${n}: ${t}.`, (n,t)=>`البداية فيها ${n}، ${t}.`],
-    middle:[(n,t)=>`كيتحول العطر نحو ${n}، وكيولي فيه ${t}.`, (n,t)=>`كيبان القلب ديالو: ${n}، ${t}.`, (n,t,pl)=>`ملي كتهدا البداية، ${pl?"كيطلعو":"كيطلع"} ${n} ب${t}.`],
-    base:[(n,t)=>`كيستقر العطر على ${n}، ${t}.`, (n,t)=>`كيبقى أثر ديال ${n}، ${t}.`, (n,t,pl)=>`فالقاعدة ${pl?"كيبانو":"كيبان"} ${n} ب${t}.`],
+    top:[(n,t,pl)=>`${pl?"تظهر":"يظهر"} ${n} مباشرة، ${t}.`, (n,t)=>`تبدأ الرائحة ب${n}: ${t}.`, (n,t)=>`البداية فيها ${n}، ${t}.`],
+    middle:[(n,t)=>`يتحوّل العطر نحو ${n}، ويصبح فيه ${t}.`, (n,t)=>`يظهر قلبه: ${n}، ${t}.`, (n,t,pl)=>`عندما تهدأ البداية، ${pl?"تبرز":"يبرز"} ${n} ب${t}.`],
+    base:[(n,t)=>`يستقر العطر على ${n}، ${t}.`, (n,t)=>`يبقى أثر من ${n}، ${t}.`, (n,t,pl)=>`في القاعدة ${pl?"تظهر":"يظهر"} ${n} ب${t}.`],
     labels:{ top:"أول رشة", middle:"بعد دقائق", base:"الأثر الأخير" },
     and:" و", sep:"، ",
   },
@@ -3343,20 +3343,20 @@ const RV_STAGE = {
 const RV_WARMTH = { citrus:0, marine:0, mineral:1, green:1, fruit:1, aldehyde:1, floral:2, white_floral:3, powder:3, musk:3, spice:4, wood:4, gourmand:5, resin:5, leather:5, boozy:5 };
 const RV_FLOW = {
   ar: {
-    open:{ citrus:["إحساس بالانتعاش من اللحظة الأولى.","كتجيب ضوء وخفة للبداية.","البداية صافية وفيها حيوية.","كيعطي إحساس بالخفة من أول لحظة."], spice:["فيها حرارة خفيفة كتشد الانتباه.","البداية فيها شوية حدة ودفء."],
-           fruit:["الحلاوة ديالها مشرقة وماشي ثقيلة.","كتعطي بداية طرية وفرحانة.","البداية فيها حيوية وحلاوة خفيفة."], floral:["النعومة كتبان من البداية.","البداية رقيقة وهادئة.","البداية فيها رقة واضحة."],
-           white_floral:["البداية فيها غنى زهري واضح.","النعومة الزهرية كتبان بسرعة.","البداية زهرية وممتلئة."], green:["إحساس عشبي صافي ومريح.","البداية فيها برودة خضراء خفيفة."],
-           marine:["إحساس بارد ومائي من البداية.","البداية خفيفة وفيها برودة."], gourmand:["الحلاوة كتبان من البداية.","البداية دافية وحلوة."],
-           resin:["البداية فيها عمق واضح.","من البداية كيبان الدفء."], wood:["البداية جافة وأنيقة.","من البداية كيبان طابع خشبي."],
-           powder:["النعومة البودرية كتبان بسرعة.","البداية ناعمة وهادئة."], musk:["البداية ناعمة ونظيفة.","إحساس نظيف من البداية."],
-           aldehyde:["فيها لمعة نظيفة كتميز البداية.","البداية مشرقة ونظيفة."], leather:["البداية جافة وفيها عمق.","من البداية كيبان طابع داكن."],
-           mineral:["فيها برودة خفيفة غير متوقعة.","البداية صافية وباردة."], boozy:["البداية دافية وفيها حلاوة.","فيها دفء من البداية."] },
-    mid:{ up:["الرائحة كتولي أدفأ وأغنى شوية.","كتبدأ الحرارة تبان بشوية بشوية.","كيتعمق الإحساس وكيولي أدفأ.","العطر كيكتسب شوية ديال الدفء والغنى."],
-          down:["كتولي الرائحة أخف وأهدأ.","الرائحة كتولي أنعم وأخف شوية.","كيهدا الإيقاع وكتولي الرائحة أرق."],
-          same:["الطابع كيبقى نفسو ولكن كيولي أنعم.","الرائحة كتتماسك وكتبان شخصيتها بشكل أوضح.","كيبقى نفس الخط ولكن كيولي أكثر امتلاء.","الشخصية ديالو كتوضح أكثر بلا ما تتبدل."] },
-    end:{ up:["القاعدة أدفأ، وهي اللي كتعطي العطر العمق ديالو.","الإحساس كيولي أعمق وأهدأ مع الوقت.","كيبقى دفء هادئ هو اللي كيختم العطر."],
-          down:["الأثر اللي كيبقى أخف وأصفى من القلب.","كيهدا العطر وكيبقى إحساس أبسط وأنقى.","الختام أخف وأهدأ من القلب."],
-          same:["الأثر كيكمل نفس الإحساس بهدوء.","كيبقى نفس الطابع ولكن بصوت أهدأ.","الختام كيحافظ على نفس الروح بنعومة.","كيمشي نفس الإحساس حتى للآخر، ولكن بهدوء."] },
+    open:{ citrus:["إحساس بالانتعاش من اللحظة الأولى.","تضيف ضوءاً وخفة للبداية.","البداية صافية وفيها حيوية.","يعطي إحساساً بالخفة من أول لحظة."], spice:["فيها حرارة خفيفة تجذب الانتباه.","البداية فيها بعض الحدة والدفء."],
+           fruit:["حلاوتها مشرقة وغير ثقيلة.","تعطي بداية طرية ومبهجة.","البداية فيها حيوية وحلاوة خفيفة."], floral:["النعومة تظهر من البداية.","البداية رقيقة وهادئة.","البداية فيها رقة واضحة."],
+           white_floral:["البداية فيها غنى زهري واضح.","النعومة الزهرية تظهر بسرعة.","البداية زهرية وممتلئة."], green:["إحساس عشبي صافي ومريح.","البداية فيها برودة خضراء خفيفة."],
+           marine:["إحساس بارد ومائي من البداية.","البداية خفيفة وفيها برودة."], gourmand:["الحلاوة تظهر من البداية.","البداية دافئة وحلوة."],
+           resin:["البداية فيها عمق واضح.","من البداية يظهر الدفء."], wood:["البداية جافة وأنيقة.","من البداية يظهر طابع خشبي."],
+           powder:["النعومة البودرية تظهر بسرعة.","البداية ناعمة وهادئة."], musk:["البداية ناعمة ونظيفة.","إحساس نظيف من البداية."],
+           aldehyde:["فيها لمعة نظيفة تميّز البداية.","البداية مشرقة ونظيفة."], leather:["البداية جافة وفيها عمق.","من البداية يظهر طابع داكن."],
+           mineral:["فيها برودة خفيفة غير متوقعة.","البداية صافية وباردة."], boozy:["البداية دافئة وفيها حلاوة.","فيها دفء من البداية."] },
+    mid:{ up:["تصبح الرائحة أدفأ وأغنى قليلاً.","تبدأ الحرارة بالظهور شيئاً فشيئاً.","يتعمّق الإحساس ويصبح أدفأ.","يكتسب العطر بعض الدفء والغنى."],
+          down:["تصبح الرائحة أخف وأهدأ.","تصبح الرائحة أنعم وأخف قليلاً.","يهدأ الإيقاع وتصبح الرائحة أرق."],
+          same:["يبقى الطابع نفسه لكنه يصبح أنعم.","تتماسك الرائحة وتظهر شخصيتها بشكل أوضح.","يبقى نفس الخط لكنه يصبح أكثر امتلاءً.","تتضح شخصيته أكثر دون أن تتغيّر."] },
+    end:{ up:["القاعدة أدفأ، وهي التي تمنح العطر عمقه.","يصبح الإحساس أعمق وأهدأ مع الوقت.","يبقى دفء هادئ يختم العطر."],
+          down:["الأثر الذي يبقى أخف وأصفى من القلب.","يهدأ العطر ويبقى إحساس أبسط وأنقى.","الختام أخف وأهدأ من القلب."],
+          same:["يكمل الأثر نفس الإحساس بهدوء.","يبقى نفس الطابع لكن بشكل أهدأ.","يحافظ الختام على نفس الروح بنعومة.","يستمر نفس الإحساس حتى النهاية، لكن بهدوء."] },
   },
   fr: {
     open:{ citrus:["Une fraîcheur immédiate.","Un départ lumineux et léger."], spice:["Une chaleur légère qui attire l'attention.","Un départ un peu vif et chaleureux."],
@@ -3377,17 +3377,17 @@ const RV_FLOW = {
 // atmosphere images per family; "when" restricts an image to perfumes whose own data supports it
 const RV_ATMOS = {
   ar: {
-    fresh:[{t:"إحساس منعش وخفيف، بحال نسمة باردة فنهار صيفي", when:p=>rvHasSeason(p,["summer","spring"])}, {t:"إحساس صافي ومنعش، بحال صباح بكري ومشمس"}, {t:"خفة منعشة بحال كاس ما بارد فنهار سخون"}, {t:"إحساس خفيف ومريح بحال نافذة محلولة على صباح هادي"}],
-    citrus:[{t:"إشراقة صافية، بحال قشرة حامض طرية مقشرة للتو"}, {t:"إشراقة حيوية بحال برتقالة مقشرة فشمس الصباح"}, {t:"انتعاش حامض وصافي بحال كاس عصير باردة"}],
-    aquatic:[{t:"إحساس مائي بارد، كيقرب من هوا البحر فنهار سخون", when:p=>rvHasFam(p,["marine"])}, {t:"انتعاش بارد بحال الهوا قرب الما"}, {t:"صفاء بارد بحال موجة خفيفة على الرملة"}],
-    clean:[{t:"إحساس بالنظافة، بحال ملابس نظيفة خرجات للتو من الشمس"}, {t:"إحساس نقي بحال صابون أبيض طري"}, {t:"نظافة خفيفة بحال فوطة بيضاء خارجة من الشمس"}],
-    musky:[{t:"نعومة نظيفة ودافية، بحال قماش ناعم قريب من الجلد"}, {t:"دفء ناعم قريب من الجلد بحال حضن هادي"}, {t:"نعومة مخملية بحال وشاح خفيف فالعشية"}],
-    floral:[{t:"أناقة هادئة كتقرب من إحساس باقة زهور ناعمة فمكان راقي"}, {t:"رقة زهرية بحال صباح فجردة فالربيع", when:p=>rvHasSeason(p,["spring"])}, {t:"نعومة زهرية بحال باقة صغيرة فوق طبلة"}, {t:"إحساس زهري مشرق بحال جردة فالصباح"}],
-    fruity:[{t:"طابع مشرق ومرح، بحال فواكه طرية مقطعة للتو"}, {t:"حلاوة مرحة بحال سلة فواكه فالصيف"}, {t:"إحساس حيوي ولذيذ بحال عصير فواكه طري"}],
-    sweet:[{t:"دفء حلو وكريمي كيعطي إحساس بالراحة والهدوء", when:p=>rvHasSeason(p,["winter","autumn"])}, {t:"حلاوة دافية ومريحة، بحال حلوى طرية خارجة من الفران", when:p=>rvHasFam(p,["gourmand"])}, {t:"حلاوة ناعمة بحال حلوى ديال العيد"}, {t:"دفء حلو بحال كاس شوكولا سخون فليلة باردة", when:p=>rvHasSeason(p,["winter","autumn"])}],
-    oriental:[{t:"دفء غني وعميق، بحال جلسة هادئة فليلة باردة", when:p=>rvHasSeason(p,["winter"])}, {t:"حضور دافئ وغني كيبان أكثر مع مرور الوقت"}, {t:"غنى دافي بحال سوق التوابل فالعشية"}, {t:"فخامة شرقية بحال قعدة فرياض مزوّق"}],
-    woody:[{t:"حضور دافئ وعميق، فيه إحساس بالخشب الأنيق والدفء"}, {t:"طابع خشبي جاف وهادئ، بحال خشب مصقول فبيت هادئ"}, {t:"هدوء خشبي بحال مكتبة قديمة فيها خشب دافي"}, {t:"دفء جاف ونظيف بحال غابة فالخريف"}],
-    heavy:[{t:"حضور عميق وواضح فيه دفء"}, {t:"حضور قوي ودافي كيبقى مدة طويلة"}, {t:"عمق غامق وفخم بحال ليلة هادئة وباردة"}],
+    fresh:[{t:"إحساس منعش وخفيف، مثل نسمة باردة في يوم صيفي", when:p=>rvHasSeason(p,["summer","spring"])}, {t:"إحساس صافٍ ومنعش، مثل صباح باكر ومشمس"}, {t:"خفة منعشة مثل كأس ماء بارد في يوم حار"}, {t:"إحساس خفيف ومريح مثل نافذة مفتوحة على صباح هادئ"}],
+    citrus:[{t:"إشراقة صافية، مثل قشرة ليمون طرية مقشّرة للتو"}, {t:"إشراقة حيوية مثل برتقالة مقشّرة في شمس الصباح"}, {t:"انتعاش حامض وصافٍ مثل كأس عصير بارد"}],
+    aquatic:[{t:"إحساس مائي بارد، قريب من هواء البحر في يوم حار", when:p=>rvHasFam(p,["marine"])}, {t:"انتعاش بارد مثل الهواء قرب الماء"}, {t:"صفاء بارد مثل موجة خفيفة على الرمل"}],
+    clean:[{t:"إحساس بالنظافة، مثل ملابس نظيفة جفّت للتو تحت الشمس"}, {t:"إحساس نقي مثل صابون أبيض جديد"}, {t:"نظافة خفيفة مثل منشفة بيضاء جفّت تحت الشمس"}],
+    musky:[{t:"نعومة نظيفة ودافئة، مثل قماش ناعم قريب من البشرة"}, {t:"دفء ناعم قريب من البشرة مثل حضن هادئ"}, {t:"نعومة مخملية مثل وشاح خفيف في المساء"}],
+    floral:[{t:"أناقة هادئة قريبة من إحساس باقة زهور ناعمة في مكان راقٍ"}, {t:"رقة زهرية مثل صباح في حديقة في الربيع", when:p=>rvHasSeason(p,["spring"])}, {t:"نعومة زهرية مثل باقة صغيرة فوق طاولة"}, {t:"إحساس زهري مشرق مثل حديقة في الصباح"}],
+    fruity:[{t:"طابع مشرق ومرح، مثل فواكه طازجة مقطّعة للتو"}, {t:"حلاوة مرحة مثل سلة فواكه في الصيف"}, {t:"إحساس حيوي ولذيذ مثل عصير فواكه طازج"}],
+    sweet:[{t:"دفء حلو وكريمي يعطي إحساساً بالراحة والهدوء", when:p=>rvHasSeason(p,["winter","autumn"])}, {t:"حلاوة دافئة ومريحة، مثل حلوى طرية خارجة من الفرن", when:p=>rvHasFam(p,["gourmand"])}, {t:"حلاوة ناعمة مثل حلويات العيد"}, {t:"دفء حلو مثل كأس شوكولاتة ساخنة في ليلة باردة", when:p=>rvHasSeason(p,["winter","autumn"])}],
+    oriental:[{t:"دفء غني وعميق، مثل جلسة هادئة في ليلة باردة", when:p=>rvHasSeason(p,["winter"])}, {t:"حضور دافئ وغني يظهر أكثر مع مرور الوقت"}, {t:"غنى دافئ مثل سوق التوابل في المساء"}, {t:"فخامة شرقية مثل جلسة في رياض مزخرف"}],
+    woody:[{t:"حضور دافئ وعميق، فيه إحساس بالخشب الأنيق والدفء"}, {t:"طابع خشبي جاف وهادئ، مثل خشب مصقول في بيت هادئ"}, {t:"هدوء خشبي مثل مكتبة قديمة فيها خشب دافئ"}, {t:"دفء جاف ونظيف مثل غابة في الخريف"}],
+    heavy:[{t:"حضور عميق وواضح فيه دفء"}, {t:"حضور قوي ودافئ يبقى مدة طويلة"}, {t:"عمق داكن وفخم مثل ليلة هادئة وباردة"}],
   },
   fr: {
     fresh:[{t:"Une sensation fraîche et légère, comme une brise froide un jour d'été", when:p=>rvHasSeason(p,["summer","spring"])}, {t:"Une fraîcheur limpide, comme un matin ensoleillé de bonne heure"}, {t:"Une légèreté fraîche, comme un verre d'eau froide un jour de chaleur"}, {t:"Une sensation légère et apaisante, comme une fenêtre ouverte sur un matin calme"}],
@@ -3405,44 +3405,44 @@ const RV_ATMOS = {
 };
 // atmosphere images tied to one of the fragrance's own notes (more precise and more varied than the family alone)
 const RV_NOTE_ATMOS = [
-  { n:["Oud"], ar:"عمق دافي ومدخّن، بحال عود كيتبخّر فدار هادئة فالليل", fr:"Une profondeur chaude et fumée, comme du oud qui brûle doucement dans une maison calme le soir" },
-  { n:["Vanilla"], ar:"نعومة دافية بحال قرن فانيليا محلول فكاس حليب سخون", fr:"Une douceur tiède, comme une gousse de vanille infusée dans un lait chaud" },
-  { n:["Coffee"], ar:"دفء محمّص بحال ريحة قهوة طرية فالصباح", fr:"Une chaleur torréfiée, comme l'odeur d'un café fraîchement moulu le matin" },
-  { n:["Cacao","Chocolate"], ar:"حلاوة غامقة وناعمة بحال مربعة شوكولاتة كتدوب", fr:"Une douceur sombre et fondante, comme un carré de chocolat qui fond" },
-  { n:["Caramel","Brown Sugar"], ar:"حلاوة ذهبية بحال كراميل كيتصاوب على نار هادئة", fr:"Une douceur dorée, comme un caramel qui cuit à feu doux" },
-  { n:["Honey"], ar:"دفء ذهبي بحال عسل حر تحت شمس العشية", fr:"Une chaleur dorée, comme un miel de fleurs sous le soleil de fin de journée" },
-  { n:["Tonka Bean"], ar:"دفء ناعم ومحمّص بحال حبوب التونكا مع لمسة ديال اللوز", fr:"Une chaleur douce et grillée, comme la fève tonka avec un soupçon d'amande" },
-  { n:["Dates"], ar:"حلاوة غنية ومألوفة بحال تمر طري مع كاس أتاي", fr:"Une douceur riche et familière, comme des dattes fraîches avec un verre de thé" },
-  { n:["Praline","Almond","Chestnut"], ar:"حلاوة محمّصة بحال لوز مكرمل خارج من الفران", fr:"Une gourmandise grillée, comme des amandes caramélisées qui sortent du four" },
-  { n:["Rose","White Rose"], ar:"أناقة كلاسيكية بحال وردة طرية مقطوفة فالصباح", fr:"Une élégance classique, comme une rose fraîchement cueillie le matin" },
-  { n:["Jasmine"], ar:"نعومة بيضاء ومضيئة بحال ياسمين مفتّح فعشية صيف", fr:"Une douceur blanche et lumineuse, comme un jasmin ouvert un soir d'été" },
-  { n:["Orange Blossom","Neroli"], ar:"إشراقة بيضاء ونقية بحال زهر الليمون فجردة فالربيع", fr:"Un éclat blanc et pur, comme la fleur d'oranger dans un jardin au printemps" },
-  { n:["Tuberose","Gardenia"], ar:"حضور زهري كريمي وواضح، بحال باقة مسك رومي فليلة دافية", fr:"Une présence florale crémeuse, comme un bouquet de tubéreuses par une nuit tiède" },
-  { n:["Iris","Orris","Violet","Heliotrope"], ar:"نعومة بودرية راقية بحال بودرة فخزانة قديمة", fr:"Une douceur poudrée et raffinée, comme une boîte à poudre dans une vieille commode" },
-  { n:["Lavender"], ar:"هدوء عشبي ونظيف بحال حقل لافندر فالصيف", fr:"Un calme aromatique et propre, comme un champ de lavande en été" },
-  { n:["Mint"], ar:"برودة منعشة بحال ورقة نعناع طرية مفروكة بين الصوابع", fr:"Une fraîcheur vive, comme une feuille de menthe froissée entre les doigts" },
-  { n:["Tea"], ar:"صفاء هادئ بحال كاس أتاي خفيف فنهار هادي", fr:"Une clarté apaisée, comme une tasse de thé léger un jour tranquille" },
-  { n:["Sea Notes"], ar:"إحساس بارد ومنعش بحال هوا البحر فالصباح بكري", fr:"Une sensation fraîche et vivifiante, comme l'air marin au petit matin" },
-  { n:["Grapefruit"], ar:"إشراقة منعشة ومرّة شوية بحال قطعة جريب فروت باردة", fr:"Un éclat vif et légèrement amer, comme un quartier de pamplemousse bien frais" },
-  { n:["Leather"], ar:"حضور جريء وناعم بحال جاكيطة جلد مستعملة بعناية", fr:"Une présence audacieuse et souple, comme une veste en cuir bien portée" },
-  { n:["Tobacco"], ar:"دفء جاف وأنيق بحال أوراق التبغ معلقة كيتجففو", fr:"Une chaleur sèche et élégante, comme des feuilles de tabac qui sèchent" },
-  { n:["Incense"], ar:"هدوء مدخّن بحال بخور فمكان هادئ", fr:"Un calme fumé, comme de l'encens dans un lieu paisible" },
-  { n:["Saffron"], ar:"فخامة دافية بحال خيوط زعفران فطبق ديال المناسبات", fr:"Un luxe chaleureux, comme des filaments de safran dans un plat de fête" },
-  { n:["Amber","Labdanum","Styrax","Peru Balsam"], ar:"دفء ذهبي وعميق بحال ضو شمعة فبيت دافي", fr:"Une chaleur dorée et profonde, comme la lueur d'une bougie dans une maison chaude" },
-  { n:["Patchouli"], ar:"عمق ترابي وغامق بحال تراب مبلول من بعد الشتا", fr:"Une profondeur terreuse et sombre, comme la terre mouillée après la pluie" },
-  { n:["Sandalwood"], ar:"نعومة خشبية كريمية بحال خشب الصندل مصقول", fr:"Une douceur boisée et crémeuse, comme du santal poli" },
-  { n:["Cedar"], ar:"خشب جاف ونظيف بحال غابة الأرز فالأطلس", fr:"Un bois sec et net, comme une forêt de cèdres dans l'Atlas" },
-  { n:["Vetiver","Java Vetiver"], ar:"خضرة ترابية بحال جذور طرية من بعد الشتا", fr:"Une verdure terreuse, comme des racines fraîches après la pluie" },
-  { n:["Cardamom"], ar:"توابل باردة وأنيقة بحال حبة هيل فكاس قهوة", fr:"Une épice fraîche et élégante, comme une graine de cardamome dans un café" },
-  { n:["Cinnamon","Clove","Nutmeg"], ar:"دفء توابلي حلو بحال قرفة فحلوى ديال الشتا", fr:"Une chaleur épicée et sucrée, comme la cannelle d'un gâteau d'hiver" },
-  { n:["Pink Pepper","Pepper","Sichuan Pepper"], ar:"لمسة حارة خفيفة كتعطي الحيوية من أول لحظة", fr:"Une pointe poivrée qui donne de l'élan dès le premier instant" },
-  { n:["Pineapple","Tropical Fruits"], ar:"حيوية استوائية بحال أناناس مقطع فنهار سخون", fr:"Une énergie tropicale, comme un ananas coupé un jour de chaleur" },
-  { n:["Peach","Apricot"], ar:"حلاوة مخملية بحال خوخة ناضجة", fr:"Une douceur veloutée, comme une pêche bien mûre" },
-  { n:["Pear"], ar:"انتعاش فاكهي ناعم بحال إجاصة طرية وباردة", fr:"Une fraîcheur fruitée et douce, comme une poire juteuse et fraîche" },
-  { n:["Apple","Green Apple"], ar:"قرمشة منعشة بحال تفاحة خضرا باردة", fr:"Un croquant frais, comme une pomme verte bien fraîche" },
-  { n:["Red Berries","Raspberry","Strawberry","Black Currant","Blackberry"], ar:"حلاوة حامضة شوية بحال توت أحمر مقطوف للتو", fr:"Une douceur acidulée, comme des fruits rouges tout juste cueillis" },
-  { n:["White Musk","Musk"], ar:"نعومة نظيفة قريبة من الجلد بحال قميص قطني نظيف", fr:"Une douceur propre, près de la peau, comme une chemise en coton fraîche" },
-  { n:["Ambroxan","Ambergris"], ar:"دفء شفاف ومالح شوية بحال الجلد من بعد نهار فالبحر", fr:"Une chaleur transparente et légèrement salée, comme la peau après une journée à la mer" },
+  { n:["Oud"], ar:"عمق دافئ ومدخّن، مثل عود يتبخّر في بيت هادئ ليلاً", fr:"Une profondeur chaude et fumée, comme du oud qui brûle doucement dans une maison calme le soir" },
+  { n:["Vanilla"], ar:"نعومة دافئة مثل عود فانيليا في كأس حليب ساخن", fr:"Une douceur tiède, comme une gousse de vanille infusée dans un lait chaud" },
+  { n:["Coffee"], ar:"دفء محمّص مثل رائحة قهوة طازجة في الصباح", fr:"Une chaleur torréfiée, comme l'odeur d'un café fraîchement moulu le matin" },
+  { n:["Cacao","Chocolate"], ar:"حلاوة داكنة وناعمة مثل قطعة شوكولاتة تذوب", fr:"Une douceur sombre et fondante, comme un carré de chocolat qui fond" },
+  { n:["Caramel","Brown Sugar"], ar:"حلاوة ذهبية مثل كراميل يُطهى على نار هادئة", fr:"Une douceur dorée, comme un caramel qui cuit à feu doux" },
+  { n:["Honey"], ar:"دفء ذهبي مثل عسل طبيعي تحت شمس المساء", fr:"Une chaleur dorée, comme un miel de fleurs sous le soleil de fin de journée" },
+  { n:["Tonka Bean"], ar:"دفء ناعم ومحمّص مثل حبوب التونكا مع لمسة من اللوز", fr:"Une chaleur douce et grillée, comme la fève tonka avec un soupçon d'amande" },
+  { n:["Dates"], ar:"حلاوة غنية ومألوفة مثل تمر طري مع كأس شاي", fr:"Une douceur riche et familière, comme des dattes fraîches avec un verre de thé" },
+  { n:["Praline","Almond","Chestnut"], ar:"حلاوة محمّصة مثل لوز مكرمل خارج من الفرن", fr:"Une gourmandise grillée, comme des amandes caramélisées qui sortent du four" },
+  { n:["Rose","White Rose"], ar:"أناقة كلاسيكية مثل وردة طرية مقطوفة في الصباح", fr:"Une élégance classique, comme une rose fraîchement cueillie le matin" },
+  { n:["Jasmine"], ar:"نعومة بيضاء ومضيئة مثل ياسمين متفتّح في مساء صيفي", fr:"Une douceur blanche et lumineuse, comme un jasmin ouvert un soir d'été" },
+  { n:["Orange Blossom","Neroli"], ar:"إشراقة بيضاء ونقية مثل زهر الليمون في حديقة في الربيع", fr:"Un éclat blanc et pur, comme la fleur d'oranger dans un jardin au printemps" },
+  { n:["Tuberose","Gardenia"], ar:"حضور زهري كريمي وواضح، مثل باقة مسك رومي في ليلة دافئة", fr:"Une présence florale crémeuse, comme un bouquet de tubéreuses par une nuit tiède" },
+  { n:["Iris","Orris","Violet","Heliotrope"], ar:"نعومة بودرية راقية مثل بودرة في خزانة قديمة", fr:"Une douceur poudrée et raffinée, comme une boîte à poudre dans une vieille commode" },
+  { n:["Lavender"], ar:"هدوء عشبي ونظيف مثل حقل لافندر في الصيف", fr:"Un calme aromatique et propre, comme un champ de lavande en été" },
+  { n:["Mint"], ar:"برودة منعشة مثل ورقة نعناع طرية مفروكة بين الأصابع", fr:"Une fraîcheur vive, comme une feuille de menthe froissée entre les doigts" },
+  { n:["Tea"], ar:"صفاء هادئ مثل كأس شاي خفيف في يوم هادئ", fr:"Une clarté apaisée, comme une tasse de thé léger un jour tranquille" },
+  { n:["Sea Notes"], ar:"إحساس بارد ومنعش مثل هواء البحر في الصباح الباكر", fr:"Une sensation fraîche et vivifiante, comme l'air marin au petit matin" },
+  { n:["Grapefruit"], ar:"إشراقة منعشة ومرّة قليلاً مثل قطعة جريب فروت باردة", fr:"Un éclat vif et légèrement amer, comme un quartier de pamplemousse bien frais" },
+  { n:["Leather"], ar:"حضور جريء وناعم مثل سترة جلدية مستعملة بعناية", fr:"Une présence audacieuse et souple, comme une veste en cuir bien portée" },
+  { n:["Tobacco"], ar:"دفء جاف وأنيق مثل أوراق تبغ معلّقة لتجفّ", fr:"Une chaleur sèche et élégante, comme des feuilles de tabac qui sèchent" },
+  { n:["Incense"], ar:"هدوء مدخّن مثل بخور في مكان هادئ", fr:"Un calme fumé, comme de l'encens dans un lieu paisible" },
+  { n:["Saffron"], ar:"فخامة دافئة مثل خيوط زعفران في طبق المناسبات", fr:"Un luxe chaleureux, comme des filaments de safran dans un plat de fête" },
+  { n:["Amber","Labdanum","Styrax","Peru Balsam"], ar:"دفء ذهبي وعميق مثل ضوء شمعة في بيت دافئ", fr:"Une chaleur dorée et profonde, comme la lueur d'une bougie dans une maison chaude" },
+  { n:["Patchouli"], ar:"عمق ترابي وداكن مثل تراب مبلّل بعد المطر", fr:"Une profondeur terreuse et sombre, comme la terre mouillée après la pluie" },
+  { n:["Sandalwood"], ar:"نعومة خشبية كريمية مثل خشب صندل مصقول", fr:"Une douceur boisée et crémeuse, comme du santal poli" },
+  { n:["Cedar"], ar:"خشب جاف ونظيف مثل غابة الأرز في الأطلس", fr:"Un bois sec et net, comme une forêt de cèdres dans l'Atlas" },
+  { n:["Vetiver","Java Vetiver"], ar:"خضرة ترابية مثل جذور طرية بعد المطر", fr:"Une verdure terreuse, comme des racines fraîches après la pluie" },
+  { n:["Cardamom"], ar:"توابل باردة وأنيقة مثل حبة هيل في كأس قهوة", fr:"Une épice fraîche et élégante, comme une graine de cardamome dans un café" },
+  { n:["Cinnamon","Clove","Nutmeg"], ar:"دفء توابلي حلو مثل قرفة في حلويات الشتاء", fr:"Une chaleur épicée et sucrée, comme la cannelle d'un gâteau d'hiver" },
+  { n:["Pink Pepper","Pepper","Sichuan Pepper"], ar:"لمسة حارة خفيفة تعطي الحيوية من أول لحظة", fr:"Une pointe poivrée qui donne de l'élan dès le premier instant" },
+  { n:["Pineapple","Tropical Fruits"], ar:"حيوية استوائية مثل أناناس مقطّع في يوم حار", fr:"Une énergie tropicale, comme un ananas coupé un jour de chaleur" },
+  { n:["Peach","Apricot"], ar:"حلاوة مخملية مثل خوخة ناضجة", fr:"Une douceur veloutée, comme une pêche bien mûre" },
+  { n:["Pear"], ar:"انتعاش فاكهي ناعم مثل إجاصة طرية وباردة", fr:"Une fraîcheur fruitée et douce, comme une poire juteuse et fraîche" },
+  { n:["Apple","Green Apple"], ar:"قرمشة منعشة مثل تفاحة خضراء باردة", fr:"Un croquant frais, comme une pomme verte bien fraîche" },
+  { n:["Red Berries","Raspberry","Strawberry","Black Currant","Blackberry"], ar:"حلاوة حامضة قليلاً مثل توت أحمر مقطوف للتو", fr:"Une douceur acidulée, comme des fruits rouges tout juste cueillis" },
+  { n:["White Musk","Musk"], ar:"نعومة نظيفة قريبة من البشرة مثل قميص قطني نظيف", fr:"Une douceur propre, près de la peau, comme une chemise en coton fraîche" },
+  { n:["Ambroxan","Ambergris"], ar:"دفء شفاف ومالح قليلاً مثل البشرة بعد يوم في البحر", fr:"Une chaleur transparente et légèrement salée, comme la peau après une journée à la mer" },
 ];
 // which note families may set the atmosphere for each main character of a fragrance
 const RV_ATMOS_FIT = {
@@ -3453,11 +3453,11 @@ const RV_ATMOS_FIT = {
 };
 // personal context: only when the fragrance's own data supports the visitor's answer
 const RV_CONTEXT = {
-  ar: { occasion:{ evening:["كيناسب الأجواء الليلية","كيتلبس مزيان فالسهرات","مناسب لليالي والخرجات","كيبان مزيان فالعشيات","كيليق للسهرات والمناسبات"], dates:["كيناسب الأمسيات الخاصة","مناسب للمواعيد","كيتلبس مزيان فالأمسيات الهادئة","كيليق للحظات الخاصة","مناسب لعشية هادئة ومميزة"],
-                   daily:["كيناسب النهار والخدمة","مناسب للاستعمال اليومي","كيتلبس بسهولة فالنهار","كيرافقك نهار كامل بلا ما يتقل","مريح للخدمة والقراية"], travel:["كيناسب الخرجات والسفر","مناسب للسفر","كيرافق الخرجات","مزيان للخرجات والتحويسات","كيرافقك فالسفر بسهولة"], allday:["كيتلبس فبزاف ديال المناسبات"] },
-        season:{ summer:["فالأيام السخونة","فالصيف","ملي كيسخن الجو"], spring:["فالربيع"], winter:["فالأيام الباردة","فالشتا","ملي كيبرد الجو"], autumn:["فالخريف"], fall:["فالخريف"], allseasons:["فكل الفصول","طول العام"] },
+  ar: { occasion:{ evening:["يناسب الأجواء الليلية","مناسب جداً للسهرات","مناسب لليالي والخرجات","جميل في المساء","يليق بالسهرات والمناسبات"], dates:["يناسب الأمسيات الخاصة","مناسب للمواعيد","مناسب جداً للأمسيات الهادئة","يليق باللحظات الخاصة","مناسب لمساء هادئ ومميز"],
+                   daily:["يناسب النهار والعمل","مناسب للاستعمال اليومي","سهل الاستعمال في النهار","يرافقك يوماً كاملاً دون أن يثقل","مريح للعمل والدراسة"], travel:["يناسب الخرجات والسفر","مناسب للسفر","يرافق الخرجات","مناسب للخرجات والنزهات","يرافقك في السفر بسهولة"], allday:["يناسب مناسبات كثيرة"] },
+        season:{ summer:["في الأيام الحارة","في الصيف","عندما يكون الجو حاراً"], spring:["في الربيع"], winter:["في الأيام الباردة","في الشتاء","عندما يبرد الجو"], autumn:["في الخريف"], fall:["في الخريف"], allseasons:["في كل الفصول","طول العام"] },
         impression:{ luxury:"الفخامة", elegant:"الأناقة الهادئة", confident:"الثقة", attractive:"الجاذبية", fresh_imp:"الخفة والراحة", mysterious:"الغموض", firstlook:"حضور واضح من البداية" },
-        withImp:["، مع إحساس ب", "، وفيه لمسة ديال ", " — والإحساس اللي كيبقى هو "], general:"الإحساس العام: " },
+        withImp:["، مع إحساس ب", "، وفيه لمسة من ", " — والإحساس الذي يبقى هو "], general:"الإحساس العام: " },
   fr: { occasion:{ evening:["idéal pour les ambiances du soir","parfait pour les soirées","fait pour les nuits et les sorties","très beau en fin de journée","à sa place lors des soirées et des fêtes"], dates:["idéal pour les soirées à deux","parfait pour un rendez-vous","agréable pour les soirées calmes","fait pour les moments à part","idéal pour une soirée calme et spéciale"],
                    daily:["idéal pour la journée et le travail","facile à porter au quotidien","naturel en journée","agréable toute la journée sans peser","confortable au travail comme en cours"], travel:["idéal pour les sorties et les voyages","parfait en voyage","agréable pour les sorties","parfait pour les balades","un compagnon de voyage facile"], allday:["facile à porter en toute occasion"] },
         season:{ summer:["par temps chaud","en été","quand il fait chaud"], spring:["au printemps"], winter:["par temps froid","en hiver","quand il fait froid"], autumn:["en automne"], fall:["en automne"], allseasons:["en toute saison","toute l'année"] },
@@ -3592,7 +3592,7 @@ function RVStoreActions({ p, lang, ans }) {
   if (wa && chosen && store.id !== "demo") {
     const what = `${p.brand ? p.brand + " " : ""}${p.name} — ${TYPE[chosen.type]} ${chosen.size} — ${chosen.price} ${fr ? "DH" : "درهم"}`;
     const text = fr ? `Bonjour, j'ai fait votre quiz parfum et je voudrais : ${what}. Est-ce disponible ?`
-      : `السلام عليكم، دوزت اختبار العطور ديالكم وبغيت: ${what}. واش متوفر؟`;
+      : `السلام عليكم، أجريت اختبار العطور عندكم وأريد: ${what}. هل هو متوفر؟`;
     wa = wa.split("?")[0] + "?text=" + encodeURIComponent(text);
   }
   return (
@@ -3601,10 +3601,10 @@ function RVStoreActions({ p, lang, ans }) {
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg>
         <span>{fr ? "Disponible chez " : "متوفر عند "}<b>{store.name}</b>{fmt.length ? <small> · {fmt.join(" · ")}</small> : null}</span>
       </p>
-      {bottleOver ? <p className="ffr-size-note">{fr ? `Le flacon dépasse votre budget : voici le parfum en décante, dans votre budget.` : `القنينة فوق الميزانية ديالك، ولكن كاين كديكونط داخل فيها 👇`}</p> : null}
+      {bottleOver ? <p className="ffr-size-note">{fr ? `Le flacon dépasse votre budget : voici le parfum en décante, dans votre budget.` : `القنينة فوق ميزانيتك، لكنه متوفر كديكونط ضمنها 👇`}</p> : null}
       {sizes.length ? (
         <fieldset className="ffr-sizes">
-          <legend>{fr ? "Choisissez la taille" : "ختار الحجم"}</legend>
+          <legend>{fr ? "Choisissez la taille" : "اختر الحجم"}</legend>
           <div className="ffr-sizes-list">
             {sizes.map((v, i) => (
               <label key={v.type + v.size} className={"ffr-size" + (i === pick ? " is-on" : "")}>
@@ -3618,8 +3618,8 @@ function RVStoreActions({ p, lang, ans }) {
       ) : null}
       <div className="ffr-instore-actions">
         {wa ? <a className="ffr-btn ffr-instore-wa" href={wa} target="_blank" rel="noopener noreferrer" onClick={() => track("whatsapp_click")}>
-          {chosen ? (fr ? `💬 Commander ${chosen.size} sur WhatsApp` : `💬 اطلب ${chosen.size} فالواتساب`) : (fr ? "💬 Commander sur WhatsApp" : "💬 اطلبو فالواتساب")}</a> : null}
-        {s.page ? <a className="ffr-btn ffr-btn-ghost" href={s.page} target="_blank" rel="noopener noreferrer" onClick={() => track("buy_click")}>{fr ? "Voir sur notre site" : "شوفو فالموقع ديالنا"}</a> : null}
+          {chosen ? (fr ? `💬 Commander ${chosen.size} sur WhatsApp` : `💬 اطلب ${chosen.size} عبر الواتساب`) : (fr ? "💬 Commander sur WhatsApp" : "💬 اطلبه عبر الواتساب")}</a> : null}
+        {s.page ? <a className="ffr-btn ffr-btn-ghost" href={s.page} target="_blank" rel="noopener noreferrer" onClick={() => track("buy_click")}>{fr ? "Voir sur notre site" : "اعرضه في موقعنا"}</a> : null}
       </div>
     </div>
   );
@@ -3634,17 +3634,17 @@ function NearAsk({ ans, lang, persName, summary, pickLabel }) {
     ? ["Bonjour, j'ai fait votre quiz parfum" + (persName ? " — ma signature : " + persName : "") + ".",
        "Aucun parfum ne réunissait tous mes choix : " + summary.join(" · ") + (budget ? " — budget : " + budget : "") + ".",
        "Que me conseillez-vous ?"]
-    : ["السلام عليكم، دوزت اختبار العطور ديالكم" + (persName ? " وطلعات ليا البصمة: " + persName : "") + ".",
-       "ما لقيتش عطر كيجمع كلشي، هادي اختياراتي: " + summary.join(" · ") + (budget ? " — الميزانية: " + budget : "") + ".",
-       "شنو تنصحوني؟"];
+    : ["السلام عليكم، أجريت اختبار العطور عندكم" + (persName ? " وظهرت لي البصمة: " + persName : "") + ".",
+       "لم أجد عطراً يجمع كل شيء، هذه اختياراتي: " + summary.join(" · ") + (budget ? " — الميزانية: " + budget : "") + ".",
+       "بماذا تنصحونني؟"];
   const href = store.whatsapp + "?text=" + encodeURIComponent(lines.join("\n"));
   return (
     <aside className="ffr-ask">
-      <p className="ffr-ask-title">{fr ? "💬 Besoin d'un conseil ?" : "💬 بغيتي نصيحة؟"}</p>
-      <p>{fr ? "Écrivez à " + store.name + " sur WhatsApp : le message se remplit avec vos choix." : "سول " + store.name + " فالواتساب، والميساج كيتكتب وحدو بالاختيارات ديالك."}</p>
+      <p className="ffr-ask-title">{fr ? "💬 Besoin d'un conseil ?" : "💬 تريد نصيحة؟"}</p>
+      <p>{fr ? "Écrivez à " + store.name + " sur WhatsApp : le message se remplit avec vos choix." : "سول " + store.name + " عبر الواتساب، وتُكتب الرسالة تلقائياً باختياراتك."}</p>
       <a className="ffr-btn ffr-instore-wa" href={href} target="_blank" rel="noopener noreferrer"
         onClick={() => window.track && window.track("near_whatsapp_click", { character: ans.character, impression: ans.impression, store: store.name })}>
-        {fr ? "Écrire à " + store.name + " sur WhatsApp" : "سول " + store.name + " فالواتساب"}
+        {fr ? "Écrire à " + store.name + " sur WhatsApp" : "سول " + store.name + " عبر الواتساب"}
       </a>
     </aside>
   );
@@ -3749,8 +3749,8 @@ function nearGaps(p, ans, lang) {
     const sizeType = ans.sizeType || CONFIG.DEFAULT_SIZE || "full";
     const bud = (calcDynamicBudget(sizeType, "ar", ans.world) || []).find(b => b.v === ans.budget);
     const price = priceFor(p, sizeType);
-    if (bud && price >= bud.maxEx) out.push(fr ? "Un peu au-dessus de votre budget" : "فوق الميزانية ديالك شوية");
-    else if (bud && price < bud.min) out.push(fr ? "En dessous de votre budget" : "أقل من الميزانية ديالك");
+    if (bud && price >= bud.maxEx) out.push(fr ? "Un peu au-dessus de votre budget" : "فوق ميزانيتك قليلاً");
+    else if (bud && price < bud.min) out.push(fr ? "En dessous de votre budget" : "أقل من ميزانيتك");
   }
   const ps = p.season || [];
   if (ans.season && ans.season !== "allseasons" && ps.length && !ps.includes("allseasons") && !ps.includes(ans.season)) {
@@ -3852,7 +3852,7 @@ function ResultsPage({ res, pers, ans, lang, t, questions, reset, favPicked, pic
             <div className="ffr-feedback">
               {personaFeedback === null ? (
                 <>
-                  <span>{lang === "fr" ? "Cette signature vous ressemble ?" : "واش هاد البصمة كتشبه ليك؟"}</span>
+                  <span>{lang === "fr" ? "Cette signature vous ressemble ?" : "هل تشبهك هذه البصمة؟"}</span>
                   <button type="button" aria-label={lang === "fr" ? "Oui" : "إيه"} onClick={() => feedback("yes")}>👍</button>
                   <button type="button" aria-label={lang === "fr" ? "Non" : "لا"} onClick={() => feedback("no")}>👎</button>
                 </>
@@ -3873,7 +3873,7 @@ function ResultsPage({ res, pers, ans, lang, t, questions, reset, favPicked, pic
           <div className="ffr-feedback">
             {personaFeedback === null ? (
               <>
-                <span>{lang === "fr" ? "Cette signature vous ressemble ?" : "واش هاد البصمة كتشبه ليك؟"}</span>
+                <span>{lang === "fr" ? "Cette signature vous ressemble ?" : "هل تشبهك هذه البصمة؟"}</span>
                 <button type="button" aria-label={lang === "fr" ? "Oui" : "إيه"} onClick={() => feedback("yes")}>👍</button>
                 <button type="button" aria-label={lang === "fr" ? "Non" : "لا"} onClick={() => feedback("no")}>👎</button>
               </>
@@ -3893,20 +3893,20 @@ function ResultsPage({ res, pers, ans, lang, t, questions, reset, favPicked, pic
       {near ? (
       <header className="ffr-header">
         <h2 id="ffr-title">{res.main.length
-          ? (lang === "fr" ? "Des parfums proches de vos goûts" : "لقينا ليك عطور قريبة من ذوقك")
-          : (lang === "fr" ? "Aucun parfum proche de vos choix pour le moment" : "ما لقينا حتى عطر قريب من اختياراتك دابا")}</h2>
+          ? (lang === "fr" ? "Des parfums proches de vos goûts" : "وجدنا لك عطوراً قريبة من ذوقك")
+          : (lang === "fr" ? "Aucun parfum proche de vos choix pour le moment" : "لم نجد أي عطر قريب من اختياراتك حالياً")}</h2>
         <p>{res.main.length
-          ? (lang === "fr" ? "Aucun parfum ne réunit exactement tous vos choix pour le moment, mais voici les plus proches." : "ما عندناش دابا عطر كيجمع جميع اختياراتك بالضبط، ولكن هادو الأقرب ليك.")
+          ? (lang === "fr" ? "Aucun parfum ne réunit exactement tous vos choix pour le moment, mais voici les plus proches." : "لا يوجد حالياً عطر يجمع كل اختياراتك بالضبط، لكن هذه الأقرب إليك.")
           : (window.__FF_STORE__ && window.__FF_STORE__.whatsapp
-              ? (lang === "fr" ? "Écrivez-nous : nous vous proposerons ce qui vous ressemble le plus." : "كتب لينا، ونقترحو عليك اللي كيشبه لذوقك أكثر.")
-              : (lang === "fr" ? "Essayez de changer le budget ou la saison." : "جرب تبدل الميزانية ولا الموسم."))}</p>
+              ? (lang === "fr" ? "Écrivez-nous : nous vous proposerons ce qui vous ressemble le plus." : "راسلنا، وسنقترح عليك ما يشبه ذوقك أكثر.")
+              : (lang === "fr" ? "Essayez de changer le budget ou la saison." : "جرّب تغيير الميزانية أو الموسم."))}</p>
         {summary.length > 0 && (
           <ul className="ffr-profile" aria-label={L.profileSub}>{summary.map(s => <li key={s}>{s}</li>)}</ul>
         )}
       </header>
       ) : (
       <header className="ffr-header">
-        <h2 id="ffr-title">{window.__FF_STORE__ ? (lang === "fr" ? "Notre sélection pour vous chez " : "اخترنا ليك من ") + window.__FF_STORE__.name : L.title}</h2>
+        <h2 id="ffr-title">{window.__FF_STORE__ ? (lang === "fr" ? "Notre sélection pour vous chez " : "اخترنا لك من ") + window.__FF_STORE__.name : L.title}</h2>
         <p>{L.profileSub}</p>
         {summary.length > 0 && (
           <ul className="ffr-profile" aria-label={L.profileSub}>{summary.map(s => <li key={s}>{s}</li>)}</ul>
@@ -3916,10 +3916,10 @@ function ResultsPage({ res, pers, ans, lang, t, questions, reset, favPicked, pic
       )}
 
       {!near && res.main.length === 1 && topPct < 80 && (
-        <p className="ffr-note">{lang === "fr" ? "Un seul parfum correspond à vos critères." : "ما لقيناش غير عطر واحد قريب من اختياراتك."}</p>
+        <p className="ffr-note">{lang === "fr" ? "Un seul parfum correspond à vos critères." : "وجدنا عطراً واحداً فقط قريباً من اختياراتك."}</p>
       )}
       {!near && topPct >= 80 && topPct < 90 && (
-        <p className="ffr-note">{lang === "fr" ? "Résultats limités — ajustez certains critères pour plus d'options." : "النتائج محدودة — جرب تعدل بعض الشروط باش تظهر اقتراحات أكثر."}</p>
+        <p className="ffr-note">{lang === "fr" ? "Résultats limités — ajustez certains critères pour plus d'options." : "النتائج محدودة — جرّب تعديل بعض الشروط لتظهر اقتراحات أكثر."}</p>
       )}
 
       {/* 3a. the three fragrances side by side, in order (#1 first = on the right in Arabic) — tap one to jump to its card */}
@@ -4052,7 +4052,7 @@ function buildPersona(na) {
       "oriental-elegant":  "تميل/ين للعطور الشرقية الغامضة الأنيقة — عمق هادئ يعكس شخصيتك المتميزة.",
       "oriental-luxury":   "تميل/ين للعطور الشرقية الفاخرة الأصيلة — ملكي يليق بأرقى المناسبات.",
       "oriental-longlast": "تميل/ين للعطور الشرقية التي تترك أثراً قوياً يدوم طويلاً — شرقي يُعرف بك.",
-      "oriental-mysterious":"تميل/ين للعطور الشرقية الغامضة التي تثير الفضول — حضور آسر يخلي الناس باغين يعرفوك أكثر.",
+      "oriental-mysterious":"تميل/ين للعطور الشرقية الغامضة التي تثير الفضول — حضور آسر يجعل الناس يرغبون في معرفتك أكثر.",
       "woody-mysterious":   "تميل/ين للعطور الخشبية العميقة والغامضة — هدوء آسر يثير الفضول.",
       "sweet-mysterious":   "تميل/ين للعطور الحلوة الداكنة التي تجمع الدفء والغموض — جاذبية هادئة تثير الفضول.",
       "oriental-firstlook":"تريد/ين عطراً شرقياً يصنع انطباعاً أولاً لا يُنسى — آسر يسحر من أول لقاء.",
@@ -4703,8 +4703,8 @@ window.track && window.track("favorite_pick", {
           <FFPrint className="ffl-print"/>
           <p className="ffl-msg" key={loadingIdx}>{(t.loadingMsgs || [])[loadingIdx] || t.loading}</p>
           <p className="ffl-sub">{window.__FF_STORE__
-            ? (lang==="fr" ? `Nous choisissons parmi les parfums de ${window.__FF_STORE__.name}…` : `كنختارو ليك من العطور ديال ${window.__FF_STORE__.name}…`)
-            : (lang==="fr" ? `Analyse de ${getProducts().length} parfums` : `كنقارنو اختياراتك مع ${getProducts().length} عطر`)}</p>
+            ? (lang==="fr" ? `Nous choisissons parmi les parfums de ${window.__FF_STORE__.name}…` : `نختار لك من عطور ${window.__FF_STORE__.name}…`)
+            : (lang==="fr" ? `Analyse de ${getProducts().length} parfums` : `نقارن اختياراتك مع ${getProducts().length} عطر`)}</p>
         </div>
       )}
 
@@ -4751,7 +4751,7 @@ window.track && window.track("favorite_pick", {
           </div>
 
           <div style={{ fontSize:10, color:"rgba(91,42,134,0.35)", marginTop:4 }}>
-            {lang==="fr" ? `Analyse de ${getProducts().length} parfums` : `كنحللو ${getProducts().length} عطر`}
+            {lang==="fr" ? `Analyse de ${getProducts().length} parfums` : `نحلّل ${getProducts().length} عطر`}
           </div>
         </div>
       )}
@@ -4789,7 +4789,7 @@ window.track && window.track("favorite_pick", {
                     <div style={{ fontSize:10, color:"rgba(91,42,134,0.7)", lineHeight:1.6 }}>
                       {lang==="fr"
                         ? "Un seul parfum correspond à vos critères. Contactez-nous pour plus d'options."
-                        : "ما لقيناش غير عطر واحد قريب من اختياراتك. تواصل مع المتجر باش نعاونك."}
+                        : "وجدنا عطراً واحداً فقط قريباً من اختياراتك. تواصل مع المتجر لنساعدك."}
                     </div>
                   </div>
                 </div>
@@ -4807,7 +4807,7 @@ window.track && window.track("favorite_pick", {
                   <div style={{ fontSize:10, color:"rgba(91,42,134,0.7)" }}>
                     {lang==="fr"
                       ? "Résultats limités — essayez d'ajuster certains critères pour plus d'options."
-                      : "النتائج محدودة — جرب تعدل بعض الشروط باش تظهر اقتراحات أكثر."}
+                      : "النتائج محدودة — جرّب تعديل بعض الشروط لتظهر اقتراحات أكثر."}
                   </div>
                 </div>
               );
@@ -4883,7 +4883,7 @@ window.track && window.track("favorite_pick", {
                   {personaFeedback === null ? (
                     <>
                       <div style={{ fontSize:10, color:"rgba(91,42,134,0.55)" }}>
-                        {lang==="fr" ? "Cette signature vous ressemble ?" : "واش هاد البصمة كتشبه ليك؟"}
+                        {lang==="fr" ? "Cette signature vous ressemble ?" : "هل تشبهك هذه البصمة؟"}
                       </div>
                       <div style={{ display:"flex", gap:6 }}>
                        <button onClick={()=>{
@@ -5040,7 +5040,7 @@ window.track && window.track("favorite_pick", {
             <div style={{ fontSize:11, color:"rgba(91,42,134,0.7)", lineHeight:1.8, maxWidth:260, margin:"0 auto" }}>
               {lang==="fr"
                 ? "Aucun parfum ne correspond à tous vos critères en même temps. Voici quelques options :"
-                : "حالياً ما كاينش عطر كيجمع جميع الشروط اللي اخترتيها بنفس الوقت. عندك جوج خيارات:"}
+                : "حالياً لا يوجد عطر يجمع كل الشروط التي اخترتها في نفس الوقت. لديك خياران:"}
             </div>
           </div>
 
@@ -5062,7 +5062,7 @@ window.track && window.track("favorite_pick", {
                 <div style={{ fontSize:10, color:"rgba(91,42,134,0.7)", lineHeight:1.6 }}>
                   {lang==="fr"
                     ? "En ajustant la gamme de prix ou la longévité, plus d'options apparaîtront."
-                    : "مثلاً رفع الميزانية شوية أو تخفيف بعض المتطلبات باش تظهر لك اقتراحات أكثر."}
+                    : "مثلاً رفع الميزانية قليلاً أو تخفيف بعض المتطلبات لتظهر لك اقتراحات أكثر."}
                 </div>
                 <button onClick={reset} style={{
                   marginTop:8, padding:"5px 14px", borderRadius:7,
@@ -5089,12 +5089,12 @@ window.track && window.track("favorite_pick", {
                 <div style={{ fontSize:10, color:"rgba(91,42,134,0.7)", lineHeight:1.6, marginBottom:8 }}>
                   {lang==="fr"
                     ? "Notre équipe peut vous aider à trouver le meilleur compromis."
-                    : "فريق المتجر يقدر يقترح عليك أفضل الخيارات المتوفرة حسب ذوقك وميزانيتك."}
+                    : "يمكن لفريق المتجر أن يقترح عليك أفضل الخيارات المتوفرة حسب ذوقك وميزانيتك."}
                 </div>
                 <a href={`https://wa.me/${CONFIG.WHATSAPP}?text=${encodeURIComponent(
                     lang==="fr"
                       ? "Bonjour, j'ai utilisé l'assistant parfum et je n'ai pas trouvé de résultat.\n\nMes critères :\n- Budget : "+(ans.budget||"non précisé")+"\n- Utilisation : "+(ans.occasion||"non précisé")+"\n- Longévité : "+(ans.longevity||"non précisé")+"\n- Style : "+(ans.character||"non précisé")+"\n\nPouvez-vous m'aider ?"
-                      : "السلام عليكم، استعملت مساعد العطور وما لقيتش نتيجة مناسبة.\n\nهادي اختياراتي:\n- الميزانية: "+(ans.budget||"غير محدد")+"\n- الاستعمال: "+(ans.occasion||"غير محدد")+"\n- الثبات: "+(ans.longevity||"غير محدد")+"\n- النمط: "+(ans.character||"غير محدد")+"\n\nواش تقدر تساعدني؟"
+                      : "السلام عليكم، استعملت مساعد العطور ولم أجد نتيجة مناسبة.\n\nهذه اختياراتي:\n- الميزانية: "+(ans.budget||"غير محدد")+"\n- الاستعمال: "+(ans.occasion||"غير محدد")+"\n- الثبات: "+(ans.longevity||"غير محدد")+"\n- النمط: "+(ans.character||"غير محدد")+"\n\nهل يمكنك مساعدتي؟"
                   )}`}
                   target="_blank" rel="noopener noreferrer"
                   style={{

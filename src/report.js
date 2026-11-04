@@ -11,15 +11,15 @@ async function load(month) {
   root.setAttribute("aria-busy", "true");
   try {
     const data = await fetchStats({ month });
-    if (data.error === "net") { root.innerHTML = '<p class="d-msg">ما قدرناش نجيبو التقرير دابا. عاود جرب من بعد شوية.</p>'; return; }
-    if (data.error === "login") { root.innerHTML = '<p class="d-msg">دخل لفضاء التاجر باش تشوف التقرير. <a href="/portal/">دخول</a></p>'; return; }
-    if (data.error === "invalid") { root.innerHTML = portalMode ? '<p class="d-msg">ما قدرناش نلقاو المتجر ديالك. خرج ودخل من جديد، ولا تواصل مع RihaFlow.</p>' : '<p class="d-msg">هاد الرابط ما خدامش ولا تبدّل. تواصل مع RihaFlow باش ياخد رابط جديد.</p>'; return; }
-    if (data.error) { root.innerHTML = '<p class="d-msg">ما كاين حتى رقم فهاد الشهر.</p>'; return; }
+    if (data.error === "net") { root.innerHTML = '<p class="d-msg">تعذّر تحميل التقرير الآن. أعد المحاولة بعد قليل.</p>'; return; }
+    if (data.error === "login") { root.innerHTML = '<p class="d-msg">سجّل الدخول إلى فضاء التاجر لرؤية التقرير. <a href="/portal/">دخول</a></p>'; return; }
+    if (data.error === "invalid") { root.innerHTML = portalMode ? '<p class="d-msg">تعذّر العثور على متجرك. سجّل الخروج ثم ادخل من جديد، أو تواصل مع RihaFlow.</p>' : '<p class="d-msg">هذا الرابط لا يعمل أو تم تغييره. تواصل مع RihaFlow للحصول على رابط جديد.</p>'; return; }
+    if (data.error) { root.innerHTML = '<p class="d-msg">لا توجد أرقام لهذا الشهر.</p>'; return; }
     select.innerHTML = data.months.map((m) => `<option value="${m}"${m === data.month ? " selected" : ""}>${monthName(m)}</option>`).join("");
     history.replaceState(null, "", `?${token ? "t=" + encodeURIComponent(token) + "&" : ""}m=${data.month}`);
     renderReport(root, data);
   } catch (e) {
-    root.innerHTML = '<p class="d-msg">ما قدرناش نجيبو التقرير دابا. عاود جرب من بعد شوية.</p>';
+    root.innerHTML = '<p class="d-msg">تعذّر تحميل التقرير الآن. أعد المحاولة بعد قليل.</p>';
   } finally { root.removeAttribute("aria-busy"); }
 }
 
