@@ -272,7 +272,7 @@ function rowsToItems(rows) {
     return base;
   }).filter((x) => x.name);
 }
-const IMP = { rows: [], step: "input", text: "", result: null };
+const IMP = { rows: [], step: "input", text: "", result: null, sendReq: true };
 function impStatus(x) {
   const c = x.cands || [], a = c[0], b = c[1];
   if (!a) return "none";
@@ -283,11 +283,12 @@ function tabImport() {
   if (IMP.step === "review") return drawImport(el);
   if (IMP.step === "done") return drawImportDone(el);
   el.innerHTML = `<div class="p-imp">
-    <p class="p-small">عندك لائحة ديال العطور؟ لصقها هنا، عطر فكل سطر (السمية والماركة، وإلا بغيتي الحجم والثمن). ولا رفع ملف Excel ولا CSV. كنقلبو على كل عطر فالكاتالوگ، ونتا كتأكد قبل ما يتزاد شي حاجة.</p>
-    <label class="p-imp-lab">اللائحة<textarea id="imp-text" rows="9" dir="auto" placeholder="Lattafa Khamrah 100ml 350&#10;Dior Sauvage EDT 100ml 1200 dh&#10;Yara ديكونط 10ml 60">${esc(IMP.text)}</textarea></label>
+    <h2 class="p-imp-h">زيد بزاف ديال العطور مرة وحدة</h2>
+    <ol class="p-imp-how"><li>لصق اللائحة ديالك هنا: <b>عطر فكل سطر</b>.</li><li>كنلقاو ليك العطور فالكاتالوگ.</li><li>كتشوف الثمن، وكتورك «زيد».</li></ol>
+    <textarea id="imp-text" rows="8" dir="auto" aria-label="اللائحة ديال العطور" placeholder="مثال:&#10;Lattafa Khamrah 100ml 350&#10;Dior Sauvage 100ml 1200&#10;Yara 10ml 60">${esc(IMP.text)}</textarea>
     <div class="p-imp-acts">
-      <button type="button" class="d-btn" id="imp-go">قلّب فالكاتالوگ</button>
-      <label class="d-btn ghost p-imp-file">رفع ملف (Excel / CSV)<input type="file" id="imp-file" class="sr" accept=".xlsx,.csv,.txt,text/csv,text/plain,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"></label>
+      <button type="button" class="d-btn" id="imp-go">لقى العطور</button>
+      <label class="p-link p-imp-file">ولا رفع ملف Excel<input type="file" id="imp-file" class="sr" accept=".xlsx,.csv,.txt,text/csv,text/plain,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"></label>
     </div>
     <p class="p-small" id="imp-msg" role="status"></p></div>`;
   const msg = el.querySelector("#imp-msg");
@@ -304,7 +305,7 @@ function tabImport() {
       if (/\.xlsx$/i.test(f.name)) { const { readSheet } = await import("read-excel-file/browser"); rows = await readSheet(f); }
       else { const txt = await f.text(); rows = txt.split(/\r?\n/).map((l) => l.split(/[;\t]|,(?=(?:[^"]*"[^"]*")*[^"]*$)/).map((c) => c.replace(/^"|"$/g, ""))); }
       runMatch(rowsToItems(rows), msg);
-    } catch (err) { msg.textContent = "ما قدرناش نقراو هاد الملف. جرب Excel (.xlsx) ولا CSV، ولا لصق اللائحة."; }
+    } catch (err) { msg.textContent = "ما قدرناش نقراو هاد الملف. جرب ملف Excel، ولا لصق اللائحة."; }
   });
 }
 async function runMatch(items, msg) {
@@ -326,51 +327,54 @@ async function runMatch(items, msg) {
 }
 function drawImport(el) {
   const have = new Set(S.offers.filter((o) => o.active).map((o) => o.perfume_id.toUpperCase()));
-  const rows = IMP.rows;
-  const adding = rows.filter((x) => x.pick && !have.has(x.pick.toUpperCase()));
-  const noPrice = adding.filter((x) => !(x.price > 0) || !x.size).length;
-  const reqs = rows.filter((x) => !x.pick && x.status !== "have" && x.request).length;
-  const count = (k) => rows.filter((x) => x.status === k).length;
-  const opt = (x, i, c) => `<label class="p-imp-cand"><input type="radio" name="pick-${i}" value="${esc(c.perfume_id)}"${x.pick === c.perfume_id ? " checked" : ""}>
-      ${thumb({ image_url: c.image })}<span><b dir="ltr">${esc(c.name)}</b><small dir="ltr">${esc(c.brand)}</small></span></label>`;
+  const rows = IMP.rows.map((x, i) => ({ x, i })), owned = (x) => x.pick && have.has(x.pick.toUpperCase());
+  const found = rows.filter(({ x }) => x.pick && !owned(x)), ask = rows.filter(({ x }) => !x.pick && x.status === "check" && !x.dropped);
+  const none = rows.filter(({ x }) => !x.pick && (x.status === "none" || x.dropped)), already = rows.filter(({ x }) => owned(x)).length;
+  const groups = new Set(found.map(({ x }) => x.pick)).size, missing = found.filter(({ x }) => !(x.price > 0) || !x.size).length;
+  const name = (x) => (x.cands.find((c) => c.perfume_id === x.pick) || {}).name || x.name, brand = (x) => (x.cands.find((c) => c.perfume_id === x.pick) || {}).brand || "";
+  const head = [`لقينا <b>${fmt(groups)}</b> عطر`, ask.length ? `<b>${fmt(ask.length)}</b> خاصك تختار` : "", none.length ? `<b>${fmt(none.length)}</b> ما لقيناهمش` : "", already ? `${fmt(already)} عندك ديجا` : ""].filter(Boolean).join(" · ");
   el.innerHTML = `<div class="p-imp">
-    <div class="p-imp-sum">
-      <span class="p-tag is-ok">✅ ${fmt(count("sure"))} لقيناهم</span><span class="p-tag is-warn">🤔 ${fmt(count("check"))} تأكد منهم</span>
-      <span class="p-tag">❌ ${fmt(count("none"))} ما لقيناهمش</span>${count("have") ? `<span class="p-tag">📦 ${fmt(count("have"))} عندك ديجا</span>` : ""}
-    </div>
-    <ol class="p-imp-list">${rows.map((x, i) => {
-      const dup = x.pick && have.has(x.pick.toUpperCase());
-      return `<li class="p-imp-row is-${dup ? "have" : x.status}" data-i="${i}">
-        <p class="p-imp-raw"><span dir="auto">${esc(x.raw)}</span>${dup ? '<span class="p-tag">عندك ديجا</span>' : x.status === "check" ? '<span class="p-tag is-warn">ختار العطر الصحيح</span>' : ""}</p>
-        ${x.cands.length && !dup ? `<div class="p-imp-cands">${(x.status === "sure" ? x.cands.slice(0, 1) : x.cands).map((c) => opt(x, i, c)).join("")}
-            ${x.status === "sure" ? '<button type="button" class="p-link" data-more>ماشي هادا؟</button>' : `<label class="p-imp-cand p-imp-nonec"><input type="radio" name="pick-${i}" value=""${x.pick ? "" : " checked"}><span>ماشي حتى واحد</span></label>`}</div>` : ""}
-        ${!x.pick && !dup ? `<label class="p-chk p-imp-req"><input type="checkbox" data-req${x.request ? " checked" : ""}> صيفطو كطلب عطر جديد («${esc(x.name)}»)</label>` : ""}
-        ${x.pick && !dup ? `<div class="p-imp-fields">
-            <label>النوع<select data-f="type"><option value="full"${x.type === "full" ? " selected" : ""}>قرعة كاملة</option><option value="decant"${x.type === "decant" ? " selected" : ""}>ديكونط</option></select></label>
-            <label>الحجم<input data-f="size" value="${esc(x.size)}" placeholder="100ml" dir="ltr" maxlength="20" class="${x.size ? "" : "is-miss"}"></label>
-            <label>الثمن (درهم)<input data-f="price" type="number" min="1" step="1" inputmode="decimal" value="${x.price ?? ""}" class="${x.price > 0 ? "" : "is-miss"}"></label></div>` : ""}
-      </li>`; }).join("")}</ol>
-    <div class="p-imp-foot">
-      <p><b>${fmt(new Set(adding.map((x) => x.pick)).size)}</b> عطر غادي يتزادو للكتالوگ ديالك${reqs ? ` · <b>${fmt(reqs)}</b> طلب عطر جديد` : ""}${noPrice ? ` · <span class="p-imp-warn">${fmt(noPrice)} ناقصهم الحجم ولا الثمن</span>` : ""}</p>
-      <div class="p-imp-acts"><button type="button" class="d-btn" id="imp-save"${adding.length && !noPrice || (!adding.length && reqs) ? "" : " disabled"}>زيد للكتالوگ ديالي</button>
-        <button type="button" class="p-link" id="imp-back">← رجع للائحة</button></div>
-    </div></div>`;
-  el.querySelectorAll(".p-imp-row").forEach((li) => {
-    const x = rows[Number(li.dataset.i)];
-    li.querySelectorAll('input[type="radio"]').forEach((r) => r.addEventListener("change", () => { x.pick = r.value; drawImport(el); }));
-    const more = li.querySelector("[data-more]");
-    if (more) more.addEventListener("click", () => { x.status = "check"; drawImport(el); });
-    const req = li.querySelector("[data-req]");
-    if (req) req.addEventListener("change", () => { x.request = req.checked; drawImport(el); });
-    li.querySelectorAll("[data-f]").forEach((f) => f.addEventListener("change", () => {
-      const k = f.dataset.f;
-      x[k] = k === "price" ? (f.value === "" ? null : Number(f.value)) : f.value.trim();
-      if (k === "size" && x.size && /^\d+([.,]\d+)?$/.test(x.size)) x.size += "ml";
-      drawImport(el);
-    }));
-  });
-  el.querySelector("#imp-back").addEventListener("click", () => { IMP.step = "input"; tabImport(); });
-  el.querySelector("#imp-save").addEventListener("click", () => saveImport(el));
+    <p class="p-imp-top">${head}</p>
+    ${ask.length ? `<section class="p-imp-sec p-imp-ask"><h3>🤔 شكون فيهم؟ <small>ورك على العطر الصحيح</small></h3>
+      ${ask.map(({ x, i }) => `<div class="p-imp-q" data-i="${i}"><p dir="auto">«${esc(x.raw)}»</p><div class="p-imp-btns">
+        ${x.cands.map((c) => `<button type="button" class="p-imp-pick" data-pick="${esc(c.perfume_id)}"><b dir="ltr">${esc(c.name)}</b><small dir="ltr">${esc(c.brand)}</small></button>`).join("")}
+        <button type="button" class="p-imp-pick is-none" data-drop>ما كاينش</button></div></div>`).join("")}</section>` : ""}
+    ${found.length ? `<section class="p-imp-sec"><h3>✅ غادي يتزادو <small>شوف الحجم والثمن</small></h3>
+      <ul class="p-imp-found">${found.map(({ x, i }) => `<li data-i="${i}"><div class="p-imp-n"><b dir="ltr">${esc(name(x))}</b><small dir="ltr">${esc(brand(x))}</small>${x.type === "decant" ? '<span class="p-tag">ديكونط</span>' : ""}</div>
+        <input data-f="size" value="${esc(x.size)}" placeholder="الحجم" aria-label="الحجم" dir="ltr" maxlength="20" class="${x.size ? "" : "is-miss"}">
+        <input data-f="price" type="number" min="1" step="1" inputmode="decimal" value="${x.price ?? ""}" placeholder="الثمن" aria-label="الثمن بالدرهم" class="${x.price > 0 ? "" : "is-miss"}">
+        <button type="button" class="p-imp-x" data-x aria-label="حيد ${esc(name(x))}">✕</button></li>`).join("")}</ul></section>` : ""}
+    ${none.length ? `<section class="p-imp-sec p-imp-none"><h3>❌ ما لقيناهمش</h3>
+      <p class="p-small" dir="auto">${none.map(({ x }) => esc(x.name)).join(" · ")}</p>
+      <label class="p-chk"><input type="checkbox" id="imp-req"${IMP.sendReq !== false ? " checked" : ""}> صيفطهم لفريق RihaFlow باش يزيدوهم للكاتالوگ</label></section>` : ""}
+    <div class="p-imp-foot"></div></div>`;
+  const row = (n) => IMP.rows[Number(n.closest("[data-i]").dataset.i)];
+  el.querySelectorAll("[data-pick]").forEach((b) => b.addEventListener("click", () => { const x = row(b); x.pick = b.dataset.pick; drawImport(el); }));
+  el.querySelectorAll("[data-drop]").forEach((b) => b.addEventListener("click", () => { row(b).dropped = true; drawImport(el); }));
+  el.querySelectorAll("[data-x]").forEach((b) => b.addEventListener("click", () => { const x = row(b); x.pick = ""; x.removed = true; x.dropped = false; x.status = "removed"; drawImport(el); }));
+  el.querySelectorAll("[data-f]").forEach((f) => f.addEventListener("input", () => {
+    const x = row(f), k = f.dataset.f;
+    if (k === "price") x.price = f.value === "" ? null : Number(f.value);
+    else { x.size = f.value.trim(); if (/^\d+([.,]\d+)?$/.test(x.size)) { x.size += "ml"; f.value = x.size; } if (parseFloat(x.size)) x.type = parseFloat(x.size) <= 20 ? "decant" : "full"; }
+    f.classList.toggle("is-miss", k === "price" ? !(x.price > 0) : !x.size);
+    importFoot(el);
+  }));
+  const req = el.querySelector("#imp-req");
+  if (req) req.addEventListener("change", () => { IMP.sendReq = req.checked; importFoot(el); });
+  importFoot(el);
+}
+// the bar at the bottom: what is missing and the button (redrawn alone while typing, so the list keeps its focus)
+function importFoot(el) {
+  const have = new Set(S.offers.filter((o) => o.active).map((o) => o.perfume_id.toUpperCase()));
+  const found = IMP.rows.filter((x) => x.pick && !have.has(x.pick.toUpperCase()));
+  const groups = new Set(found.map((x) => x.pick)).size, missing = found.filter((x) => !(x.price > 0) || !x.size).length;
+  const reqs = IMP.sendReq === false ? 0 : IMP.rows.filter((x) => !x.pick && (x.status === "none" || x.dropped)).length;
+  const foot = el.querySelector(".p-imp-foot");
+  foot.innerHTML = `${missing ? `<p class="p-imp-warn">${fmt(missing)} ناقصهم الحجم ولا الثمن (بالبرتقالي).</p>` : ""}
+    <div class="p-imp-acts"><button type="button" class="d-btn" id="imp-save"${(groups && !missing) || (!groups && reqs) ? "" : " disabled"}>${groups ? `زيد ${fmt(groups)} عطر` : "صيفط الطلبات"}</button>
+      <button type="button" class="p-link" id="imp-back">رجع</button></div>`;
+  foot.querySelector("#imp-back").addEventListener("click", () => { IMP.step = "input"; tabImport(); });
+  foot.querySelector("#imp-save").addEventListener("click", () => saveImport(el));
 }
 async function saveImport(el) {
   const btn = el.querySelector("#imp-save"); btn.disabled = true; btn.textContent = "كنزيدو…";
@@ -388,7 +392,7 @@ async function saveImport(el) {
       .select("id, perfume_id, size, size_type, price, in_stock, active, updated_at, variants, perfumes(name, brand, gender, image_url, size)").single();
     if (error) failed.push(g.name + " (" + errText(error) + ")"); else { added.push(g.name); S.offers.push(data); }
   }
-  const reqRows = IMP.rows.filter((x) => !x.pick && x.status !== "have" && x.request)
+  const reqRows = IMP.sendReq === false ? [] : IMP.rows.filter((x) => !x.pick && (x.status === "none" || x.dropped))
     .map((x) => ({ store_id: S.store.id, perfume_name: x.name.slice(0, 120), brand: "", size: x.size, price: x.price, note: "من الاستيراد: " + x.raw.slice(0, 400) }));
   let reqs = 0;
   if (reqRows.length) { const r = await sb.from("requests").insert(reqRows).select("*"); if (r.error) failed.push("الطلبات (" + errText(r.error) + ")"); else { reqs = r.data.length; S.requests.unshift(...r.data); } }
