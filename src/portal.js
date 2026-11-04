@@ -283,12 +283,12 @@ function tabImport() {
   if (IMP.step === "review") return drawImport(el);
   if (IMP.step === "done") return drawImportDone(el);
   el.innerHTML = `<div class="p-imp">
-    <h2 class="p-imp-h">زيد بزاف ديال العطور مرة وحدة</h2>
-    <ol class="p-imp-how"><li>لصق اللائحة ديالك هنا: <b>عطر فكل سطر</b>.</li><li>كنلقاو ليك العطور فالكاتالوگ.</li><li>كتشوف الثمن، وكتورك «زيد».</li></ol>
-    <textarea id="imp-text" rows="8" dir="auto" aria-label="اللائحة ديال العطور" placeholder="مثال:&#10;Lattafa Khamrah 100ml 350&#10;Dior Sauvage 100ml 1200&#10;Yara 10ml 60">${esc(IMP.text)}</textarea>
+    <h2 class="p-imp-h">أضف عدة عطور دفعة واحدة</h2>
+    <ol class="p-imp-how"><li>الصق لائحة عطورك هنا: <b>عطر في كل سطر</b>.</li><li>نبحث عن كل عطر في الكتالوگ.</li><li>راجع الأثمنة، ثم اضغط «أضف».</li></ol>
+    <textarea id="imp-text" rows="8" dir="auto" aria-label="لائحة العطور" placeholder="مثال:&#10;Lattafa Khamrah 100ml 350&#10;Dior Sauvage 100ml 1200&#10;Yara 10ml 60">${esc(IMP.text)}</textarea>
     <div class="p-imp-acts">
-      <button type="button" class="d-btn" id="imp-go">لقى العطور</button>
-      <label class="p-link p-imp-file">ولا رفع ملف Excel<input type="file" id="imp-file" class="sr" accept=".xlsx,.csv,.txt,text/csv,text/plain,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"></label>
+      <button type="button" class="d-btn" id="imp-go">ابحث عن العطور</button>
+      <label class="p-link p-imp-file">أو ارفع ملف Excel<input type="file" id="imp-file" class="sr" accept=".xlsx,.csv,.txt,text/csv,text/plain,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"></label>
     </div>
     <p class="p-small" id="imp-msg" role="status"></p></div>`;
   const msg = el.querySelector("#imp-msg");
@@ -299,21 +299,21 @@ function tabImport() {
   });
   el.querySelector("#imp-file").addEventListener("change", async (e) => {
     const f = e.target.files[0]; if (!f) return;
-    msg.textContent = "كنقراو الملف…";
+    msg.textContent = "جارٍ قراءة الملف…";
     try {
       let rows;
       if (/\.xlsx$/i.test(f.name)) { const { readSheet } = await import("read-excel-file/browser"); rows = await readSheet(f); }
       else { const txt = await f.text(); rows = txt.split(/\r?\n/).map((l) => l.split(/[;\t]|,(?=(?:[^"]*"[^"]*")*[^"]*$)/).map((c) => c.replace(/^"|"$/g, ""))); }
       runMatch(rowsToItems(rows), msg);
-    } catch (err) { msg.textContent = "ما قدرناش نقراو هاد الملف. جرب ملف Excel، ولا لصق اللائحة."; }
+    } catch (err) { msg.textContent = "تعذّرت قراءة هذا الملف. جرّب ملف Excel أو الصق اللائحة."; }
   });
 }
 async function runMatch(items, msg) {
-  if (!items.length) { msg.textContent = "ما لقينا حتى عطر فاللائحة."; return; }
-  if (items.length > 300) { msg.textContent = `اللائحة فيها ${fmt(items.length)} سطر. صيفط 300 فالمرة.`; return; }
-  msg.textContent = `كنقلبو على ${fmt(items.length)} عطر…`;
+  if (!items.length) { msg.textContent = "لم نجد أي عطر في اللائحة."; return; }
+  if (items.length > 300) { msg.textContent = `اللائحة فيها ${fmt(items.length)} سطراً. أرسل 300 سطر كحد أقصى في كل مرة.`; return; }
+  msg.textContent = `جارٍ البحث عن ${fmt(items.length)} عطر…`;
   const r = await sb.rpc("match_perfumes", { p_items: items.map((x) => x.name) });
-  if (r.error) { msg.textContent = /match_perfumes|PGRST202|42883/.test((r.error.message || "") + r.error.code) ? "الاستيراد كيخدم من بعد ما يتشغّل 015_match_perfumes.sql فـ Supabase." : errText(r.error); return; }
+  if (r.error) { msg.textContent = /match_perfumes|PGRST202|42883/.test((r.error.message || "") + r.error.code) ? "يعمل الاستيراد بعد تشغيل 015_match_perfumes.sql في Supabase." : errText(r.error); return; }
   const have = new Set(S.offers.filter((o) => o.active).map((o) => o.perfume_id.toUpperCase()));
   IMP.rows = items.map((x, i) => {
     const cands = ((r.data || [])[i] || {}).candidates || [];
@@ -332,21 +332,21 @@ function drawImport(el) {
   const none = rows.filter(({ x }) => !x.pick && (x.status === "none" || x.dropped)), already = rows.filter(({ x }) => owned(x)).length;
   const groups = new Set(found.map(({ x }) => x.pick)).size, missing = found.filter(({ x }) => !(x.price > 0) || !x.size).length;
   const name = (x) => (x.cands.find((c) => c.perfume_id === x.pick) || {}).name || x.name, brand = (x) => (x.cands.find((c) => c.perfume_id === x.pick) || {}).brand || "";
-  const head = [`لقينا <b>${fmt(groups)}</b> عطر`, ask.length ? `<b>${fmt(ask.length)}</b> خاصك تختار` : "", none.length ? `<b>${fmt(none.length)}</b> ما لقيناهمش` : "", already ? `${fmt(already)} عندك ديجا` : ""].filter(Boolean).join(" · ");
+  const head = [`وجدنا <b>${fmt(groups)}</b> عطر`, ask.length ? `<b>${fmt(ask.length)}</b> تحتاج اختيارك` : "", none.length ? `<b>${fmt(none.length)}</b> لم نجدها` : "", already ? `${fmt(already)} موجودة عندك` : ""].filter(Boolean).join(" · ");
   el.innerHTML = `<div class="p-imp">
     <p class="p-imp-top">${head}</p>
-    ${ask.length ? `<section class="p-imp-sec p-imp-ask"><h3>🤔 شكون فيهم؟ <small>ورك على العطر الصحيح</small></h3>
+    ${ask.length ? `<section class="p-imp-sec p-imp-ask"><h3>🤔 أي عطر تقصد؟ <small>اضغط على العطر الصحيح</small></h3>
       ${ask.map(({ x, i }) => `<div class="p-imp-q" data-i="${i}"><p dir="auto">«${esc(x.raw)}»</p><div class="p-imp-btns">
         ${x.cands.map((c) => `<button type="button" class="p-imp-pick" data-pick="${esc(c.perfume_id)}"><b dir="ltr">${esc(c.name)}</b><small dir="ltr">${esc(c.brand)}</small></button>`).join("")}
-        <button type="button" class="p-imp-pick is-none" data-drop>ما كاينش</button></div></div>`).join("")}</section>` : ""}
-    ${found.length ? `<section class="p-imp-sec"><h3>✅ غادي يتزادو <small>شوف الحجم والثمن</small></h3>
+        <button type="button" class="p-imp-pick is-none" data-drop>غير موجود</button></div></div>`).join("")}</section>` : ""}
+    ${found.length ? `<section class="p-imp-sec"><h3>✅ ستتم إضافتها <small>راجع الحجم والثمن</small></h3>
       <ul class="p-imp-found">${found.map(({ x, i }) => `<li data-i="${i}"><div class="p-imp-n"><b dir="ltr">${esc(name(x))}</b><small dir="ltr">${esc(brand(x))}</small>${x.type === "decant" ? '<span class="p-tag">ديكونط</span>' : ""}</div>
         <input data-f="size" value="${esc(x.size)}" placeholder="الحجم" aria-label="الحجم" dir="ltr" maxlength="20" class="${x.size ? "" : "is-miss"}">
         <input data-f="price" type="number" min="1" step="1" inputmode="decimal" value="${x.price ?? ""}" placeholder="الثمن" aria-label="الثمن بالدرهم" class="${x.price > 0 ? "" : "is-miss"}">
-        <button type="button" class="p-imp-x" data-x aria-label="حيد ${esc(name(x))}">✕</button></li>`).join("")}</ul></section>` : ""}
-    ${none.length ? `<section class="p-imp-sec p-imp-none"><h3>❌ ما لقيناهمش</h3>
+        <button type="button" class="p-imp-x" data-x aria-label="احذف ${esc(name(x))}">✕</button></li>`).join("")}</ul></section>` : ""}
+    ${none.length ? `<section class="p-imp-sec p-imp-none"><h3>❌ لم نجدها</h3>
       <p class="p-small" dir="auto">${none.map(({ x }) => esc(x.name)).join(" · ")}</p>
-      <label class="p-chk"><input type="checkbox" id="imp-req"${IMP.sendReq !== false ? " checked" : ""}> صيفطهم لفريق RihaFlow باش يزيدوهم للكاتالوگ</label></section>` : ""}
+      <label class="p-chk"><input type="checkbox" id="imp-req"${IMP.sendReq !== false ? " checked" : ""}> أرسلها لفريق RihaFlow لإضافتها إلى الكتالوگ</label></section>` : ""}
     <div class="p-imp-foot"></div></div>`;
   const row = (n) => IMP.rows[Number(n.closest("[data-i]").dataset.i)];
   el.querySelectorAll("[data-pick]").forEach((b) => b.addEventListener("click", () => { const x = row(b); x.pick = b.dataset.pick; drawImport(el); }));
@@ -370,14 +370,14 @@ function importFoot(el) {
   const groups = new Set(found.map((x) => x.pick)).size, missing = found.filter((x) => !(x.price > 0) || !x.size).length;
   const reqs = IMP.sendReq === false ? 0 : IMP.rows.filter((x) => !x.pick && (x.status === "none" || x.dropped)).length;
   const foot = el.querySelector(".p-imp-foot");
-  foot.innerHTML = `${missing ? `<p class="p-imp-warn">${fmt(missing)} ناقصهم الحجم ولا الثمن (بالبرتقالي).</p>` : ""}
-    <div class="p-imp-acts"><button type="button" class="d-btn" id="imp-save"${(groups && !missing) || (!groups && reqs) ? "" : " disabled"}>${groups ? `زيد ${fmt(groups)} عطر` : "صيفط الطلبات"}</button>
-      <button type="button" class="p-link" id="imp-back">رجع</button></div>`;
+  foot.innerHTML = `${missing ? `<p class="p-imp-warn">${fmt(missing)} ينقصها الحجم أو الثمن (باللون البرتقالي).</p>` : ""}
+    <div class="p-imp-acts"><button type="button" class="d-btn" id="imp-save"${(groups && !missing) || (!groups && reqs) ? "" : " disabled"}>${groups ? `أضف ${fmt(groups)} عطر` : "أرسل الطلبات"}</button>
+      <button type="button" class="p-link" id="imp-back">رجوع</button></div>`;
   foot.querySelector("#imp-back").addEventListener("click", () => { IMP.step = "input"; tabImport(); });
   foot.querySelector("#imp-save").addEventListener("click", () => saveImport(el));
 }
 async function saveImport(el) {
-  const btn = el.querySelector("#imp-save"); btn.disabled = true; btn.textContent = "كنزيدو…";
+  const btn = el.querySelector("#imp-save"); btn.disabled = true; btn.textContent = "جارٍ الإضافة…";
   const have = new Set(S.offers.filter((o) => o.active).map((o) => o.perfume_id.toUpperCase()));
   const groups = new Map();
   IMP.rows.filter((x) => x.pick && !have.has(x.pick.toUpperCase())).forEach((x) => {
@@ -403,11 +403,11 @@ async function saveImport(el) {
 function drawImportDone(el) {
   const r = IMP.result || { added: [], failed: [], reqs: 0 };
   el.innerHTML = `<div class="p-imp p-imp-done">
-    <h2>${r.added.length ? `تزادو ${fmt(r.added.length)} عطر للكتالوگ ديالك ✓` : "ما تزاد حتى عطر"}</h2>
-    ${r.reqs ? `<p>تصيفطو ${fmt(r.reqs)} طلبات ديال عطور جداد. غادي نزيدوهم للكاتالوگ ونخبروك.</p>` : ""}
-    ${r.failed.length ? `<p class="p-imp-warn">ما تزادوش: ${r.failed.map(esc).join("، ")}</p>` : ""}
-    <p class="p-small">العطور الجداد كيبانو للزبناء فالكويز فـ 10 حتى 15 دقيقة.</p>
-    <div class="p-imp-acts"><button type="button" class="d-btn" id="imp-mine">شوف عطوري</button><button type="button" class="p-link" id="imp-again">استورد لائحة أخرى</button></div></div>`;
+    <h2>${r.added.length ? `تمت إضافة ${fmt(r.added.length)} عطر إلى كتالوگك ✓` : "لم تتم إضافة أي عطر"}</h2>
+    ${r.reqs ? `<p>تم إرسال ${fmt(r.reqs)} طلبات لعطور جديدة. سنضيفها إلى الكتالوگ ونخبرك.</p>` : ""}
+    ${r.failed.length ? `<p class="p-imp-warn">لم تتم إضافة: ${r.failed.map(esc).join("، ")}</p>` : ""}
+    <p class="p-small">تظهر العطور الجديدة للزبناء في الكويز خلال 10 إلى 15 دقيقة.</p>
+    <div class="p-imp-acts"><button type="button" class="d-btn" id="imp-mine">عرض عطوري</button><button type="button" class="p-link" id="imp-again">استيراد لائحة أخرى</button></div></div>`;
   el.querySelector("#imp-mine").addEventListener("click", () => { IMP.step = "input"; IMP.text = ""; S.tab = "offers"; render(); });
   el.querySelector("#imp-again").addEventListener("click", () => { IMP.step = "input"; IMP.text = ""; tabImport(); });
 }
