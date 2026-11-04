@@ -213,7 +213,7 @@ function render() {
   if (S.mode === "team") return renderTeam();
   const s = S.store, live = S.offers.filter((o) => o.active), off = live.filter((o) => !o.in_stock).length;
   const pending = S.requests.filter((r) => r.status === "pending").length;
-  const tabs = [["offers", `عطوري <small>${live.length}</small>`], ["add", "زيد عطر"], ["requests", `طلب عطر جديد${pending ? ` <small>${pending}</small>` : ""}`],
+  const tabs = [["offers", `عطوري <small>${live.length}</small>`], ["add", "زيد عطر"], ["import", "📥 استيراد لائحة"], ["requests", `طلب عطر جديد${pending ? ` <small>${pending}</small>` : ""}`],
     ["reviews", "⭐ رأي المتجر"], ["stats", "📊 الإحصائيات"], ["report", "📄 التقرير الشهري"], ["settings", "⚙️ إعدادات المتجر"]];
   if (!tabs.some(([k]) => k === S.tab)) S.tab = "offers";
   app.innerHTML = `
@@ -236,7 +236,176 @@ function render() {
   const back = document.getElementById("b-team");
   if (back) back.addEventListener("click", () => { S.mode = "team"; sessionStorage.setItem("ff_mode", "team"); renderTeam(); });
   drawQueue();
-  ({ offers: tabOffers, add: tabAdd, requests: tabRequests, reviews: tabReviews, settings: tabSettings, stats: tabStats, report: tabReport }[S.tab] || tabOffers)();
+  ({ offers: tabOffers, add: tabAdd, requests: tabRequests, reviews: tabReviews, import: tabImport, settings: tabSettings, stats: tabStats, report: tabReport }[S.tab] || tabOffers)();
+}
+
+// ───────────── 📥 import a list: paste or upload, match against the catalogue (015), confirm, add ─────────────
+// one line of the merchant's list → name to look for, size, bottle or decant, price (only what is clearly written)
+const CUR = "(?:dh|dhs|mad|درهم|د\\.?م)";
+function parseLine(raw) {
+  let t = " " + String(raw || "").replace(/\s+/g, " ").trim() + " ", price = null, size = "";
+  const m1 = t.match(new RegExp("(\\d+(?:[.,]\\d+)?)\\s*" + CUR + "(?=[\\s,;|]|$)", "i"));
+  if (m1) { price = Number(m1[1].replace(",", ".")); t = t.replace(m1[0], " "); }
+  const ms = t.match(/(\d+(?:[.,]\d+)?)\s*ml\b/i);
+  if (ms) { size = ms[1].replace(",", ".") + "ml"; t = t.replace(ms[0], " "); }
+  if (price == null) { // a last number is a price only next to a size or after a separator («… 100ml 350», «…; 350»)
+    const mt = t.match(/(?:[;,|\t]\s*|\s-\s|\s)(\d{2,6}(?:[.,]\d+)?)\s*$/);
+    if (mt && (size || /[;,|\t]|\s-\s/.test(mt[0]))) { price = Number(mt[1].replace(",", ".")); t = t.slice(0, t.length - mt[0].length); }
+  }
+  const decWord = /\b(decants?|d[ée]cant|échantillon|sample)\b|ديكونط|تقسيط/i.test(raw);
+  const type = decWord || (size && parseFloat(size) <= 20) ? "decant" : "full";
+  const name = t.replace(/[;,|\t]+/g, " ").replace(/\b(decants?|d[ée]cant)\b|ديكونط/gi, " ").replace(/\s+/g, " ").trim();
+  return { raw: String(raw).trim(), name, size, price: Number.isFinite(price) ? price : null, type };
+}
+// a spreadsheet (rows of cells) → lines; a header with name / brand / size / price columns is used when there is one
+function rowsToItems(rows) {
+  rows = rows.map((r) => r.map((c) => (c == null ? "" : String(c).trim()))).filter((r) => r.some(Boolean));
+  if (!rows.length) return [];
+  const h = rows[0].map((c) => c.toLowerCase()), col = (re) => h.findIndex((c) => re.test(c));
+  const ni = col(/^(name|nom|perfume|parfum|اسم|سمية|العطر|عطر)/), bi = col(/^(brand|marque|الماركة|ماركة)/), si = col(/^(size|taille|volume|الحجم|حجم)/), pi = col(/^(price|prix|الثمن|ثمن)/);
+  if (ni < 0) return rows.map((r) => parseLine(r.join(" ")));
+  return rows.slice(1).map((r) => {
+    const base = parseLine([bi >= 0 ? r[bi] : "", r[ni]].join(" "));
+    if (si >= 0 && r[si]) { const z = String(r[si]).match(/\d+(?:[.,]\d+)?/); if (z) { base.size = z[0].replace(",", ".") + "ml"; base.type = parseFloat(z[0]) <= 20 ? "decant" : "full"; } }
+    if (pi >= 0 && r[pi] !== "") { const v = Number(String(r[pi]).replace(/[^\d.,]/g, "").replace(",", ".")); if (Number.isFinite(v) && v > 0) base.price = v; }
+    base.raw = r.filter(Boolean).join(" · ");
+    return base;
+  }).filter((x) => x.name);
+}
+const IMP = { rows: [], step: "input", text: "", result: null };
+function impStatus(x) {
+  const c = x.cands || [], a = c[0], b = c[1];
+  if (!a) return "none";
+  return a.score >= 0.999 || (a.score >= 0.9 && (!b || a.score - b.score >= 0.1)) ? "sure" : "check";
+}
+function tabImport() {
+  const el = document.getElementById("tab");
+  if (IMP.step === "review") return drawImport(el);
+  if (IMP.step === "done") return drawImportDone(el);
+  el.innerHTML = `<div class="p-imp">
+    <p class="p-small">عندك لائحة ديال العطور؟ لصقها هنا، عطر فكل سطر (السمية والماركة، وإلا بغيتي الحجم والثمن). ولا رفع ملف Excel ولا CSV. كنقلبو على كل عطر فالكاتالوگ، ونتا كتأكد قبل ما يتزاد شي حاجة.</p>
+    <label class="p-imp-lab">اللائحة<textarea id="imp-text" rows="9" dir="auto" placeholder="Lattafa Khamrah 100ml 350&#10;Dior Sauvage EDT 100ml 1200 dh&#10;Yara ديكونط 10ml 60">${esc(IMP.text)}</textarea></label>
+    <div class="p-imp-acts">
+      <button type="button" class="d-btn" id="imp-go">قلّب فالكاتالوگ</button>
+      <label class="d-btn ghost p-imp-file">رفع ملف (Excel / CSV)<input type="file" id="imp-file" class="sr" accept=".xlsx,.csv,.txt,text/csv,text/plain,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"></label>
+    </div>
+    <p class="p-small" id="imp-msg" role="status"></p></div>`;
+  const msg = el.querySelector("#imp-msg");
+  el.querySelector("#imp-go").addEventListener("click", () => {
+    IMP.text = el.querySelector("#imp-text").value;
+    const items = IMP.text.split(/\r?\n/).map((l) => l.trim()).filter((l) => l.length > 1).map(parseLine).filter((x) => x.name);
+    runMatch(items, msg);
+  });
+  el.querySelector("#imp-file").addEventListener("change", async (e) => {
+    const f = e.target.files[0]; if (!f) return;
+    msg.textContent = "كنقراو الملف…";
+    try {
+      let rows;
+      if (/\.xlsx$/i.test(f.name)) { const { readSheet } = await import("read-excel-file/browser"); rows = await readSheet(f); }
+      else { const txt = await f.text(); rows = txt.split(/\r?\n/).map((l) => l.split(/[;\t]|,(?=(?:[^"]*"[^"]*")*[^"]*$)/).map((c) => c.replace(/^"|"$/g, ""))); }
+      runMatch(rowsToItems(rows), msg);
+    } catch (err) { msg.textContent = "ما قدرناش نقراو هاد الملف. جرب Excel (.xlsx) ولا CSV، ولا لصق اللائحة."; }
+  });
+}
+async function runMatch(items, msg) {
+  if (!items.length) { msg.textContent = "ما لقينا حتى عطر فاللائحة."; return; }
+  if (items.length > 300) { msg.textContent = `اللائحة فيها ${fmt(items.length)} سطر. صيفط 300 فالمرة.`; return; }
+  msg.textContent = `كنقلبو على ${fmt(items.length)} عطر…`;
+  const r = await sb.rpc("match_perfumes", { p_items: items.map((x) => x.name) });
+  if (r.error) { msg.textContent = /match_perfumes|PGRST202|42883/.test((r.error.message || "") + r.error.code) ? "الاستيراد كيخدم من بعد ما يتشغّل 015_match_perfumes.sql فـ Supabase." : errText(r.error); return; }
+  const have = new Set(S.offers.filter((o) => o.active).map((o) => o.perfume_id.toUpperCase()));
+  IMP.rows = items.map((x, i) => {
+    const cands = ((r.data || [])[i] || {}).candidates || [];
+    const row = { ...x, cands, request: true };
+    row.status = impStatus(row);
+    row.pick = row.status === "sure" ? cands[0].perfume_id : "";
+    if (row.pick && have.has(row.pick.toUpperCase())) row.status = "have";
+    return row;
+  });
+  IMP.step = "review"; tabImport();
+}
+function drawImport(el) {
+  const have = new Set(S.offers.filter((o) => o.active).map((o) => o.perfume_id.toUpperCase()));
+  const rows = IMP.rows;
+  const adding = rows.filter((x) => x.pick && !have.has(x.pick.toUpperCase()));
+  const noPrice = adding.filter((x) => !(x.price > 0) || !x.size).length;
+  const reqs = rows.filter((x) => !x.pick && x.status !== "have" && x.request).length;
+  const count = (k) => rows.filter((x) => x.status === k).length;
+  const opt = (x, i, c) => `<label class="p-imp-cand"><input type="radio" name="pick-${i}" value="${esc(c.perfume_id)}"${x.pick === c.perfume_id ? " checked" : ""}>
+      ${thumb({ image_url: c.image })}<span><b dir="ltr">${esc(c.name)}</b><small dir="ltr">${esc(c.brand)}</small></span></label>`;
+  el.innerHTML = `<div class="p-imp">
+    <div class="p-imp-sum">
+      <span class="p-tag is-ok">✅ ${fmt(count("sure"))} لقيناهم</span><span class="p-tag is-warn">🤔 ${fmt(count("check"))} تأكد منهم</span>
+      <span class="p-tag">❌ ${fmt(count("none"))} ما لقيناهمش</span>${count("have") ? `<span class="p-tag">📦 ${fmt(count("have"))} عندك ديجا</span>` : ""}
+    </div>
+    <ol class="p-imp-list">${rows.map((x, i) => {
+      const dup = x.pick && have.has(x.pick.toUpperCase());
+      return `<li class="p-imp-row is-${dup ? "have" : x.status}" data-i="${i}">
+        <p class="p-imp-raw"><span dir="auto">${esc(x.raw)}</span>${dup ? '<span class="p-tag">عندك ديجا</span>' : x.status === "check" ? '<span class="p-tag is-warn">ختار العطر الصحيح</span>' : ""}</p>
+        ${x.cands.length && !dup ? `<div class="p-imp-cands">${(x.status === "sure" ? x.cands.slice(0, 1) : x.cands).map((c) => opt(x, i, c)).join("")}
+            ${x.status === "sure" ? '<button type="button" class="p-link" data-more>ماشي هادا؟</button>' : `<label class="p-imp-cand p-imp-nonec"><input type="radio" name="pick-${i}" value=""${x.pick ? "" : " checked"}><span>ماشي حتى واحد</span></label>`}</div>` : ""}
+        ${!x.pick && !dup ? `<label class="p-chk p-imp-req"><input type="checkbox" data-req${x.request ? " checked" : ""}> صيفطو كطلب عطر جديد («${esc(x.name)}»)</label>` : ""}
+        ${x.pick && !dup ? `<div class="p-imp-fields">
+            <label>النوع<select data-f="type"><option value="full"${x.type === "full" ? " selected" : ""}>قرعة كاملة</option><option value="decant"${x.type === "decant" ? " selected" : ""}>ديكونط</option></select></label>
+            <label>الحجم<input data-f="size" value="${esc(x.size)}" placeholder="100ml" dir="ltr" maxlength="20" class="${x.size ? "" : "is-miss"}"></label>
+            <label>الثمن (درهم)<input data-f="price" type="number" min="1" step="1" inputmode="decimal" value="${x.price ?? ""}" class="${x.price > 0 ? "" : "is-miss"}"></label></div>` : ""}
+      </li>`; }).join("")}</ol>
+    <div class="p-imp-foot">
+      <p><b>${fmt(new Set(adding.map((x) => x.pick)).size)}</b> عطر غادي يتزادو للكتالوگ ديالك${reqs ? ` · <b>${fmt(reqs)}</b> طلب عطر جديد` : ""}${noPrice ? ` · <span class="p-imp-warn">${fmt(noPrice)} ناقصهم الحجم ولا الثمن</span>` : ""}</p>
+      <div class="p-imp-acts"><button type="button" class="d-btn" id="imp-save"${adding.length && !noPrice || (!adding.length && reqs) ? "" : " disabled"}>زيد للكتالوگ ديالي</button>
+        <button type="button" class="p-link" id="imp-back">← رجع للائحة</button></div>
+    </div></div>`;
+  el.querySelectorAll(".p-imp-row").forEach((li) => {
+    const x = rows[Number(li.dataset.i)];
+    li.querySelectorAll('input[type="radio"]').forEach((r) => r.addEventListener("change", () => { x.pick = r.value; drawImport(el); }));
+    const more = li.querySelector("[data-more]");
+    if (more) more.addEventListener("click", () => { x.status = "check"; drawImport(el); });
+    const req = li.querySelector("[data-req]");
+    if (req) req.addEventListener("change", () => { x.request = req.checked; drawImport(el); });
+    li.querySelectorAll("[data-f]").forEach((f) => f.addEventListener("change", () => {
+      const k = f.dataset.f;
+      x[k] = k === "price" ? (f.value === "" ? null : Number(f.value)) : f.value.trim();
+      if (k === "size" && x.size && /^\d+([.,]\d+)?$/.test(x.size)) x.size += "ml";
+      drawImport(el);
+    }));
+  });
+  el.querySelector("#imp-back").addEventListener("click", () => { IMP.step = "input"; tabImport(); });
+  el.querySelector("#imp-save").addEventListener("click", () => saveImport(el));
+}
+async function saveImport(el) {
+  const btn = el.querySelector("#imp-save"); btn.disabled = true; btn.textContent = "كنزيدو…";
+  const have = new Set(S.offers.filter((o) => o.active).map((o) => o.perfume_id.toUpperCase()));
+  const groups = new Map();
+  IMP.rows.filter((x) => x.pick && !have.has(x.pick.toUpperCase())).forEach((x) => {
+    const g = groups.get(x.pick) || { pick: x.pick, name: (x.cands.find((c) => c.perfume_id === x.pick) || {}).name || x.name, variants: [] };
+    const key = x.type + "|" + x.size.toLowerCase();
+    if (!g.variants.some((v) => v.type + "|" + v.size.toLowerCase() === key)) g.variants.push({ type: x.type, size: x.size, price: x.price });
+    groups.set(x.pick, g);
+  });
+  const added = [], failed = [];
+  for (const g of groups.values()) {
+    const { data, error } = await sb.from("offers").insert({ store_id: S.store.id, perfume_id: g.pick, variants: g.variants, in_stock: true })
+      .select("id, perfume_id, size, size_type, price, in_stock, active, updated_at, variants, perfumes(name, brand, gender, image_url, size)").single();
+    if (error) failed.push(g.name + " (" + errText(error) + ")"); else { added.push(g.name); S.offers.push(data); }
+  }
+  const reqRows = IMP.rows.filter((x) => !x.pick && x.status !== "have" && x.request)
+    .map((x) => ({ store_id: S.store.id, perfume_name: x.name.slice(0, 120), brand: "", size: x.size, price: x.price, note: "من الاستيراد: " + x.raw.slice(0, 400) }));
+  let reqs = 0;
+  if (reqRows.length) { const r = await sb.from("requests").insert(reqRows).select("*"); if (r.error) failed.push("الطلبات (" + errText(r.error) + ")"); else { reqs = r.data.length; S.requests.unshift(...r.data); } }
+  IMP.result = { added, failed, reqs }; IMP.step = "done";
+  if (added.length) askPublish();
+  render();
+}
+function drawImportDone(el) {
+  const r = IMP.result || { added: [], failed: [], reqs: 0 };
+  el.innerHTML = `<div class="p-imp p-imp-done">
+    <h2>${r.added.length ? `تزادو ${fmt(r.added.length)} عطر للكتالوگ ديالك ✓` : "ما تزاد حتى عطر"}</h2>
+    ${r.reqs ? `<p>تصيفطو ${fmt(r.reqs)} طلبات ديال عطور جداد. غادي نزيدوهم للكاتالوگ ونخبروك.</p>` : ""}
+    ${r.failed.length ? `<p class="p-imp-warn">ما تزادوش: ${r.failed.map(esc).join("، ")}</p>` : ""}
+    <p class="p-small">العطور الجداد كيبانو للزبناء فالكويز فـ 10 حتى 15 دقيقة.</p>
+    <div class="p-imp-acts"><button type="button" class="d-btn" id="imp-mine">شوف عطوري</button><button type="button" class="p-link" id="imp-again">استورد لائحة أخرى</button></div></div>`;
+  el.querySelector("#imp-mine").addEventListener("click", () => { IMP.step = "input"; IMP.text = ""; S.tab = "offers"; render(); });
+  el.querySelector("#imp-again").addEventListener("click", () => { IMP.step = "input"; IMP.text = ""; tabImport(); });
 }
 
 // ───────────── the store's opinion (014): two quick questions, never the whole catalogue ─────────────
