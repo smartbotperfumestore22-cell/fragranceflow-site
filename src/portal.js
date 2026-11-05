@@ -112,10 +112,12 @@ async function start_() {
   document.getElementById("b-out").onclick = async () => { await sb.auth.signOut(); location.reload(); };
   const [mem, adm] = await Promise.all([
     sb.from("store_members").select("store_id, stores(*)"),
-    sb.from("admins").select("user_id").maybeSingle(),
+    // the role column comes with 016_team_roles.sql; before it, everyone in admins is admin
+    sb.from("admins").select("user_id, role").maybeSingle().then((r) => (r.error ? sb.from("admins").select("user_id").maybeSingle() : r)),
   ]);
   if (mem.error) { app.innerHTML = `<p class="d-msg">${errText(mem.error)}</p>`; return; }
   S.admin = !!(adm.data);
+  S.role = S.admin ? (adm.data.role === "agent" ? "agent" : "admin") : "";
   S.stores = (mem.data || []).map((m) => m.stores).filter(Boolean);
   if (S.admin) {
     const all = await sb.from("stores").select("*").order("name");
@@ -704,14 +706,30 @@ function openStore(id) {
   S.mode = "store"; S.tab = "home"; sessionStorage.setItem("ff_mode", "store");
   loadStore();
 }
+// the RihaFlow team's space in four sections, like the store space:
+// 🏠 الرئيسية (alerts, platform numbers) · 🏪 المتاجر (stores, accounts, new store, subscriptions) · 🧴 الكاتالوگ (perfumes, requests)
+// · 👥 الفريق (members and activity log, admin only). An agent sees the first three (016_team_roles.sql).
+const isBoss = () => S.role !== "agent";
+const T_SECTIONS = () => [["home", "🏠", "الرئيسية"], ["stores", "🏪", "المتاجر"], ["catalog", "🧴", "الكاتالوگ"]].concat(isBoss() ? [["team", "👥", "الفريق"]] : []);
+const T_SEC = { overview: "home", stores: "stores", accounts: "stores", newacc: "stores", subs: "stores", perfumes: "catalog", review: "catalog", members: "team", log: "team" };
+const T_FIRST = { home: "overview", stores: "stores", catalog: "perfumes", team: "members" };
 function renderTeam() {
-  const tabs = [["overview", "🌐 اللوحة العامة"], ["perfumes", "🧴 العطور"], ["accounts", "👥 الحسابات"], ["review", "📝 الطلبات"], ["stores", `🏪 المتاجر <small>${S.stores.length}</small>`]];
+  if (!T_SEC[S.teamTab] || (T_SEC[S.teamTab] === "team" && !isBoss()) || (S.teamTab === "subs" && !isBoss())) S.teamTab = "overview";
+  const sec = T_SEC[S.teamTab];
+  const seg = (items) => `<nav class="p-seg" aria-label="${T_SECTIONS().find((x) => x[0] === sec)[2]}">${items.map(([k, l]) => `<button type="button" data-team="${k}" aria-pressed="${S.teamTab === k}">${l}</button>`).join("")}</nav>`;
+  const sub = {
+    stores: seg([["stores", `المتاجر <small>${S.stores.length}</small>`], ["accounts", "الحسابات"], ["newacc", "+ متجر جديد"]].concat(isBoss() ? [["subs", "الاشتراكات"]] : [])),
+    catalog: seg([["perfumes", "العطور"], ["review", 'الطلبات <small id="t-req-n" hidden></small>']]),
+    team: seg([["members", "الأعضاء"], ["log", "سجل النشاط"]]),
+  }[sec] || "";
   app.innerHTML = `
-    <section class="d-head p-head"><div><h1>لوحة RihaFlow</h1><p>${fmt(S.stores.length)} متجر · لفريق RihaFlow فقط</p></div>
+    <section class="d-head p-head"><div><h1>لوحة RihaFlow</h1><p>${fmt(S.stores.length)} متجر · ${S.role === "agent" ? "حسابك: Agent" : "حسابك: Admin"}</p></div>
       <button type="button" class="d-btn p-publish" id="b-publish">🚀 انشر الموقع الآن</button></section>
-    <nav class="p-tabs" role="tablist">${tabs.map(([k, l]) => `<button role="tab" type="button" data-team="${k}" aria-selected="${S.teamTab === k}">${l}</button>`).join("")}</nav>
+    <nav class="p-nav" aria-label="الأقسام">${T_SECTIONS().map(([k, i, l]) => `<button type="button" data-tsec="${k}"${sec === k ? ' aria-current="page"' : ""}><span aria-hidden="true">${i}</span>${l}</button>`).join("")}</nav>
+    ${sub}
     <section id="tab" class="${S.teamTab === "overview" || S.teamTab === "stores" ? "p-overview" : "d-card p-panel"}"></section>`;
-  app.querySelectorAll("[data-team]").forEach((b) => b.addEventListener("click", () => { S.teamTab = b.dataset.team; renderTeam(); }));
+  app.querySelectorAll("[data-tsec]").forEach((b) => b.addEventListener("click", () => { S.teamTab = T_FIRST[b.dataset.tsec]; S.q = ""; renderTeam(); scrollTo(0, 0); }));
+  app.querySelectorAll("[data-team]").forEach((b) => b.addEventListener("click", () => { S.teamTab = b.dataset.team; S.q = ""; renderTeam(); }));
   document.getElementById("b-publish").addEventListener("click", async (e) => {
     e.target.disabled = true;
     let r; try { r = await teamCall("publish", { now: true }); } catch (er) { r = { error: "net" }; }
@@ -720,7 +738,11 @@ function renderTeam() {
     else if (r.queued) toast("تم تسجيل الطلب: هناك نشر قبل قليل، سيُعاد خلال 10 دقائق.");
     else toast("لم يتم النشر. تأكد من Apps Script (New version) ورابط النشر.", true);
   });
-  ({ overview: tabOverview, stores: tabStores, perfumes: tabPerfumes, accounts: tabAccounts, review: tabReview }[S.teamTab] || tabOverview)();
+  if (sec === "catalog") sb.from("requests").select("id", { count: "exact", head: true }).eq("status", "pending").then((r) => {
+    const n = document.getElementById("t-req-n"); if (n && r.count) { n.textContent = r.count; n.hidden = false; }
+  });
+  ({ overview: tabOverview, stores: tabStores, accounts: () => tabAccounts("list"), newacc: () => tabAccounts("new"), subs: tabSubs,
+     perfumes: tabPerfumes, review: tabReview, members: tabMembers, log: tabLog }[S.teamTab] || tabOverview)();
 }
 const manageCell = (x) => S.stores.some((y) => y.id === x.id)
   ? `<button type="button" class="d-btn a-open" data-manage="${esc(x.id)}">إدارة المتجر</button>` : "<small>غير موجود في Supabase</small>";
@@ -768,7 +790,7 @@ async function tabOverview() {
     const r = await sb.rpc("admin_insights", { p_days: days });
     const alerts = el.querySelector(".a-alerts");
     if (!r.error && r.data && !r.data.error && alerts && S.days === days && S.teamTab === "overview") {
-      const box = document.createElement("div"); box.className = "a-insights"; box.innerHTML = insightsHTML(r.data);
+      const box = document.createElement("div"); box.className = "a-insights"; box.innerHTML = insightsHTML(r.data, { revenue: isBoss() });
       alerts.after(box);
     }
   } catch (e) {}
@@ -1118,10 +1140,15 @@ function shareBox(r) {
     <div class="p-review"><button type="button" class="d-btn" data-copy="${esc(msg)}">انسخ الرسالة</button>
     <a class="p-link" target="_blank" rel="noopener" href="https://wa.me/?text=${encodeURIComponent(msg)}">أرسل عبر الواتساب</a></div></div>`;
 }
-async function tabAccounts() {
+// 🏪 المتاجر › «+ متجر جديد» (mode "new": the form) and «الحسابات» (mode "list": every merchant login)
+async function tabAccounts(mode) {
   const el = document.getElementById("tab");
+  if (mode === "list") {
+    el.innerHTML = '<div id="acc-result"></div><ul class="p-reqs" id="acc-list"><li class="d-empty">جارٍ تحميل الحسابات…</li></ul>';
+    accountsList(el); return;
+  }
   el.innerHTML = `<form id="f-acc" class="p-form" novalidate>
-      <h2 class="p-h2">حساب تاجر جديد</h2>
+      <h2 class="p-h2">متجر جديد وحساب تاجر</h2>
       <div class="p-grid2"><label>البريد الإلكتروني للتاجر<input type="email" name="email" required dir="ltr" autocomplete="off"></label>
       <label>المتجر<select name="store"><option value="">+ متجر جديد</option>${S.stores.map((x) => `<option value="${esc(x.id)}">${esc(x.name)} (${esc(x.id)})</option>`).join("")}</select></label></div>
       <div class="p-grid2 p-newstore"><label>store_id (في الرابط)<input name="store_id" dir="ltr" placeholder="parfumerie-x" pattern="[a-z0-9][a-z0-9-]{1,40}"></label>
@@ -1130,16 +1157,41 @@ async function tabAccounts() {
         <label>رقم الواتساب<input name="whatsapp" inputmode="tel" dir="ltr" placeholder="0612345678"></label></div>
       <p class="p-small">يبدأ المتجر الجديد بفترة تجريبية مدتها 7 أيام. يحصل التاجر على كلمة سر مؤقتة ترسلها له أنت.</p>
       <button class="d-btn" type="submit">أنشئ الحساب</button></form>
-    <div id="acc-result"></div>
-    <h2 class="p-h2">الحسابات</h2><ul class="p-reqs" id="acc-list"><li class="d-empty">جارٍ تحميل الحسابات…</li></ul>`;
+    <div id="acc-result"></div>`;
   const f = document.getElementById("f-acc"), ns = el.querySelector(".p-newstore"), out = document.getElementById("acc-result");
   const toggle = () => { ns.hidden = !!f.store.value; };
   f.store.addEventListener("change", toggle); toggle();
   f.name.addEventListener("input", () => { if (!f.store_id.dataset.touched) f.store_id.value = f.name.value.toLowerCase().normalize("NFKD").replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 40); });
   f.store_id.addEventListener("input", () => { f.store_id.dataset.touched = "1"; });
+  el.addEventListener("click", copyHandler);
+  f.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const body = { email: f.email.value.trim() };
+    if (f.store.value) body.store_id = f.store.value;
+    else Object.assign(body, { store_id: f.store_id.value.trim(), name: f.name.value.trim(), city: f.city.value.trim(), whatsapp: f.whatsapp.value.trim() });
+    if (!/^\S+@\S+\.\S+$/.test(body.email)) return toast("اكتب بريداً إلكترونياً صحيحاً.", true);
+    if (!/^[a-z0-9][a-z0-9-]{1,40}$/.test(body.store_id || "")) return toast("store_id: أحرف صغيرة (a-z) وأرقام و - فقط.", true);
+    if (!f.store.value && !body.name) return toast("اكتب اسم المتجر.", true);
+    const b = f.querySelector("[type=submit]"); b.disabled = true; b.textContent = "جارٍ الإنشاء…";
+    let r; try { r = await teamCall("createMerchant", body); } catch (er) { r = { error: "failed" }; }
+    b.disabled = false; b.textContent = "أنشئ الحساب";
+    if (r.error) return toast(r.error === "invalid" ? "هذا الإجراء خاص بفريق RihaFlow." : (r.message || "لم يتم إنشاء الحساب."), true);
+    out.innerHTML = r.new_user ? shareBox(r) : `<div class="p-share"><p><b>${esc(r.email)}</b> كان لديه حساب من قبل، وتم ربطه الآن بـ <b>${esc(r.store_id)}</b>. يدخل بكلمة السر الخاصة به.</p></div>`;
+    if (r.store_created) { const all = await sb.from("stores").select("*").order("name"); if (!all.error) S.stores = all.data; }
+    f.reset(); toggle(); toast("تم الإنشاء ✓");
+  });
+}
+
+async function copyHandler(e) {
+  const c = e.target.dataset && e.target.dataset.copy;
+  if (!c) return;
+  try { await navigator.clipboard.writeText(c); toast("تم النسخ ✓"); } catch (er) { toast("لم يتم النسخ. حدّدها يدوياً.", true); }
+}
+function accountsList(el) {
+  const out = document.getElementById("acc-result");
+  el.addEventListener("click", copyHandler);
   el.addEventListener("click", async (e) => {
     const t = e.target;
-    if (t.dataset.copy) { try { await navigator.clipboard.writeText(t.dataset.copy); toast("تم النسخ ✓"); } catch (er) { toast("لم يتم النسخ. حدّدها يدوياً.", true); } }
     if (t.dataset.reset) {
       t.disabled = true; const r = await teamCall("resetPassword", { user_id: t.dataset.reset }); t.disabled = false;
       if (r.error) return toast(r.message || "لم يتم التغيير.", true);
@@ -1153,32 +1205,159 @@ async function tabAccounts() {
       toast("تمت إزالة الوصول ✓"); loadList();
     }
   });
-  f.addEventListener("submit", async (e) => {
-    e.preventDefault();
-    const body = { email: f.email.value.trim() };
-    if (f.store.value) body.store_id = f.store.value;
-    else Object.assign(body, { store_id: f.store_id.value.trim(), name: f.name.value.trim(), city: f.city.value.trim(), whatsapp: f.whatsapp.value.trim() });
-    if (!/^\S+@\S+\.\S+$/.test(body.email)) return toast("اكتب بريداً إلكترونياً صحيحاً.", true);
-    if (!/^[a-z0-9][a-z0-9-]{1,40}$/.test(body.store_id || "")) return toast("store_id: أحرف صغيرة (a-z) وأرقام و - فقط.", true);
-    if (!f.store.value && !body.name) return toast("اكتب اسم المتجر.", true);
-    const b = f.querySelector("[type=submit]"); b.disabled = true; b.textContent = "جارٍ الإنشاء…";
-    let r; try { r = await teamCall("createMerchant", body); } catch (er) { r = { error: "failed" }; }
-    b.disabled = false; b.textContent = "أنشئ الحساب";
-    if (r.error) return toast(r.error === "invalid" ? "يجب أن تكون admin." : (r.message || "لم يتم إنشاء الحساب."), true);
-    out.innerHTML = r.new_user ? shareBox(r) : `<div class="p-share"><p><b>${esc(r.email)}</b> كان لديه حساب من قبل، وتم ربطه الآن بـ <b>${esc(r.store_id)}</b>. يدخل بكلمة السر الخاصة به.</p></div>`;
-    if (r.store_created) { const all = await sb.from("stores").select("*").order("name"); if (!all.error) S.stores = all.data; }
-    f.reset(); toggle(); toast("تم الإنشاء ✓"); loadList();
-  });
   async function loadList() {
     const ul = document.getElementById("acc-list");
     const r = await teamCall("merchants");
     if (r.error) { ul.innerHTML = `<li class="d-empty">${esc(r.message || "تعذّر تحميل الحسابات. تأكد أن Apps Script فيه المفتاح السري وأنه نُشر بـ New version.")}</li>`; return; }
     ul.innerHTML = r.accounts.length ? r.accounts.map((a) => `<li><div><b dir="ltr">${esc(a.email)}</b><small>${esc(a.store)} · ${a.last_sign_in_at ? "آخر دخول " + dateAr(a.last_sign_in_at) : "لم يدخل بعد"}</small></div>
       <div class="p-review"><button type="button" class="p-link" data-reset="${esc(a.user_id)}">كلمة سر جديدة</button>
-      <button type="button" class="p-link p-danger" data-unlink="${esc(a.user_id)}|${esc(a.store_id)}">أزل الوصول</button></div></li>`).join("")
+      ${isBoss() ? `<button type="button" class="p-link p-danger" data-unlink="${esc(a.user_id)}|${esc(a.store_id)}">أزل الوصول</button>` : ""}</div></li>`).join("")
       : '<li class="d-empty">لا يوجد أي حساب تاجر بعد.</li>';
   }
   loadList();
+}
+
+// 🏪 المتاجر › الاشتراكات (admin): status and end of trial of every store (set_subscription, 016)
+const SUB_LABEL = { trial: "تجربة", active: "مفعّل", paused: "موقوف", cancelled: "ملغى" };
+const isoDay = (d) => new Date(d).toISOString().slice(0, 10);
+function tabSubs() {
+  const el = document.getElementById("tab");
+  const list = S.stores.filter((x) => x.id !== "demo");
+  el.innerHTML = `<p class="p-small">التاجر لا يرى هذه الصفحة، والـ Agent لا يستطيع تغيير الاشتراك. المتجر في التجربة أو المفعّل يظهر للزبناء.</p>
+    <ul class="p-reqs p-subs">${list.map((x) => {
+      const st = x.subscription_status, end = x.trial_ends_at ? isoDay(x.trial_ends_at) : "";
+      const late = st === "trial" && x.trial_ends_at && daysLeft(x.trial_ends_at) <= 0;
+      return `<li data-sid="${esc(x.id)}"><div><b>${esc(x.name)}</b><small dir="ltr">${esc(x.id)}</small>
+          <small class="${late ? "p-sub-late" : ""}">${SUB_LABEL[st] || st}${st === "trial" && end ? (late ? " · انتهت يوم " : " · حتى ") + dateAr(x.trial_ends_at) : ""}</small></div>
+        <div class="p-sub-edit"><label><span class="sr">الاشتراك</span><select data-f="status">${Object.entries(SUB_LABEL).map(([k, l]) => `<option value="${k}"${k === st ? " selected" : ""}>${l}</option>`).join("")}</select></label>
+          <label class="p-sub-end"${st === "trial" ? "" : " hidden"}><span class="sr">نهاية التجربة</span><input type="date" data-f="end" value="${esc(end && !late ? end : isoDay(Date.now() + 7 * 864e5))}" dir="ltr"></label>
+          <button type="button" class="d-btn" data-save>حفظ</button></div></li>`; }).join("") || '<li class="d-empty">لا توجد متاجر بعد.</li>'}</ul>`;
+  el.querySelectorAll('[data-f="status"]').forEach((s) => s.addEventListener("change", () => { s.closest("li").querySelector(".p-sub-end").hidden = s.value !== "trial"; }));
+  el.querySelectorAll("[data-save]").forEach((b) => b.addEventListener("click", async () => {
+    const li = b.closest("li"), sid = li.dataset.sid, status = li.querySelector('[data-f="status"]').value, day = li.querySelector('[data-f="end"]').value;
+    const p = { p_store: sid, p_status: status };
+    if (status === "trial") { if (!day) return toast("اختر تاريخ نهاية التجربة.", true); p.p_trial_end = new Date(day + "T23:59:00").toISOString(); }
+    b.disabled = true;
+    const r = await sb.rpc("set_subscription", p);
+    b.disabled = false;
+    if (r.error) return toast(/set_subscription|PGRST202|42883/.test((r.error.message || "") + r.error.code) ? "شغّل 016_team_roles.sql في Supabase أولاً." : errText(r.error), true);
+    if (r.data && r.data.error) return toast({ forbidden: "هذا الإجراء خاص بالـ admin.", date: "تاريخ نهاية التجربة غير صحيح.", store: "المتجر غير موجود." }[r.data.error] || "لم يتم الحفظ.", true);
+    const x = S.stores.find((y) => y.id === sid); Object.assign(x, { subscription_status: r.data.subscription_status, trial_ends_at: r.data.trial_ends_at });
+    toast("تم حفظ الاشتراك ✓"); askPublish(); tabSubs();
+  }));
+}
+
+// 👥 الفريق › الأعضاء (admin): who is in the team and with which role; add, change the role, remove
+function teamShare(r) {
+  const url = location.origin + "/portal/";
+  const msg = `مرحباً 👋\nهذا حسابك في فريق RihaFlow:\n${url}\nالبريد الإلكتروني: ${r.email}\nكلمة السر المؤقتة: ${r.password}\nيمكنك تغييرها من «نسيت كلمة السر؟» في صفحة الدخول.`;
+  return `<div class="p-share"><p><b>${esc(r.email)}</b> · ${r.role === "admin" ? "Admin" : "Agent"}</p>
+    <p>كلمة السر المؤقتة: <code dir="ltr">${esc(r.password)}</code></p>
+    <p class="p-small">لن تظهر مرة أخرى. أرسلها الآن.</p>
+    <div class="p-review"><button type="button" class="d-btn" data-copy="${esc(msg)}">انسخ الرسالة</button>
+    <a class="p-link" target="_blank" rel="noopener" href="https://wa.me/?text=${encodeURIComponent(msg)}">أرسل عبر الواتساب</a></div></div>`;
+}
+async function tabMembers() {
+  const el = document.getElementById("tab");
+  el.innerHTML = `<form id="f-team" class="p-form" novalidate>
+      <h2 class="p-h2">إضافة عضو</h2>
+      <div class="p-grid2"><label>البريد الإلكتروني<input type="email" name="email" required dir="ltr" autocomplete="off"></label>
+      <label>الدور<select name="role"><option value="agent">Agent: العمل اليومي</option><option value="admin">Admin: كل الصلاحيات</option></select></label></div>
+      <p class="p-small"><b>Agent</b>: الكاتالوگ، الطلبات، مساعدة المتاجر، وإنشاء متاجر وحسابات جديدة. <b>Admin</b>: كل ذلك، والاشتراكات، وإزالة الحسابات، والفريق، والمداخيل، وسجل النشاط.</p>
+      <button class="d-btn" type="submit">أضف للفريق</button></form>
+    <div id="team-result"></div>
+    <h2 class="p-h2">الفريق</h2><ul class="p-reqs" id="team-list"><li class="d-empty">جارٍ تحميل الفريق…</li></ul>`;
+  const f = document.getElementById("f-team"), out = document.getElementById("team-result");
+  el.addEventListener("click", copyHandler);
+  f.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const email = f.email.value.trim();
+    if (!/^\S+@\S+\.\S+$/.test(email)) return toast("اكتب بريداً إلكترونياً صحيحاً.", true);
+    const b = f.querySelector("[type=submit]"); b.disabled = true;
+    const r = await teamCall("addTeam", { email, role: f.role.value });
+    b.disabled = false;
+    if (r.error) return toast(r.message || "لم تتم الإضافة.", true);
+    out.innerHTML = r.new_user ? teamShare(r) : `<div class="p-share"><p><b>${esc(r.email)}</b> كان لديه حساب، وأصبح الآن في الفريق (${r.role === "admin" ? "Admin" : "Agent"}). يدخل بكلمة السر الخاصة به.</p></div>`;
+    f.reset(); toast("تمت الإضافة ✓"); load();
+  });
+  async function load() {
+    const ul = document.getElementById("team-list");
+    const r = await teamCall("team");
+    if (r.error) { ul.innerHTML = `<li class="d-empty">${esc(r.message || "تعذّر تحميل الفريق.")}</li>`; return; }
+    ul.innerHTML = r.members.map((m) => { const me = m.user_id === S.user.id; return `<li data-uid="${esc(m.user_id)}"><div><b dir="ltr">${esc(m.email)}</b>
+        <small>${me ? "أنت · " : ""}${m.last_sign_in_at ? "آخر دخول " + dateAr(m.last_sign_in_at) : "لم يدخل بعد"}</small></div>
+      <div class="p-review"><label><span class="sr">الدور</span><select data-role${me ? " disabled" : ""}><option value="agent"${m.role === "agent" ? " selected" : ""}>Agent</option><option value="admin"${m.role === "admin" ? " selected" : ""}>Admin</option></select></label>
+      ${me ? "" : '<button type="button" class="p-link p-danger" data-rm>إزالة من الفريق</button>'}</div></li>`; }).join("");
+    ul.querySelectorAll("[data-role]").forEach((s) => s.addEventListener("change", async () => {
+      const r2 = await teamCall("setRole", { user_id: s.closest("li").dataset.uid, role: s.value });
+      if (r2.error) { toast(r2.message || "لم يتم التغيير.", true); return load(); }
+      toast("تم تغيير الدور ✓");
+    }));
+    ul.querySelectorAll("[data-rm]").forEach((b) => b.addEventListener("click", async () => {
+      if (b.dataset.sure !== "1") { b.dataset.sure = "1"; b.textContent = "متأكد؟"; return; }
+      const r2 = await teamCall("removeTeam", { user_id: b.closest("li").dataset.uid });
+      if (r2.error) return toast(r2.message || "لم تتم الإزالة.", true);
+      toast("تمت الإزالة ✓"); load();
+    }));
+  }
+  load();
+}
+
+// 👥 الفريق › سجل النشاط (admin): who changed what and when (activity_list, 016)
+const LOG_ACTION = {
+  "perfumes.insert": "أضاف عطراً للكاتالوگ", "perfumes.update": "عدّل عطراً في الكاتالوگ", "perfumes.delete": "حذف عطراً من الكاتالوگ",
+  "stores.insert": "أنشأ متجراً", "stores.update": "عدّل متجراً", "stores.delete": "حذف متجراً",
+  "offers.insert": "أضاف عطراً لمتجر", "offers.update": "عدّل عطراً في متجر", "offers.delete": "حذف عطراً من متجر",
+  "requests.insert": "أرسل طلب عطر", "requests.update": "راجع طلب عطر", "requests.delete": "حذف طلب عطر",
+  "store_members.insert": "ربط حساباً بمتجر", "store_members.delete": "أزال حساباً من متجر",
+  "team.createMerchant": "أنشأ حساب تاجر", "team.resetPassword": "أعطى كلمة سر جديدة", "team.unlinkMerchant": "أزال وصول حساب لمتجر",
+  "team.addTeam": "أضاف عضواً للفريق", "team.setRole": "غيّر دور عضو", "team.removeTeam": "أزال عضواً من الفريق",
+};
+const LOG_FIELD = { price: "الثمن", in_stock: "التوفر", active: "نشط", variants: "الأحجام", name: "الاسم", brand: "الماركة", gender: "لمن", subscription_status: "الاشتراك",
+  trial_ends_at: "نهاية التجربة", status: "الحالة", admin_note: "ملاحظة", city: "المدينة", whatsapp: "الواتساب", instagram: "Instagram", website: "الموقع", color: "اللون",
+  logo_url: "اللوگو", cover_url: "صورة الغلاف", theme: "الأجواء", welcome_title: "العنوان", welcome_text: "جملة الترحيب", role: "الدور", character: "العائلة", occasion: "المناسبة",
+  season: "الفصل", notes_top: "نوتات الافتتاح", notes_mid: "نوتات القلب", notes_base: "نوتات القاعدة", concentration: "التركيز", size: "الحجم", image_url: "الصورة", world: "الفئة",
+  store_created: "متجر جديد", new_user: "حساب جديد" };
+function logVal(v) {
+  if (v === null || v === undefined || v === "") return "—";
+  if (v === true) return "نعم"; if (v === false) return "لا";
+  if (Array.isArray(v) && v.every((x) => x && x.size)) return v.map((x) => `${x.size}${x.price ? " = " + x.price : ""}`).join("، ");
+  if (typeof v === "string" && /^\d{4}-\d\d-\d\dT/.test(v)) return dateAr(v);
+  if (typeof v === "object") return JSON.stringify(v).slice(0, 80);
+  return String(SUB_LABEL[v] || STATUS[v] || v).slice(0, 80);
+}
+function logDetail(d) {
+  if (!d || typeof d !== "object" || d.new) return "";
+  // an update is {field: [before, after]}; an Apps Script action is {field: value}
+  return Object.entries(d).map(([k, v]) => `<span><em>${esc(LOG_FIELD[k] || k)}:</em> ${Array.isArray(v) && v.length === 2 && !(v[0] && v[0].size)
+    ? `${esc(logVal(v[0]))} ← ${esc(logVal(v[1]))}` : esc(logVal(v))}</span>`).join("");
+}
+async function tabLog() {
+  const el = document.getElementById("tab");
+  const st = { rows: [], actor: "", done: false };
+  el.innerHTML = `<div class="p-review p-log-tools"><label>الشخص<select id="log-actor"><option value="">الجميع</option></select></label></div>
+    <ul class="p-log" id="log-list"><li class="d-empty">جارٍ تحميل السجل…</li></ul><button type="button" class="d-btn p-more" id="log-more" hidden>عرض المزيد</button>`;
+  const ul = document.getElementById("log-list"), more = document.getElementById("log-more"), sel = document.getElementById("log-actor");
+  teamCall("team").then((r) => { if (r && r.members) sel.innerHTML = '<option value="">الجميع</option>' + r.members.map((m) => `<option value="${esc(m.email)}">${esc(m.email)}</option>`).join(""); }).catch(() => {});
+  const fmtTime = (d) => new Date(d).toLocaleString("ar-MA", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
+  const draw = () => {
+    ul.innerHTML = st.rows.length ? st.rows.map((x) => `<li><time datetime="${esc(x.at)}">${fmtTime(x.at)}</time>
+      <div><p><b dir="ltr">${esc(x.actor_email || "—")}</b> <span class="p-role is-${esc(x.actor_role)}">${x.actor_role === "agent" ? "Agent" : "Admin"}</span> ${esc(LOG_ACTION[x.action] || x.action)}</p>
+        <p class="p-log-what">${x.target ? `<b dir="auto">${esc(x.target)}</b>` : ""}${x.store_id && !/^stores\./.test(x.action) ? ` · <span dir="ltr">${esc(x.store_id)}</span>` : ""}</p>
+        <p class="p-log-d">${logDetail(x.detail)}</p></div></li>`).join("") : '<li class="d-empty">لا يوجد أي نشاط بعد.</li>';
+    more.hidden = st.done;
+  };
+  const load = async (reset) => {
+    if (reset) { st.rows = []; st.done = false; ul.innerHTML = '<li class="d-empty">جارٍ تحميل السجل…</li>'; }
+    more.disabled = true;
+    const r = await sb.rpc("activity_list", { p_limit: 50, p_before: st.rows.length ? st.rows[st.rows.length - 1].id : null, p_actor: st.actor || null });
+    more.disabled = false;
+    if (r.error) { ul.innerHTML = `<li class="d-empty">${/activity_list|PGRST202|42883/.test((r.error.message || "") + r.error.code) ? "شغّل 016_team_roles.sql في Supabase أولاً." : errText(r.error)}</li>`; return; }
+    st.rows = st.rows.concat(r.data || []); st.done = (r.data || []).length < 50; draw();
+  };
+  sel.addEventListener("change", () => { st.actor = sel.value; load(true); });
+  more.addEventListener("click", () => load(false));
+  load(true);
 }
 
 // RihaFlow team: the master catalogue (what the quiz knows about every perfume)

@@ -5,7 +5,7 @@ import { FAMILY, IMPRESSION, SOURCE, esc, fmt, pct, bars, line, genderSplit } fr
 const PRICE = 299; // monthly subscription in MAD, as on the stores homepage
 const dateAr = (d) => { const [, m, dd] = d.split("-"); return `${Number(dd)}/${Number(m)}`; };
 
-export function insightsHTML(d) {
+export function insightsHTML(d, { revenue = true } = {}) {
   const t = d.totals || {}, s = d.subscriptions || {}, c = d.catalog || {}, perf = d.perfumes || [];
   const topShown = Math.max(1, ...perf.map((p) => p.shown));
   const health = [
@@ -61,7 +61,7 @@ export function insightsHTML(d) {
           <li class="${s.expired ? "is-warn" : ""}"><b>${fmt(s.expired)}</b><span>انتهت التجربة</span></li>
           <li><b>${fmt(s.paused)}</b><span>موقوف</span></li>
         </ul>
-        <p class="a-mrr">مدخول شهري تقديري: <b>${fmt((s.active || 0) * PRICE)} درهم</b> <small>(${fmt(s.active)} × ${PRICE} درهم، المفعّلون فقط)</small></p>
+        ${revenue ? `<p class="a-mrr">مدخول شهري تقديري: <b>${fmt((s.active || 0) * PRICE)} درهم</b> <small>(${fmt(s.active)} × ${PRICE} درهم، المفعّلون فقط)</small></p>` : ""}
         ${(s.ending || []).length ? `<h3 class="a-h3">تنتهي التجربة هذا الأسبوع</h3><ul class="a-ending">${s.ending.map((e) => `<li><b>${esc(e.store)}</b><span>${dateAr(e.date)}</span></li>`).join("")}</ul>` : ""}
       </div>
       <div class="d-card">

@@ -61,9 +61,13 @@ function doPost(e) {
   }
   if (b.action === 'admin') return json_(adminByJwt_(b.jwt) ? adminStatsFor_(b.days) : { error: 'invalid' });
   if (b.action === 'publish') return json_(requestPublish_(b.jwt, b.now));
-  if (/^(merchants|createMerchant|resetPassword|unlinkMerchant)$/.test(String(b.action))) {
-    if (!adminByJwt_(b.jwt)) return json_({ error: 'invalid' });
-    try { return json_(MERCHANT_ACTIONS[b.action](b)); }
+  // team actions: agents do the daily work, only the admin removes access or manages the team (016_team_roles.sql)
+  var act = String(b.action);
+  if (MERCHANT_ACTIONS.hasOwnProperty(act) || TEAM_ACTIONS.hasOwnProperty(act)) {
+    var me = teamByJwt_(b.jwt);
+    if (!me) return json_({ error: 'invalid' });
+    if (ADMIN_ONLY.indexOf(act) !== -1 && me.role !== 'admin') return json_({ error: 'forbidden', message: 'هذا الإجراء خاص بالـ admin.' });
+    try { var res = (MERCHANT_ACTIONS[act] || TEAM_ACTIONS[act])(b, me); if (res && res.ok) logAction_(me, act, res.log || {}); if (res) delete res.log; return json_(res); }
     catch (err) { return json_({ error: 'failed', message: String(err.message || err).slice(0, 300) }); }
   }
   return json_({ error: 'bad' });
@@ -798,6 +802,78 @@ function adminByJwt_(jwt) {
     return a.code === 200 && a.data.length > 0;
   } catch (e) { return false; }
 }
+// who is asking: { uid, email, role: 'admin' | 'agent' } for a member of the team, null otherwise.
+// Before 016_team_roles.sql (no role column yet) everyone in admins counts as admin.
+function teamByJwt_(jwt) {
+  jwt = String(jwt || '');
+  if (!/^[\w-]+\.[\w-]+\.[\w-]+$/.test(jwt) || jwt.length > 4000) return null;
+  try {
+    var u = UrlFetchApp.fetch(SUPABASE_URL + '/auth/v1/user', { headers: { apikey: SUPABASE_PUBLISHABLE, Authorization: 'Bearer ' + jwt }, muteHttpExceptions: true });
+    if (u.getResponseCode() !== 200) return null;
+    var user = JSON.parse(u.getContentText());
+    var a = sbCall_('get', 'rest/v1/admins?select=user_id,role&user_id=eq.' + encodeURIComponent(user.id));
+    if (a.code !== 200) a = sbCall_('get', 'rest/v1/admins?select=user_id&user_id=eq.' + encodeURIComponent(user.id));
+    if (a.code !== 200 || !a.data.length) return null;
+    return { uid: user.id, email: String(user.email || ''), role: a.data[0].role === 'agent' ? 'agent' : 'admin' };
+  } catch (e) { return null; }
+}
+// one line in the activity log (016); nothing breaks if the table is not there yet
+function logAction_(me, action, l) {
+  try {
+    sbCall_('post', 'rest/v1/activity_log', { actor: me.uid, actor_email: me.email, actor_role: me.role, action: 'team.' + action,
+      store_id: l.store_id || null, target: String(l.target || '').slice(0, 200), detail: l.detail || {} });
+  } catch (e) { /* the action itself already succeeded */ }
+}
+var ADMIN_ONLY = ['unlinkMerchant', 'team', 'addTeam', 'setRole', 'removeTeam'];
+var TEAM_ACTIONS = {
+  // the RihaFlow team with roles and last sign-in
+  team: function () {
+    var users = allUsers_(), byId = {};
+    users.forEach(function (u) { byId[u.id] = u; });
+    var a = sbCall_('get', 'rest/v1/admins?select=user_id,role,created_at&order=created_at');
+    if (a.code !== 200) throw new Error('شغّل 016_team_roles.sql في Supabase أولاً.');
+    return { members: a.data.map(function (x) { var u = byId[x.user_id] || {};
+      return { user_id: x.user_id, email: u.email || '?', role: x.role, created_at: x.created_at, last_sign_in_at: u.last_sign_in_at || null }; }) };
+  },
+  // add someone to the team: a new login with a temporary password, or an existing login
+  addTeam: function (b) {
+    var email = String(b.email || '').trim().toLowerCase(), role = b.role === 'admin' ? 'admin' : 'agent';
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || email.length > 120) throw new Error('البريد الإلكتروني غير صحيح');
+    var password = tempPassword_(), newUser = true, uid;
+    var u = sbCall_('post', 'auth/v1/admin/users', { email: email, password: password, email_confirm: true });
+    if (u.code < 300) uid = u.data.id;
+    else {
+      var old = allUsers_().filter(function (x) { return String(x.email).toLowerCase() === email; })[0];
+      if (!old) throw new Error('لم يتم إنشاء الحساب: ' + JSON.stringify(u.data).slice(0, 200));
+      uid = old.id; newUser = false; password = '';
+    }
+    var ins = sbCall_('post', 'rest/v1/admins', { user_id: uid, role: role });
+    if (ins.code >= 300) throw new Error('لم تتم الإضافة: ' + JSON.stringify(ins.data).slice(0, 200));
+    return { ok: true, email: email, role: role, new_user: newUser, password: password, log: { target: email, detail: { role: role } } };
+  },
+  // change a member's role; the last admin always stays admin
+  setRole: function (b, me) {
+    var role = b.role === 'admin' ? 'admin' : 'agent';
+    if (!/^[0-9a-f-]{36}$/.test(String(b.user_id))) throw new Error('bad user');
+    if (b.user_id === me.uid) throw new Error('لا يمكنك تغيير دورك بنفسك.');
+    var r = sbCall_('patch', 'rest/v1/admins?user_id=eq.' + b.user_id, { role: role });
+    if (r.code >= 300) throw new Error('لم يتم التغيير: ' + r.code);
+    return { ok: true, log: { target: emailOf_(b.user_id), detail: { role: role } } };
+  },
+  // remove someone from the team (the login stays; it simply loses the team space)
+  removeTeam: function (b, me) {
+    if (!/^[0-9a-f-]{36}$/.test(String(b.user_id))) throw new Error('bad user');
+    if (b.user_id === me.uid) throw new Error('لا يمكنك إزالة نفسك من الفريق.');
+    var who = emailOf_(b.user_id);
+    var r = sbCall_('delete', 'rest/v1/admins?user_id=eq.' + b.user_id);
+    if (r.code >= 300) throw new Error('لم تتم الإزالة: ' + r.code);
+    return { ok: true, log: { target: who } };
+  },
+};
+function emailOf_(uid) {
+  var r = sbCall_('get', 'auth/v1/admin/users/' + uid);
+  return r.code === 200 && r.data ? String(r.data.email || uid) : uid;
+}
 function tempPassword_() {
   var abc = 'abcdefghjkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789', bytes = Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256, Utilities.getUuid() + Utilities.getUuid());
   var out = ''; for (var i = 0; i < 12; i++) out += abc.charAt((bytes[i] + 256) % abc.length);
@@ -857,7 +933,8 @@ var MERCHANT_ACTIONS = {
     }
     var link = sbCall_('post', 'rest/v1/store_members', { user_id: uid, store_id: sid });
     if (link.code >= 300 && link.code !== 409) throw new Error('الربط ما تدارش: ' + JSON.stringify(link.data).slice(0, 200));
-    return { ok: true, email: email, store_id: sid, store_created: created, new_user: newUser, password: password };
+    return { ok: true, email: email, store_id: sid, store_created: created, new_user: newUser, password: password,
+      log: { store_id: sid, target: email, detail: { store_created: created, new_user: newUser } } };
   },
   // a new temporary password (when the merchant forgot theirs)
   resetPassword: function (b) {
@@ -865,14 +942,14 @@ var MERCHANT_ACTIONS = {
     var password = tempPassword_();
     var r = sbCall_('put', 'auth/v1/admin/users/' + b.user_id, { password: password });
     if (r.code >= 300) throw new Error('ما تبدلاتش: ' + JSON.stringify(r.data).slice(0, 200));
-    return { ok: true, email: r.data.email, password: password };
+    return { ok: true, email: r.data.email, password: password, log: { target: r.data.email } };
   },
   // remove a login's access to a store (the login itself stays)
   unlinkMerchant: function (b) {
     if (!/^[0-9a-f-]{36}$/.test(String(b.user_id)) || !/^[a-z0-9-]{2,41}$/.test(String(b.store_id))) throw new Error('bad request');
     var r = sbCall_('delete', 'rest/v1/store_members?user_id=eq.' + b.user_id + '&store_id=eq.' + b.store_id);
     if (r.code >= 300) throw new Error('ما تحيدش: ' + r.code);
-    return { ok: true };
+    return { ok: true, log: { store_id: b.store_id, target: emailOf_(b.user_id) } };
   },
 };
 
