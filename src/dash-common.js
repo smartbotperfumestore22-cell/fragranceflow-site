@@ -1,12 +1,12 @@
 // shared by the store dashboard and the monthly report
 export const FAMILY = { floral: "زهري", woody: "خشبي", fresh: "منعش وحمضي", aquatic: "أكواتيك وبحري", oriental: "شرقي وعميق",
   sweet: "حلو ودافئ", clean: "نظيف", musky: "مسكي وناعم", fruity: "فاكهي وحيوي", heavy: "عميق" };
-export const IMPRESSION = { firstlook: "يتفكروك من أول لقاء", attractive: "حضور جذاب", elegant: "أناقة هادئة", confident: "قوة وثقة",
-  mysterious: "غموض يخلّي الفضول", longlast: "أثر يبقى", luxury: "فخامة وثراء", fresh_imp: "حضور خفيف ومريح" };
+export const IMPRESSION = { firstlook: "يتذكرونك من أول لقاء", attractive: "حضور جذاب", elegant: "أناقة هادئة", confident: "قوة وثقة",
+  mysterious: "غموض يثير الفضول", longlast: "أثر يبقى", luxury: "فخامة وثراء", fresh_imp: "حضور خفيف ومريح" };
 // who the perfume is for: the quiz's first question
 export const GENDER = { women: "نسائي", men: "رجالي", unisex: "للجميع" };
-export const SOURCE = { instagram: "Instagram", whatsapp: "WhatsApp", qr: "QR فالمحل", website: "الموقع ديالك", facebook: "Facebook",
-  tiktok: "TikTok", direct: "مباشر (بلا مصدر)", other: "مصادر أخرى" };
+export const SOURCE = { instagram: "Instagram", whatsapp: "WhatsApp", qr: "QR في المحل", website: "موقعك", facebook: "Facebook",
+  tiktok: "TikTok", direct: "مباشر (بدون مصدر)", other: "مصادر أخرى" };
 
 export const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 export const fmt = (n) => Number(n || 0).toLocaleString("en-US");
@@ -16,7 +16,7 @@ export const dayLabel = (d) => { const [, m, dd] = d.split("-"); return Number(d
 
 export function bars(obj, labels, max = 6) {
   const list = sorted(obj).slice(0, max);
-  if (!list.length) return '<p class="d-empty">مازال ما كاين حتى معلومة.</p>';
+  if (!list.length) return '<p class="d-empty">لا توجد معلومات بعد.</p>';
   const top = list[0][1] || 1, total = list.reduce((s, x) => s + x[1], 0);
   return '<ul class="d-bars">' + list.map(([k, v]) =>
     `<li><span class="d-bar-name">${esc(labels[k] || k)}</span><span class="d-bar"><i style="width:${Math.max(4, (v / top) * 100)}%"></i></span><b>${pct(v, total)}%</b></li>`
@@ -52,7 +52,7 @@ export function delta(now, before) {
 // women / men / for everyone as one split bar with the share of each (finished quizzes only)
 export function genderSplit(obj) {
   const order = ["women", "men", "unisex"], vals = order.map((k) => Number((obj || {})[k]) || 0), total = vals.reduce((a, b) => a + b, 0);
-  if (!total) return '<p class="d-empty">مازال ما كاين حتى معلومة.</p>';
+  if (!total) return '<p class="d-empty">لا توجد معلومات بعد.</p>';
   return `<div class="d-split" role="img" aria-label="${order.map((k, i) => `${GENDER[k]} ${pct(vals[i], total)}%`).join("، ")}">
     ${order.map((k, i) => (vals[i] ? `<i class="g-${k}" style="flex:${vals[i]}"></i>` : "")).join("")}</div>
     <ul class="d-split-legend">${order.map((k, i) => `<li><i class="g-${k}"></i><span>${GENDER[k]}</span><b>${pct(vals[i], total)}%</b><small>${fmt(vals[i])}</small></li>`).join("")}</ul>`;

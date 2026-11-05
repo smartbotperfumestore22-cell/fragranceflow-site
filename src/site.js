@@ -35,9 +35,9 @@ export function startSite({ loadQuiz }) {
   })();
 
   var CHAR = { floral: 'زهري', woody: 'خشبي', fresh: 'منعش', citrus: 'حمضي', aquatic: 'بحري', oriental: 'شرقي', heavy: 'عميق', sweet: 'حلو', clean: 'نظيف', musky: 'مسكي', fruity: 'فاكهي' };
-  var GEN = { men: 'رجالي', women: 'نسائي', unisex: 'للجوج' };
-  var OCC = { daily: 'كل نهار', evening: 'سهرة', dates: 'موعد', travel: 'سفر', allday: 'كل وقت' };
-  var SEA = { summer: 'صيف', spring: 'ربيع', autumn: 'خريف', winter: 'شتا', allseasons: 'كل الفصول' };
+  var GEN = { men: 'رجالي', women: 'نسائي', unisex: 'للجميع' };
+  var OCC = { daily: 'كل يوم', evening: 'سهرة', dates: 'موعد', travel: 'سفر', allday: 'كل وقت' };
+  var SEA = { summer: 'صيف', spring: 'ربيع', autumn: 'خريف', winter: 'شتاء', allseasons: 'كل الفصول' };
   var BASE_TITLE = document.title;
   var PAGE = 8;
 
@@ -237,8 +237,8 @@ export function startSite({ loadQuiz }) {
     show('detail'); window.scrollTo(0, 0); stage.textContent = '';
     document.title = 'QR | RihaFlow';
     if (!STORE) {
-      stage.appendChild(h('section', { class: 'stage qr-page' }, h('h1', { text: 'QR ديال المحل' }),
-        h('p', { text: 'زيد ?store= ومعاه store_id ديال المحل ف الرابط، مثلا: ?store=parfumerie-x#qr' })));
+      stage.appendChild(h('section', { class: 'stage qr-page' }, h('h1', { text: 'QR الخاص بالمحل' }),
+        h('p', { text: 'أضف ?store= مع store_id الخاص بالمحل في الرابط، مثلاً: ?store=parfumerie-x#qr' })));
       return;
     }
     var link = location.origin + location.pathname + '?store=' + encodeURIComponent(STORE.id) + '&source=qr#quiz';
@@ -246,11 +246,11 @@ export function startSite({ loadQuiz }) {
     var dl = h('a', { class: 'btn', download: 'qr-' + STORE.id + '.png', href: '#', text: 'تحميل الصورة (PNG)' });
     var copyBtn = h('button', { type: 'button', class: 'btn ghost', text: 'نسخ الرابط' });
     copyBtn.addEventListener('click', function () {
-      (navigator.clipboard ? navigator.clipboard.writeText(link) : Promise.reject()).then(function () { copyBtn.textContent = 'تنسخ ✓'; }, function () { copyBtn.textContent = link; });
+      (navigator.clipboard ? navigator.clipboard.writeText(link) : Promise.reject()).then(function () { copyBtn.textContent = 'تم النسخ ✓'; }, function () { copyBtn.textContent = link; });
     });
     stage.appendChild(h('section', { class: 'stage qr-page' },
       h('h1', { text: 'اختبار العطور مع ' + STORE.name }),
-      h('p', { class: 'qr-sub', text: 'دير سكان للكود، وجاوب على شي أسئلة، ولقى العطر لي كيناسبك من المجموعة ديالنا' }),
+      h('p', { class: 'qr-sub', text: 'امسح الكود، وأجب عن بعض الأسئلة، واكتشف العطر الذي يناسبك من مجموعتنا' }),
       canvas,
       h('p', { class: 'qr-link latin', text: link }),
       h('div', { class: 'qr-actions' }, dl, copyBtn),
@@ -283,7 +283,7 @@ export function startSite({ loadQuiz }) {
         chev: 'M14.5 6l-6 6 6 6'
       };
       var ic = function (k, cls) { return h('span', { class: cls || 'store-hero-ic' }, icon(I[k])); };
-      var three = STORE.count >= 10 ? '3 عطور مختارة ليك' : 'حتى 3 عطور مختارة ليك';
+      var three = STORE.count >= 10 ? '3 عطور مختارة لك' : 'حتى 3 عطور مختارة لك';
       var fromStore = 'من العطور المتوفرة عند ' + STORE.name + '.';
       var get = function (k, t, sub) { return h('li', null, ic(k), h('span', { class: 'store-hero-get' }, h('b', { text: t }), h('small', { text: sub }))); };
       var img = function (src, cls) { return h('img', { src: src, alt: '', class: cls, loading: 'lazy', decoding: 'async', width: '120', height: '120' }); };
@@ -291,7 +291,7 @@ export function startSite({ loadQuiz }) {
       var note = function (n, t) { return h('figure', { class: 'shp-note' }, img(kit + 'note-' + n + '.webp'), h('figcaption', { text: t })); };
       var card = h('div', { class: 'shp-card' },
         ic('print', 'shp-seal'),
-        h('span', { class: 'shp-card-tx' }, h('b', { text: 'بصمتك العطرية' }), h('small', { text: 'الشخصية العطرية ديالك' })));
+        h('span', { class: 'shp-card-tx' }, h('b', { text: 'بصمتك العطرية' }), h('small', { text: 'شخصيتك العطرية' })));
       if (theme.banner) card.style.setProperty('--shp-banner', 'url("' + theme.banner + '")');
       if (theme.cream) ['--shp-c1', '--shp-cm', '--shp-c2'].forEach(function (k, i) { card.style.setProperty(k, theme.cream[i]); });
       var preview = h('div', { class: 'store-hero-pv', 'aria-hidden': 'true' },
@@ -308,7 +308,7 @@ export function startSite({ loadQuiz }) {
             ic('waves', 'shp-ic')),
           h('p', { class: 'shp-box-tx' }, h('b', { text: 'تخيّل الرائحة قبل ما تختار' }))));
       // the real number of questions, once the quiz has counted them (it varies by store: sizes, budget)
-      var qText = function (n) { return 'جاوب على ' + (n ? n + (n > 10 ? ' سؤال' : ' أسئلة') + ' بسيطة' : 'أسئلة بسيطة') + '، وخلي ' + STORE.name + ' يكتاشف ليك العطور اللي كتشبه لذوقك.'; };
+      var qText = function (n) { return 'أجب عن ' + (n ? n + (n > 10 ? ' سؤال' : ' أسئلة') + ' بسيطة' : 'أسئلة بسيطة') + '، وخلي ' + STORE.name + ' يكتشف لك العطور التي تشبه ذوقك.'; };
       var heroText = h('p', { class: 'store-hero-text', text: STORE.welcomeText || qText(window.__FF_QCOUNT__) });
       if (!STORE.welcomeText && !window.__FF_QCOUNT__) window.addEventListener('ff:qcount', function (e) { heroText.textContent = qText(e.detail); }, { once: true });
       var city = STORE.city ? STORE.city.charAt(0).toUpperCase() + STORE.city.slice(1) : '';
@@ -330,7 +330,7 @@ export function startSite({ loadQuiz }) {
             h('button', { type: 'button', class: 'store-hero-cta', onclick: function () {
               var q = document.getElementById('ff-widget-root'); if (q) q.scrollIntoView({ behavior: 'smooth', block: 'start' });
             } }, h('span', { text: '✨ اكتشف بصمتك' }), ic('chev', 'store-hero-chev')),
-            h('p', { class: 'store-hero-time' }, ic('clock', 'store-hero-clock'), h('span', { text: 'تقريباً دقيقة وحدة' })))));
+            h('p', { class: 'store-hero-time' }, ic('clock', 'store-hero-clock'), h('span', { text: 'دقيقة واحدة تقريباً' })))));
       hero.style.setProperty('--store-cover', 'url("' + String(STORE.cover || theme.img).replace(/["\\]/g, '') + '")');
       root.parentNode.insertBefore(hero, root);
     }
@@ -339,7 +339,7 @@ export function startSite({ loadQuiz }) {
     quizOpen = true;
     if (window.FF_OPEN) { window.FF_OPEN(); return; }
     var root = document.getElementById('ff-widget-root');
-    if (!root.firstChild) root.appendChild(h('p', { class: 'quiz-loading', text: 'كنوجدو الاختبار...' }));
+    if (!root.firstChild) root.appendChild(h('p', { class: 'quiz-loading', text: 'جارٍ تجهيز الاختبار...' }));
     loadQuiz().then(function () { if (location.hash === '#quiz') window.FF_OPEN(); });
   }
 
@@ -352,7 +352,7 @@ export function startSite({ loadQuiz }) {
     season:   { label: 'الفصل', values: ['summer', 'spring', 'autumn', 'winter'], names: SEA,
                 test: function (p, v) { return p.season.indexOf(v) > -1 || p.season.indexOf('allseasons') > -1; } }
   };
-  var GENDERS = [['all', 'الكل'], ['women', 'ليها هي'], ['men', 'ليه هو'], ['unisex', 'للجوج']];
+  var GENDERS = [['all', 'الكل'], ['women', 'لها'], ['men', 'له'], ['unisex', 'للجميع']];
   var state = { gender: 'all', tab: 'family', value: 'all', shown: PAGE };
   var grid = document.getElementById('grid'), more = document.getElementById('more'), countEl = document.getElementById('f-count');
 
@@ -385,7 +385,7 @@ export function startSite({ loadQuiz }) {
   }
   var HEART = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/></svg>';
   function card(p) {
-    var heart = h('button', { type: 'button', class: 'heart', 'aria-pressed': 'false', 'aria-label': 'زيد ' + p.name + ' للمفضلة' });
+    var heart = h('button', { type: 'button', class: 'heart', 'aria-pressed': 'false', 'aria-label': 'أضف ' + p.name + ' للمفضلة' });
     heart.innerHTML = HEART;
     heart.addEventListener('click', function () { heart.setAttribute('aria-pressed', String(heart.getAttribute('aria-pressed') !== 'true')); });
     var tags = h('div', { class: 'tags' });
@@ -401,12 +401,12 @@ export function startSite({ loadQuiz }) {
         h('h3', { class: 'latin', text: p.name }),
         h('p', { class: 'fam', text: fam }),
         tags,
-        h('a', { class: 'btn ghost sm', href: '#f-' + encodeURIComponent(p.id) }, 'شوف العطر')));
+        h('a', { class: 'btn ghost sm', href: '#f-' + encodeURIComponent(p.id) }, 'عرض العطر')));
   }
   function drawGrid() {
     var list = BROWSE.filter(matches);
     grid.textContent = '';
-    if (!list.length) grid.appendChild(h('p', { class: 'empty', text: 'ما كاين حتى عطر بهاد التصفية. جرب اختيار آخر.' }));
+    if (!list.length) grid.appendChild(h('p', { class: 'empty', text: 'لا يوجد أي عطر بهذه التصفية. جرّب اختياراً آخر.' }));
     list.slice(0, state.shown).forEach(function (p) { grid.appendChild(card(p)); });
     countEl.textContent = list.length + ' عطر';
     more.hidden = list.length <= state.shown;
@@ -431,7 +431,7 @@ export function startSite({ loadQuiz }) {
     if (ranked.length >= 4) {
       // real visitor activity: say so; full rows only (3 or 6), never padded with unvisited perfumes
       pick = ranked.slice(0, ranked.length >= 6 ? 6 : 3);
-      document.getElementById('pop-note').textContent = 'الأكثر بحثاً عند الزوار ف آخر 30 يوم';
+      document.getElementById('pop-note').textContent = 'الأكثر بحثاً عند الزوار في آخر 30 يوماً';
     } else {
       pick = DB.filter(function (p) { return p.topSeller; });
       POPULAR.forEach(function (n) { var p = DB.filter(function (x) { return x.name === n; })[0]; if (p && pick.indexOf(p) < 0) pick.push(p); });
@@ -504,7 +504,7 @@ export function startSite({ loadQuiz }) {
     var t = q.value.trim().toLowerCase(); drop.textContent = '';
     if (!t) { drop.hidden = true; return; }
     var m = DB.filter(function (p) { return (p.name + ' ' + p.brand).toLowerCase().indexOf(t) > -1; }).slice(0, 6);
-    if (!m.length) drop.appendChild(h('p', { text: 'ما لقينا حتى عطر بهاد السمية.' }));
+    if (!m.length) drop.appendChild(h('p', { text: 'لم نجد أي عطر بهذا الاسم.' }));
     m.forEach(function (p) {
       drop.appendChild(h('button', { type: 'button', onclick: function () {
           if (window.track) window.track('search_pick', { perfume: p.name, pid: p.id });
@@ -543,7 +543,7 @@ export function startSite({ loadQuiz }) {
           onclick: function () { if (window.track) window.track('whatsapp_click', data); } }, '💬 اطلب عبر واتساب') : null));
     });
     return h('section', { class: 'dstores', 'aria-labelledby': 'dstores-title' },
-      h('h2', { id: 'dstores-title', text: 'فين تلقاه؟' }), ul);
+      h('h2', { id: 'dstores-title', text: 'أين تجده؟' }), ul);
   }
   function renderPerfume(p) {
     if (window.track) window.track('perfume_view', { perfume: p.name, pid: p.id });
@@ -562,25 +562,25 @@ export function startSite({ loadQuiz }) {
         h('div', { class: 'in' },
           h('div', { class: 'rc-head' },
             h('div', { style: 'min-width:0' }, h('h1', { class: 'latin', text: p.name }), h('p', { class: 'br latin', text: p.brand + ' · ' + p.concentration + ' · ' + p.size })),
-            offers.length || !p.price ? null : h('div', { class: 'price' }, h('b', { text: String(p.price) }), h('span', { text: 'درهم تقريبا' }))),
+            offers.length || !p.price ? null : h('div', { class: 'price' }, h('b', { text: String(p.price) }), h('span', { text: 'درهم تقريباً' }))),
           tags,
           h('div', { class: 'layers' }, layer('المقدمة', p.notes.top), layer('القلب', p.notes.middle), layer('القاعدة', p.notes.base)),
           h('p', { class: 'shop' }, h('b', { text: 'مناسب: ' }), occ + '. ', h('b', { text: 'الفصل: ' }), seasons(p) + '.'),
           offers.length ? null
-            : p.url ? h('a', { class: 'btn', href: p.url, target: '_blank', rel: 'noopener', style: 'align-self:flex-start' }, 'شوف عند ' + (p.store || 'المحل'))
-            : h('p', { class: 'shop' }, h('b', { text: 'فين تلقاه: ' }), 'قريبا، رابط مباشر عند المحلات الشريكة.'))),
+            : p.url ? h('a', { class: 'btn', href: p.url, target: '_blank', rel: 'noopener', style: 'align-self:flex-start' }, 'متوفر عند ' + (p.store || 'المحل'))
+            : h('p', { class: 'shop' }, h('b', { text: 'أين تجده: ' }), 'قريباً، رابط مباشر عند المحلات الشريكة.'))),
       offers.length ? storesBlock(p, offers) : null,
       STORE
         // store link: the only way is back to the store's quiz / results
-        ? h('div', { class: 'actions' }, h('a', { class: 'btn', href: '#quiz' }, h('span', { class: 'back-arrow', 'aria-hidden': 'true', text: '→' }), hasResults() ? 'رجع للنتائج ديالك' : 'اكتشف عطرك'))
+        ? h('div', { class: 'actions' }, h('a', { class: 'btn', href: '#quiz' }, h('span', { class: 'back-arrow', 'aria-hidden': 'true', text: '→' }), hasResults() ? 'العودة إلى نتائجك' : 'اكتشف عطرك'))
       : hasResults()
         // came from the quiz results: the way back to the other suggestions comes first
         ? h('div', { class: 'actions' },
-            h('a', { class: 'btn', href: '#quiz' }, h('span', { class: 'back-arrow', 'aria-hidden': 'true', text: '→' }), 'رجع للنتائج ديالك'),
-            h('a', { class: 'textlink', href: '#fragrances' }, 'شوف كل العطور'))
+            h('a', { class: 'btn', href: '#quiz' }, h('span', { class: 'back-arrow', 'aria-hidden': 'true', text: '→' }), 'العودة إلى نتائجك'),
+            h('a', { class: 'textlink', href: '#fragrances' }, 'عرض كل العطور'))
         : h('div', { class: 'actions' },
             h('a', { class: 'btn', href: '#quiz' }, 'اكتشف بصمتك العطرية'),
-            h('a', { class: 'textlink', href: '#fragrances' }, 'رجع للعطور'))));
+            h('a', { class: 'textlink', href: '#fragrances' }, 'العودة إلى العطور'))));
   }
 
   /* ---------- homepage: «بصمتك العطرية» example, computed by the quiz's own engine and persona code ---------- */

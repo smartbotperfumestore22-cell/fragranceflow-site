@@ -12,11 +12,11 @@ const ENOUGH = 20;   // below this many experiences we do not draw conclusions
 function summary(d) {
   const t = d.totals || {}, exp = t.experiences || 0;
   if (exp < ENOUGH) return [];
-  const out = [`${fmt(exp)} زبون جربو الكويز هاد الشهر، و${pct(t.completed || 0, exp)}% منهم كمّلوه حتى النتيجة.`];
+  const out = [`${fmt(exp)} زبوناً جرّبوا الكويز هذا الشهر، و${pct(t.completed || 0, exp)}% منهم أكملوه حتى النتيجة.`];
   const fam = sorted(d.family)[0], famTotal = sorted(d.family).reduce((s, x) => s + x[1], 0);
-  if (fam) out.push(`العائلة اللي كيقلبو عليها أكثر هي «${FAMILY[fam[0]] || fam[0]}» (${pct(fam[1], famTotal)}% من الاختيارات).`);
+  if (fam) out.push(`العائلة الأكثر طلباً هي «${FAMILY[fam[0]] || fam[0]}» (${pct(fam[1], famTotal)}% من الاختيارات).`);
   const imp = sorted(d.impression)[0], impTotal = sorted(d.impression).reduce((s, x) => s + x[1], 0);
-  if (imp) out.push(`والانطباع اللي باغيين يخليو هو «${IMPRESSION[imp[0]] || imp[0]}» (${pct(imp[1], impTotal)}%).`);
+  if (imp) out.push(`والانطباع الذي يريدون تركه هو «${IMPRESSION[imp[0]] || imp[0]}» (${pct(imp[1], impTotal)}%).`);
   return out;
 }
 
@@ -26,10 +26,10 @@ function ideas(d) {
   if ((t.experiences || 0) < ENOUGH) return [];
   const out = [];
   const byWa = [...(d.perfumes || [])].sort((a, b) => b.whatsapp - a.whatsapp)[0];
-  if (byWa && byWa.whatsapp >= 3) out.push(`${byWa.name} هو العطر اللي طلبو عليه أكثر فالواتساب (${fmt(byWa.whatsapp)} مرة). خليه ديما متوفر وبيّنو فالواجهة.`);
+  if (byWa && byWa.whatsapp >= 3) out.push(`${byWa.name} هو العطر الأكثر طلباً عبر الواتساب (${fmt(byWa.whatsapp)} مرة). احرص على توفره دائماً واعرضه في الواجهة.`);
   const fam = sorted(d.family), famTotal = fam.reduce((s, x) => s + x[1], 0);
-  if (fam[0] && pct(fam[0][1], famTotal) >= 30) out.push(`${pct(fam[0][1], famTotal)}% من زبنائك كيميلو لـ«${FAMILY[fam[0][0]] || fam[0][0]}». تأكد أن عندك اختيار مزيان من هاد العائلة.`);
-  if (t.near && t.completed && t.near / t.completed >= 0.1) out.push(`${fmt(t.near)} مرة ما لقاش الزبون عطر كيجمع كلشي اللي بغا. زيادة عطور جديدة فالكاتالوگ غادي تعطيه نتائج أدق.`);
+  if (fam[0] && pct(fam[0][1], famTotal) >= 30) out.push(`${pct(fam[0][1], famTotal)}% من زبنائك يميلون إلى «${FAMILY[fam[0][0]] || fam[0][0]}». تأكد أن لديك اختياراً جيداً من هذه العائلة.`);
+  if (t.near && t.completed && t.near / t.completed >= 0.1) out.push(`${fmt(t.near)} مرة لم يجد الزبون عطراً يجمع كل ما يريده. إضافة عطور جديدة إلى الكتالوگ ستعطيه نتائج أدق.`);
   return out;
 }
 
@@ -69,15 +69,15 @@ export function renderReport(root, d, opts = {}) {
   if (!opts.inPortal) document.title = `${d.store.name} | تقرير ${name}`;
   const initials = d.store.name.split(/\s+/).map((w) => w[0]).join("").slice(0, 2).toUpperCase();
   const kpi = (ic, label, val, before, shown, shownBefore) => `<div class="r-kpi"><span class="r-ic">${icon(ic)}</span><small>${label}</small>
-      <b>${shown}</b>${before != null ? delta(val, before) + `<span class="r-was">الشهر اللي قبل: ${shownBefore}</span>` : ""}</div>`;
+      <b>${shown}</b>${before != null ? delta(val, before) + `<span class="r-was">الشهر السابق: ${shownBefore}</span>` : ""}</div>`;
   const sum = summary(d), tips = ideas(d), perf = (d.perfumes || []).slice(0, 5), topShown = Math.max(1, ...perf.map((p) => p.shown));
   const fam = sorted(d.family).slice(0, 6), famT = sorted(d.family).reduce((a, x) => a + x[1], 0) || 1, famTop = fam.length ? fam[0][1] : 1;
   const imp = sorted(d.impression).slice(0, 5), impT = sorted(d.impression).reduce((a, x) => a + x[1], 0) || 1;
   const notes = [];
-  if (d.partial && d.to === new Date().toISOString().slice(0, 10)) notes.push("الشهر مازال ما سالاش.");
-  if (d.from > d.month + "-01") notes.push(`الأرقام كتبدا من ${dateAr(d.from)}.`);
-  const funnel = [["بداو التجربة", exp, 100], ["كمّلو الكويز", done, rate], ["كليكاو على الواتساب", waV, pct(waV, done)]];
-  const empty = '<p class="d-empty">مازال ما كاين حتى معلومة.</p>';
+  if (d.partial && d.to === new Date().toISOString().slice(0, 10)) notes.push("الشهر لم ينتهِ بعد.");
+  if (d.from > d.month + "-01") notes.push(`تبدأ الأرقام من ${dateAr(d.from)}.`);
+  const funnel = [["بدؤوا التجربة", exp, 100], ["أكملوا الكويز", done, rate], ["ضغطوا على الواتساب", waV, pct(waV, done)]];
+  const empty = '<p class="d-empty">لا توجد معلومات بعد.</p>';
   root.innerHTML = `
   <article class="r-sheet">
     <header class="r-hero">
@@ -87,27 +87,27 @@ export function renderReport(root, d, opts = {}) {
       <div class="r-meta">
         <div class="r-chip"><span class="d-seal" style="${d.store.color ? "background:" + esc(d.store.color) : ""}">${d.store.logo ? `<img src="${esc(d.store.logo)}" alt="">` : esc(initials)}</span>
           <div><b>${esc(d.store.name)}</b><small>متجر عطور</small></div></div>
-        <div class="r-chip"><span class="r-ic">${icon("cal")}</span><div><b>${esc(name)}</b><small>من ${dateAr(d.from)} حتى ${dateAr(d.to)}</small></div></div>
+        <div class="r-chip"><span class="r-ic">${icon("cal")}</span><div><b>${esc(name)}</b><small>من ${dateAr(d.from)} إلى ${dateAr(d.to)}</small></div></div>
       </div>
     </header>
     ${notes.length ? `<p class="r-note">${notes.map(esc).join(" ")}</p>` : ""}
     <section class="r-kpis">
       ${kpi("users", "التجارب", exp, pv && pv.experiences, fmt(exp), fmt(pv && pv.experiences))}
-      ${kpi("check", "كمّلو الكويز", done, pv && pv.completed, fmt(done), fmt(pv && pv.completed))}
+      ${kpi("check", "أكملوا الكويز", done, pv && pv.completed, fmt(done), fmt(pv && pv.completed))}
       ${kpi("wa", "نقرات الواتساب", wa, pv && pv.whatsapp, fmt(wa), fmt(pv && pv.whatsapp))}
       ${kpi("pct", "نسبة الإكمال", rate, prevRate, rate + "%", prevRate + "%")}
     </section>
     <section class="r-row r-row-a">
       <div class="r-box"><h2>الأداء خلال الشهر</h2>
-        <p class="r-legend"><span><i style="background:#C9B8FA"></i>التجارب</span><span><i style="background:#8B5CF6"></i>كمّلو الكويز</span><span><i style="background:#4C1D95"></i>واتساب</span></p>
+        <p class="r-legend"><span><i style="background:#C9B8FA"></i>التجارب</span><span><i style="background:#8B5CF6"></i>أكملوا الكويز</span><span><i style="background:#4C1D95"></i>واتساب</span></p>
         ${chart(d.days, [{ v: d.series.experiences, c: "#B59CF8" }, { v: d.series.completed, c: "#8B5CF6" }, { v: d.series.whatsapp, c: "#4C1D95" }])}</div>
       <div class="r-box"><h2>رحلة الزبون</h2>
         <ol class="r-funnel">${funnel.map(([l, v, p], i) => `<li style="--w:${100 - i * 12}%"><div><b>${fmt(v)}</b><small>${l}</small></div><em>${p}%</em></li>`).join("")}</ol>
-        ${t.shares ? `<p class="r-small">${fmt(t.shares)} مرة تبارطاجات البصمة العطرية.</p>` : ""}
+        ${t.shares ? `<p class="r-small">${fmt(t.shares)} مرة تمت مشاركة البصمة العطرية.</p>` : ""}
         <div class="r-gender"><h3>العطر لمن؟</h3>${genderSplit(d.gender)}</div></div>
     </section>
     <section class="r-row r-row-b">
-      <div class="r-box"><h2>أكثر العطور ظهوراً فالنتائج</h2>
+      <div class="r-box"><h2>أكثر العطور ظهوراً في النتائج</h2>
         ${perf.length ? `<ol class="r-perf">${perf.map((p, i) => `<li><span class="r-rank">${String(i + 1).padStart(2, "0")}</span>
           ${p.image ? `<img src="${esc(p.image)}" alt="" loading="lazy">` : '<span class="r-bottle" aria-hidden="true"></span>'}
           <div><b dir="ltr">${esc(p.brand ? p.brand + " " : "")}${esc(p.name)}</b><span class="d-bar"><i style="width:${Math.max(4, (p.shown / topShown) * 100)}%"></i></span></div>
@@ -119,9 +119,9 @@ export function renderReport(root, d, opts = {}) {
     </section>
     <section class="r-row r-row-c">
       <div class="r-box r-insight"><h2><span class="r-ic">${icon("spark")}</span>خلاصة الشهر</h2>
-        <p>${sum.length ? esc(sum.slice(1).join(" ") || sum[0]) : `الأرقام ديال هاد الشهر مازال قليلة (أقل من ${ENOUGH} تجربة) باش نخرجو منها خلاصات.`}</p></div>
-      <div class="r-box r-tip"><h2><span class="r-ic">${icon("bulb")}</span>فكرة لهاد الشهر</h2>
-        ${tips.length ? `<ul>${tips.slice(0, 2).map((x) => `<li>${esc(x)}</li>`).join("")}</ul>` : "<p>غادي تبان هنا فكرة عملية ملي تكون الأرقام كافية.</p>"}</div>
+        <p>${sum.length ? esc(sum.slice(1).join(" ") || sum[0]) : `أرقام هذا الشهر ما زالت قليلة (أقل من ${ENOUGH} تجربة) لاستخلاص نتائج منها.`}</p></div>
+      <div class="r-box r-tip"><h2><span class="r-ic">${icon("bulb")}</span>فكرة لهذا الشهر</h2>
+        ${tips.length ? `<ul>${tips.slice(0, 2).map((x) => `<li>${esc(x)}</li>`).join("")}</ul>` : "<p>ستظهر هنا فكرة عملية عندما تكون الأرقام كافية.</p>"}</div>
     </section>
     <footer class="r-foot">
       <div><img src="/images/brand/logo-lockup.webp" alt="RihaFlow" width="583" height="161"><small>اعرف زبونك. اقترح عليه العطر المناسب. قرّبو للشرا.</small></div>
