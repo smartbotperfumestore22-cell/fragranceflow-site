@@ -22,7 +22,7 @@ async function teamCall(action, body = {}) {
 
 const app = document.getElementById("app");
 const userBox = document.getElementById("p-user");
-const S = { user: null, admin: false, mode: "store", teamTab: "overview", days: 7, stores: [], store: null, tab: "offers", offers: [], catalog: null, requests: [], q: "", flash: "" };
+const S = { user: null, admin: false, mode: "store", teamTab: "overview", days: 7, stores: [], store: null, tab: "home", offers: [], catalog: null, requests: [], q: "", flash: "" };
 const GENDER = { men: "رجالي", women: "نسائي", unisex: "للجميع" };
 const STATUS = { pending: "كيتسنى", approved: "تقبل", rejected: "ما تقبلش" };
 const daysLeft = (d) => Math.ceil((new Date(d) - Date.now()) / 864e5);
@@ -209,34 +209,111 @@ function trialBanner(s) {
   return "";
 }
 
+// four sections instead of eight tabs: 🏠 home (what to do now), 🧴 my perfumes (+ add, import, request, opinion),
+// 📊 numbers (statistics, monthly report), 🏪 my store (share the link, quiz page, details). S.tab is the view shown.
+const SECTIONS = [["home", "🏠", "الرئيسية"], ["perfumes", "🧴", "عطوري"], ["numbers", "📊", "الأرقام"], ["store", "🏪", "متجري"]];
+const TAB_SEC = { home: "home", offers: "perfumes", add: "perfumes", import: "perfumes", requests: "perfumes", reviews: "perfumes", stats: "numbers", report: "numbers", settings: "store" };
+const SEC_FIRST = { home: "home", perfumes: "offers", numbers: "stats", store: "settings" };
+const hasPrice = (o) => vlist(o).some((v) => Number(v.price) > 0) || Number(o.price) > 0;
+// steps the merchant ticked on this device (tried the quiz, shared the link); nothing breaks without storage
+const onbKey = () => "ff_onb_" + S.store.id;
+function onbGet() { try { return JSON.parse(localStorage.getItem(onbKey()) || "{}"); } catch (e) { return {}; } }
+function onbSet(k) { try { localStorage.setItem(onbKey(), JSON.stringify({ ...onbGet(), [k]: 1 })); } catch (e) { /* private mode */ } }
+const subBad = (s) => (s.subscription_status === "trial" && s.trial_ends_at && daysLeft(s.trial_ends_at) <= 0) || s.subscription_status === "paused" || s.subscription_status === "cancelled";
+
 function render() {
   if (S.mode === "team") return renderTeam();
-  const s = S.store, live = S.offers.filter((o) => o.active), off = live.filter((o) => !o.in_stock).length;
+  const s = S.store, live = S.offers.filter((o) => o.active);
+  if (!TAB_SEC[S.tab]) S.tab = "home";
+  const sec = TAB_SEC[S.tab];
   const pending = S.requests.filter((r) => r.status === "pending").length;
-  const tabs = [["offers", `عطوري <small>${live.length}</small>`], ["add", "زيد عطر"], ["import", "📥 استيراد لائحة"], ["requests", `طلب عطر جديد${pending ? ` <small>${pending}</small>` : ""}`],
-    ["reviews", "⭐ رأي المتجر"], ["stats", "📊 الإحصائيات"], ["report", "📄 التقرير الشهري"], ["settings", "⚙️ إعدادات المتجر"]];
-  if (!tabs.some(([k]) => k === S.tab)) S.tab = "offers";
+  const sub = (items) => `<nav class="p-seg" aria-label="${SECTIONS.find((x) => x[0] === sec)[2]}">${items.map(([k, l]) => `<button type="button" data-tab="${k}" aria-pressed="${S.tab === k}">${l}</button>`).join("")}</nav>`;
+  let top = "";
+  if (sec === "perfumes") {
+    const back = { add: "زيد عطر من الكاتالوگ", import: "📥 استيراد لائحة", requests: "طلب عطر ما كاينش" }[S.tab];
+    top = back ? `<div class="p-subhead"><button type="button" class="p-link" data-tab="offers">→ رجوع لعطوري</button><h2>${back}</h2></div>`
+      : `<div class="p-perf-bar">${sub([["offers", `العطور ديالي <small>${live.length}</small>`], ["reviews", "⭐ رأيك فيهم"]])}
+          <button type="button" class="d-btn" id="b-add-menu" aria-expanded="${!!S.addMenu}" aria-controls="p-addmenu">+ زيد عطور</button></div>
+        <div class="p-addmenu" id="p-addmenu"${S.addMenu ? "" : " hidden"}>
+          <button type="button" data-tab="add"><b>🔎 عطر بعطر</b><span>قلب فالكاتالوگ وزيد الثمن</span></button>
+          <button type="button" data-tab="import"><b>📥 لائحة كاملة</b><span>لصق اللائحة ديالك ولا Excel</span></button>
+          <button type="button" data-tab="requests"><b>📝 عطر ما كاينش${pending ? ` <small>${pending}</small>` : ""}</b><span>طلبو ونزيدوه للكاتالوگ</span></button>
+        </div>`;
+  }
+  if (sec === "numbers") top = sub([["stats", "الإحصائيات"], ["report", "التقرير الشهري"]]);
+  const wide = sec === "home" || sec === "numbers";
   app.innerHTML = `
     ${S.admin ? '<div class="p-backbar"><button type="button" class="p-link" id="b-team">← رجوع للوحة العامة</button><span>كتشوف المتجر بحال التاجر</span></div>' : ""}
     <section class="d-head p-head">
       <span class="d-seal" style="${s.color ? "background:" + esc(s.color) : ""}">${s.logo_url ? `<img src="${esc(s.logo_url)}" alt="">` : esc(s.name.slice(0, 2).toUpperCase())}</span>
-      <div><h1>${esc(s.name)}</h1><p>${fmt(live.length)} عطر · ${fmt(off)} مقطوع</p></div>
+      <div><h1>${esc(s.name)}</h1><p>${fmt(live.length)} عطر فالكويز</p></div>
       ${!S.admin && S.stores.length > 1 ? `<label class="p-pick">المتجر<select id="s-store">${S.stores.map((x) => `<option value="${esc(x.id)}"${x.id === s.id ? " selected" : ""}>${esc(x.name)}</option>`).join("")}</select></label>` : ""}
     </section>
-    ${trialBanner(s)}
-    ${linkCard(s)}
-    <div id="p-rvq"></div>
-    <nav class="p-tabs" role="tablist">${tabs.map(([k, l]) => `<button role="tab" type="button" data-tab="${k}" aria-selected="${S.tab === k}">${l}</button>`).join("")}</nav>
-    <section id="tab" class="${S.tab === "stats" || S.tab === "report" ? "p-wide-tab" : "d-card p-panel"}"></section>
-    <p class="d-foot">التبديلات كتبان للزبناء فالكويز فـ 10 حتى 15 دقيقة.</p>`;
-  app.querySelectorAll(".p-tabs button").forEach((b) => b.addEventListener("click", () => { S.tab = b.dataset.tab; S.q = ""; render(); }));
+    <nav class="p-nav" aria-label="الأقسام">${SECTIONS.map(([k, i, l]) => `<button type="button" data-sec="${k}"${sec === k ? ' aria-current="page"' : ""}><span aria-hidden="true">${i}</span>${l}</button>`).join("")}</nav>
+    ${sec !== "home" && subBad(s) ? trialBanner(s) : ""}
+    ${top}
+    ${sec === "store" ? `<h2 class="p-sec-h">شارك متجرك</h2>${linkCard(s)}<h2 class="p-sec-h">المعلومات وصفحة الكويز</h2>` : ""}
+    <section id="tab" class="${wide ? "p-wide-tab" : "d-card p-panel"}"></section>
+    ${sec === "perfumes" ? '<p class="d-foot">التبديلات كتبان للزبناء فالكويز فـ 10 حتى 15 دقيقة.</p>' : ""}`;
+  app.querySelectorAll("[data-sec]").forEach((b) => b.addEventListener("click", () => { S.tab = SEC_FIRST[b.dataset.sec]; S.q = ""; S.addMenu = false; render(); scrollTo(0, 0); }));
+  app.querySelectorAll("[data-tab]").forEach((b) => b.addEventListener("click", () => { S.tab = b.dataset.tab; S.q = ""; S.addMenu = false; render(); }));
+  const am = document.getElementById("b-add-menu");
+  if (am) am.addEventListener("click", () => { S.addMenu = !S.addMenu; const m = document.getElementById("p-addmenu"); m.hidden = !S.addMenu; am.setAttribute("aria-expanded", S.addMenu); });
   const pick = document.getElementById("s-store");
   if (pick) pick.addEventListener("change", () => { S.store = S.stores.find((x) => x.id === pick.value); loadStore(); });
-  wireLinkCard(s);
+  if (sec === "store") wireLinkCard(s);
   const back = document.getElementById("b-team");
   if (back) back.addEventListener("click", () => { S.mode = "team"; sessionStorage.setItem("ff_mode", "team"); renderTeam(); });
+  ({ home: tabHome, offers: tabOffers, add: tabAdd, requests: tabRequests, reviews: tabReviews, import: tabImport, settings: tabSettings, stats: tabStats, report: tabReport }[S.tab] || tabHome)();
+}
+
+// 🏠 home: the account's state, the first steps (until they are all done), this week's numbers, one question
+function tabHome() {
+  const s = S.store, el = document.getElementById("tab"), live = S.offers.filter((o) => o.active), f = onbGet();
+  const noPrice = live.filter((o) => !hasPrice(o)).length;
+  const steps = [
+    ["perfumes", "زيد العطور ديالك", live.length ? `${fmt(live.length)} عطر فالكويز` : "العطور اللي كتبيع، باش يقترحهم الكويز على الزبناء", live.length > 0, '<button type="button" class="d-btn" data-go="offers" data-menu="1">زيد عطور</button>'],
+    ["prices", "حط الأثمنة", noPrice ? `${fmt(noPrice)} عطر بلا ثمن` : "الزبون كيشوف الثمن قبل ما يتواصل معاك", live.length > 0 && !noPrice, '<button type="button" class="d-btn ghost" data-go="offers">الأثمنة</button>'],
+    ["tried", "جرّب الكويز بحال زبون", "شوف شنو غادي يشوف الزبون ديالك", !!f.tried, `<a class="d-btn ghost" target="_blank" rel="noopener" href="${esc(storeLink(s))}#quiz" data-onb="tried">جرّب</a>`],
+    ["shared", "شارك الرابط ديال متجرك", "فالبيو ديال Instagram، فالواتساب، ولا QR فالمحل", !!f.shared, '<button type="button" class="d-btn ghost" id="b-home-copy">نسخ الرابط</button>'],
+  ];
+  const done = steps.filter((x) => x[3]).length, allDone = done === steps.length;
+  const status = subBad(s) ? trialBanner(s) : s.subscription_status === "active" ? '<p class="p-status is-ok">✓ الاشتراك مفعّل، والعطور ديالك كيبانو للزبناء.</p>' : trialBanner(s);
+  el.innerHTML = `${status}
+    ${allDone ? "" : `<section class="d-card p-steps" aria-labelledby="p-steps-t">
+      <div class="p-steps-head"><h2 id="p-steps-t">ابدا من هنا</h2><span>${done} من ${steps.length}</span></div>
+      <span class="p-rv-bar" aria-hidden="true"><i style="width:${(done / steps.length) * 100}%"></i></span>
+      <ol>${steps.map(([k, l, hint, ok, act], i) => `<li class="${ok ? "is-done" : ""}"><span class="p-step-n" aria-hidden="true">${ok ? "✓" : i + 1}</span>
+        <div><b>${l}</b><small>${hint}</small></div>${ok ? '<span class="p-step-ok">تدار</span>' : act}</li>`).join("")}</ol>
+    </section>`}
+    <section class="d-card p-week" aria-labelledby="p-week-t">
+      <div class="p-steps-head"><h2 id="p-week-t">آخر 7 أيام</h2><button type="button" class="p-link" data-go="stats">كل الأرقام ←</button></div>
+      <div class="p-week-n" id="p-week"><p class="d-msg">كنجيبو الأرقام…</p></div>
+    </section>
+    <div id="p-rvq"></div>
+    ${allDone ? `<section class="d-card p-quicklink"><h2>🔗 الرابط ديال متجرك</h2>
+      <div class="p-linkrow"><input readonly dir="ltr" value="${esc(storeLink(s))}" aria-label="الرابط ديال متجرك" id="p-home-url"><button type="button" class="d-btn" id="b-home-copy">نسخ</button></div>
+      <button type="button" class="p-link" data-go="settings">QR، واتساب، والموقع ديالك ←</button></section>` : ""}`;
+  el.querySelectorAll("[data-go]").forEach((b) => b.addEventListener("click", () => { S.tab = b.dataset.go; S.q = ""; S.addMenu = !!b.dataset.menu; render(); scrollTo(0, 0); }));
+  el.querySelectorAll("[data-onb]").forEach((a) => a.addEventListener("click", () => { onbSet(a.dataset.onb); setTimeout(render, 300); }));
+  const cp = document.getElementById("b-home-copy");
+  if (cp) cp.addEventListener("click", async () => {
+    try { await navigator.clipboard.writeText(storeLink(s)); toast("تنسخ الرابط ✓ لصقو فالبيو ولا صيفطو للزبناء."); }
+    catch (e) { toast(storeLink(s)); }
+    onbSet("shared"); if (!allDone) setTimeout(render, 600);
+  });
   drawQueue();
-  ({ offers: tabOffers, add: tabAdd, requests: tabRequests, reviews: tabReviews, import: tabImport, settings: tabSettings, stats: tabStats, report: tabReport }[S.tab] || tabOffers)();
+  week();
+  async function week() {
+    let d; try { d = await fetchStats({ days: 7 }); } catch (e) { d = { error: "net" }; }
+    const box = document.getElementById("p-week");
+    if (S.tab !== "home" || !box) return;
+    if (d.error) { box.innerHTML = `<p class="d-msg">${statsError(d)}</p>`; return; }
+    const t = d.totals || {};
+    if (t.experiences && !f.shared) { onbSet("shared"); return render(); }   // customers came: the link was shared
+    box.innerHTML = [["زيارات", t.experiences], ["كمّلو الكويز", t.completed], ["نقرات الواتساب", t.whatsapp]].map(([l, v]) => `<div><b>${fmt(v || 0)}</b><span>${l}</span></div>`).join("")
+      + (t.experiences ? "" : '<p class="p-small p-week-empty">الأرقام كتبان هنا ملي يبداو الزبناء يدوزو الكويز. شارك الرابط باش تبدا.</p>');
+  }
 }
 
 // ───────────── 📥 import a list: paste or upload, match against the catalogue (015), confirm, add ─────────────
@@ -568,7 +645,7 @@ function embedCodes(s) {
 function embedBox(s) {
   const c = embedCodes(s);
   return `<details class="p-embed">
-    <summary>🌐 زيد الكويز للموقع ديالك</summary>
+    <summary>متقدم: 🌐 زيد الكويز للموقع ديالك</summary>
     <div class="p-embed-in">
       <h3>1. زر كيحل الكويز</h3>
       <p class="p-small">الأسهل: زر فالصفحة الرئيسية ولا فالقائمة، كيحل الكويز ديال متجرك.</p>
@@ -603,6 +680,9 @@ function wireLinkCard(s) {
     setTimeout(() => { b.textContent = "نسخ"; }, 2500);
   });
   if (inp) inp.addEventListener("focus", () => inp.select());
+  // sharing or trying from here also ticks the home page's first steps
+  if (b) b.addEventListener("click", () => onbSet("shared"));
+  document.querySelectorAll(".p-linkacts a, #b-qr-dl").forEach((a) => a.addEventListener("click", () => onbSet(/#quiz$/.test(a.getAttribute("href") || "") ? "tried" : "shared")));
   const canvas = document.getElementById("p-qr");
   if (!canvas) return;
   import("qrcode").then((m) => {
@@ -621,7 +701,7 @@ function wireLinkCard(s) {
 // the RihaFlow team's own space: overview of every store, accounts, requests
 function openStore(id) {
   S.store = S.stores.find((x) => x.id === id); if (!S.store) return;
-  S.mode = "store"; S.tab = "offers"; sessionStorage.setItem("ff_mode", "store");
+  S.mode = "store"; S.tab = "home"; sessionStorage.setItem("ff_mode", "store");
   loadStore();
 }
 function renderTeam() {
