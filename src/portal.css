@@ -415,3 +415,25 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--v); outline
 .p-miss-home { padding: 14px 18px; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; border-color: #FCE3CC; background: #FFF8F1; }
 .p-miss-home h2 { margin: 0; font-size: 1rem; font-weight: 800; }
 .p-miss-home p { margin: 2px 0 0; }
+
+/* 📁 ملف المتجر: notes and payments; 📌 follow-ups on the team's home */
+.p-note-form textarea { width: 100%; resize: vertical; }
+.p-notes, .p-pays { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.p-notes li { display: grid; gap: 4px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 12px; background: #FFF; }
+.p-notes li.is-due { border-color: #F2B27A; background: #FFF8F1; }
+.p-notes li p { margin: 0; overflow-wrap: anywhere; white-space: pre-line; }
+.p-notes li small, .p-pays small { color: var(--muted); font-size: .8rem; }
+.p-pays li { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 6px 12px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 12px; }
+.p-pays li div { display: grid; min-width: 0; }
+.p-pay-state { margin: 0; font-weight: 700; }
+.p-pay-state.is-ok { color: #1E6B3A; }
+.p-pay-state.is-late { color: #8A3B00; }
+.p-pay-sum { margin: 0 0 10px; font-size: .9rem; }
+.p-check { display: flex !important; align-items: center; gap: 8px; font-weight: 600; }
+.p-check input { width: auto; }
+.p-follow { padding: 16px 18px; display: grid; gap: 10px; border-color: #F2B27A; }
+.p-follow h2 { margin: 0; font-size: 1.05rem; }
+.p-follow ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.p-follow li { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 12px; padding: 10px 12px; border-radius: 12px; background: #FFF8F1; border: 1px solid #FCE3CC; }
+.p-follow li > div:first-child { flex: 1 1 220px; min-width: 0; display: grid; gap: 2px; overflow-wrap: anywhere; }
+.p-follow small { color: var(--muted); font-size: .8rem; }

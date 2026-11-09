@@ -799,9 +799,134 @@ function renderTeam() {
      perfumes: tabPerfumes, review: tabReview, members: tabMembers, log: tabLog }[S.teamTab] || tabOverview)();
 }
 const manageCell = (x) => S.stores.some((y) => y.id === x.id)
-  ? `<span class="a-acts"><button type="button" class="d-btn a-open" data-manage="${esc(x.id)}">إدارة المتجر</button><button type="button" class="p-link" data-edit="${esc(x.id)}">✏️ تعديل</button></span>` : "<small>غير موجود في Supabase</small>";
+  ? `<span class="a-acts"><button type="button" class="d-btn a-open" data-manage="${esc(x.id)}">إدارة المتجر</button><button type="button" class="p-link" data-edit="${esc(x.id)}">📁 ملف المتجر</button></span>` : "<small>غير موجود في Supabase</small>";
 
-// 🏪 المتاجر › ✏️ تعديل: the store's name (team, rename_store 017) and its account's email (admin, Apps Script changeEmail).
+// 📁 ملف المتجر › notes (team) and payments (admin), 019_payments_notes.sql
+const todayISO = () => new Date().toLocaleDateString("en-CA");                       // the browser's day (Morocco)
+const addMonth = (iso) => { const d = new Date(iso + "T12:00:00"); d.setMonth(d.getMonth() + 1); return d.toLocaleDateString("en-CA"); };
+const PAY_METHOD = { cash: "نقداً", transfer: "تحويل بنكي", card: "بطاقة", other: "أخرى" };
+const isMissing = (err) => /store_notes|store_payments|42P01|PGRST205|does not exist/.test((err && (err.message || "")) + (err && err.code));
+const need019 = '<p class="d-msg">هذا القسم يعمل بعد تشغيل 019_payments_notes.sql في Supabase.</p>';
+
+async function storeNotes(st) {
+  const box = document.getElementById("e-notes");
+  if (!box) return;
+  box.innerHTML = `<form id="f-note" class="p-form p-note-form" novalidate>
+      <label>ملاحظة<textarea name="body" id="n-body" rows="2" maxlength="1000" placeholder="مثال: اتصلت به، سيضيف عطوره يوم الاثنين"></textarea></label>
+      <div class="p-edit-row"><label>تذكير يوم (اختياري)<input type="date" name="follow" id="n-follow" dir="ltr"></label>
+      <button type="submit" class="d-btn">أضف الملاحظة</button></div></form>
+    <ul class="p-notes" id="n-list"><li class="d-empty">جارٍ تحميل الملاحظات…</li></ul>`;
+  const f = document.getElementById("f-note");
+  f.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const body = f.body.value.trim();
+    if (!body) return toast("اكتب الملاحظة.", true);
+    const b = f.querySelector("[type=submit]"); b.disabled = true;
+    const r = await sb.from("store_notes").insert({ store_id: st.id, body, follow_up: f.follow.value || null, author: S.user.id });
+    b.disabled = false;
+    if (r.error) return toast(isMissing(r.error) ? "شغّل 019_payments_notes.sql في Supabase أولاً." : errText(r.error), true);
+    f.reset(); toast("تمت إضافة الملاحظة ✓"); draw();
+  });
+  async function draw() {
+    const ul = document.getElementById("n-list"); if (!ul) return;
+    const r = await sb.from("store_notes").select("*").eq("store_id", st.id).order("created_at", { ascending: false }).limit(50);
+    if (r.error) { ul.innerHTML = isMissing(r.error) ? `<li>${need019}</li>` : `<li class="d-empty">${errText(r.error)}</li>`; return; }
+    const today = todayISO();
+    ul.innerHTML = r.data.length ? r.data.map((n) => `<li data-id="${n.id}" class="${n.follow_up && !n.done ? (n.follow_up <= today ? "is-due" : "is-later") : ""}">
+        <p dir="auto">${esc(n.body)}</p>
+        <small><span dir="ltr">${esc(n.author_email)}</span> · ${dateAr(n.created_at)}${n.follow_up ? ` · ${n.done ? "✓ تمت المتابعة" : "📌 تذكير " + dateAr(n.follow_up)}` : ""}</small>
+        <div class="p-review">${n.follow_up && !n.done ? '<button type="button" class="p-link" data-done>تم ✓</button>' : ""}
+          ${isBoss() || n.author === S.user.id ? '<button type="button" class="p-link p-danger" data-del>حذف</button>' : ""}</div></li>`).join("")
+      : '<li class="d-empty">لا توجد ملاحظات بعد.</li>';
+    ul.querySelectorAll("[data-done]").forEach((b) => b.addEventListener("click", async () => {
+      const x = await sb.from("store_notes").update({ done: true }).eq("id", b.closest("li").dataset.id);
+      if (x.error) return toast(errText(x.error), true);
+      toast("تمت المتابعة ✓"); draw();
+    }));
+    ul.querySelectorAll("[data-del]").forEach((b) => b.addEventListener("click", async () => {
+      if (b.dataset.sure !== "1") { b.dataset.sure = "1"; b.textContent = "متأكد؟"; return; }
+      const x = await sb.from("store_notes").delete().eq("id", b.closest("li").dataset.id);
+      if (x.error) return toast(errText(x.error), true);
+      toast("تم الحذف ✓"); draw();
+    }));
+  }
+  draw();
+}
+
+async function storePayments(st) {
+  const box = document.getElementById("e-pays");
+  if (!box) return;
+  const r = await sb.from("store_payments").select("*").eq("store_id", st.id).order("paid_at", { ascending: false }).limit(60);
+  if (!document.body.contains(box)) return;
+  if (r.error) { box.innerHTML = isMissing(r.error) ? need019 : `<p class="d-msg">${errText(r.error)}</p>`; return; }
+  const pays = r.data, today = todayISO();
+  const until = pays.reduce((m, p) => (p.paid_until > m ? p.paid_until : m), "");
+  const from = until && until >= today ? until : today;
+  const late = until && until < today && st.subscription_status === "active";
+  box.innerHTML = `<p class="p-pay-state ${!until ? "" : late ? "is-late" : until >= today ? "is-ok" : ""}">${!until ? "لا يوجد أي أداء مسجل." : late ? `⚠️ متأخر: آخر أداء يغطي حتى ${dateAr(until)}.` : `مؤدى حتى ${dateAr(until)}.`}</p>
+    <form id="f-pay" class="p-form" novalidate>
+      <div class="p-grid2"><label>المبلغ (درهم)<input type="number" name="amount" id="y-amount" min="1" step="1" value="299" inputmode="numeric" dir="ltr"></label>
+        <label>الطريقة<select name="method" id="y-method">${Object.entries(PAY_METHOD).map(([k, l]) => `<option value="${k}">${l}</option>`).join("")}</select></label>
+        <label>تاريخ الأداء<input type="date" name="paid_at" id="y-at" value="${today}" dir="ltr"></label>
+        <label>مؤدى حتى<input type="date" name="paid_until" id="y-until" value="${addMonth(from)}" dir="ltr"></label></div>
+      <label>ملاحظة (اختياري)<input name="note" id="y-note" maxlength="300"></label>
+      ${st.subscription_status !== "active" ? `<label class="p-check"><input type="checkbox" name="activate" id="y-act" checked> فعّل الاشتراك (الآن: ${SUB_LABEL[st.subscription_status] || st.subscription_status})</label>` : ""}
+      <button type="submit" class="d-btn">سجّل الأداء</button></form>
+    ${pays.length ? `<ul class="p-pays">${pays.map((p) => `<li data-id="${p.id}"><div><b>${fmt(p.amount)} درهم</b><small>${dateAr(p.paid_at)} · ${PAY_METHOD[p.method] || p.method} · حتى ${dateAr(p.paid_until)}${p.note ? " · " + esc(p.note) : ""}</small></div>
+      <button type="button" class="p-link p-danger" data-del>حذف</button></li>`).join("")}</ul>` : ""}`;
+  const f = document.getElementById("f-pay");
+  f.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const amount = Number(f.amount.value);
+    if (!(amount > 0)) return toast("اكتب المبلغ.", true);
+    if (!f.paid_at.value || !f.paid_until.value) return toast("اختر التاريخين.", true);
+    if (f.paid_until.value < f.paid_at.value) return toast("«مؤدى حتى» يجب أن يكون بعد تاريخ الأداء.", true);
+    const b = f.querySelector("[type=submit]"); b.disabled = true;
+    const x = await sb.from("store_payments").insert({ store_id: st.id, amount, method: f.method.value, paid_at: f.paid_at.value, paid_until: f.paid_until.value, note: f.note.value.trim() });
+    if (x.error) { b.disabled = false; return toast(errText(x.error), true); }
+    if (f.activate && f.activate.checked) {
+      const s2 = await sb.rpc("set_subscription", { p_store: st.id, p_status: "active" });
+      if (!s2.error && s2.data && s2.data.ok) { st.subscription_status = "active"; st.trial_ends_at = null; askPublish(); }
+      else toast("تم تسجيل الأداء، لكن لم يتم تفعيل الاشتراك. فعّله من «الاشتراكات».", true);
+    }
+    toast("تم تسجيل الأداء ✓"); storePayments(st);
+  });
+  box.querySelectorAll("[data-del]").forEach((b) => b.addEventListener("click", async () => {
+    if (b.dataset.sure !== "1") { b.dataset.sure = "1"; b.textContent = "متأكد؟"; return; }
+    const x = await sb.from("store_payments").delete().eq("id", b.closest("li").dataset.id);
+    if (x.error) return toast(errText(x.error), true);
+    toast("تم الحذف ✓"); storePayments(st);
+  }));
+}
+
+// 🏠 الرئيسية (team): follow-ups due today or earlier, from the stores' notes
+async function followUps(el) {
+  const r = await sb.from("store_notes").select("*").eq("done", false).lte("follow_up", todayISO()).order("follow_up").limit(30);
+  if (r.error || !r.data.length || S.teamTab !== "overview") return;
+  const name = (id) => (S.stores.find((x) => x.id === id) || {}).name || id;
+  const sec = document.createElement("section");
+  sec.className = "d-card p-follow"; sec.setAttribute("aria-labelledby", "p-follow-t");
+  sec.innerHTML = `<h2 id="p-follow-t">📌 متابعات اليوم <span class="a-count">${r.data.length}</span></h2>
+    <ul>${r.data.map((n) => `<li data-id="${n.id}"><div><b>${esc(name(n.store_id))}</b> <span dir="auto">${esc(n.body)}</span>
+      <small><span dir="ltr">${esc(n.author_email)}</span> · ${n.follow_up < todayISO() ? "متأخرة منذ " : "اليوم "}${dateAr(n.follow_up)}</small></div>
+      <div class="p-review"><button type="button" class="p-link" data-file="${esc(n.store_id)}">📁 الملف</button><button type="button" class="a-fix" data-done>تم ✓</button></div></li>`).join("")}</ul>`;
+  const alerts = el.querySelector(".a-alerts");
+  if (alerts) alerts.before(sec); else el.append(sec);
+  sec.querySelectorAll("[data-done]").forEach((b) => b.addEventListener("click", async () => {
+    const x = await sb.from("store_notes").update({ done: true }).eq("id", b.closest("li").dataset.id);
+    if (x.error) return toast(errText(x.error), true);
+    b.closest("li").remove(); toast("تمت المتابعة ✓");
+    if (!sec.querySelector("li")) sec.remove();
+  }));
+  sec.querySelectorAll("[data-file]").forEach((b) => b.addEventListener("click", async () => {
+    S.teamTab = "stores"; renderTeam(); scrollTo(0, 0);
+    const id = b.dataset.file;
+    for (let i = 0; i < 40 && !document.querySelector(`[data-edit="${CSS.escape(id)}"]`); i++) await new Promise((ok) => setTimeout(ok, 150));
+    editStore(id);
+  }));
+}
+
+// 🏪 المتاجر › 📁 ملف المتجر: the store's name (team, rename_store 017) and its account's email (admin, Apps Script changeEmail).
 // The store_id stays: the link and the printed QR codes use it.
 async function editStore(id) {
   const st = S.stores.find((x) => x.id === id), el = document.getElementById("tab");
@@ -809,14 +934,18 @@ async function editStore(id) {
   let box = document.getElementById("p-edit");
   if (!box) { box = document.createElement("section"); box.id = "p-edit"; box.className = "d-card p-edit"; el.prepend(box); }
   box.setAttribute("aria-labelledby", "p-edit-t");
-  box.innerHTML = `<div class="p-steps-head"><h2 id="p-edit-t">تعديل المتجر</h2><button type="button" class="p-link" data-close>إغلاق</button></div>
+  box.innerHTML = `<div class="p-steps-head"><h2 id="p-edit-t">📁 ملف المتجر · ${esc(st.name)}</h2><button type="button" class="p-link" data-close>إغلاق</button></div>
     <p class="p-small">store_id: <code dir="ltr">${esc(st.id)}</code> · لا يتغيّر، حتى يبقى رابط المتجر والـ QR المطبوع يعملان.</p>
     <form id="f-sname" class="p-edit-row" novalidate><label>اسم المتجر<input name="name" id="e-name" maxlength="80" value="${esc(st.name)}" required></label>
       <button type="submit" class="d-btn">حفظ الاسم</button></form>
     <h3 class="p-h3">حساب التاجر</h3>
-    <div id="e-accounts">${isBoss() ? '<p class="d-msg">جارٍ تحميل الحساب…</p>' : '<p class="p-small">تغيير البريد الإلكتروني خاص بالـ admin.</p>'}</div>`;
+    <div id="e-accounts">${isBoss() ? '<p class="d-msg">جارٍ تحميل الحساب…</p>' : '<p class="p-small">تغيير البريد الإلكتروني خاص بالـ admin.</p>'}</div>
+    <h3 class="p-h3">📝 الملاحظات</h3><div id="e-notes"></div>
+    ${isBoss() ? '<h3 class="p-h3">💰 الأداءات</h3><div id="e-pays"><p class="d-msg">جارٍ تحميل الأداءات…</p></div>' : ""}`;
   box.scrollIntoView({ behavior: "smooth", block: "start" });
   box.querySelector("[data-close]").addEventListener("click", () => box.remove());
+  storeNotes(st);
+  if (isBoss()) storePayments(st);
   const f = document.getElementById("f-sname");
   f.addEventListener("submit", async (e) => {
     e.preventDefault();
@@ -916,6 +1045,7 @@ async function tabOverview() {
   el.innerHTML = range + adminHTML({ ...d, title: "اللوحة العامة" }, manageCell, "الأرقام والمتاجر والحسابات من Supabase.", { stores: false, fix: alertFix });
   wire();
   el.querySelectorAll("[data-fix]").forEach((b) => b.addEventListener("click", () => fixAlert(d.alerts[Number(b.dataset.fix)])));
+  followUps(el);
   // platform numbers (013_admin_insights.sql), under the alerts; nothing shown when the function is not there yet
   const days = S.days;
   try {
@@ -1368,6 +1498,7 @@ function tabSubs() {
   el.querySelectorAll('[data-f="status"]').forEach((s) => s.addEventListener("change", () => { s.closest("li").querySelector(".p-sub-end").hidden = s.value !== "trial"; }));
   // opened from an alert: that store is highlighted and its choice gets the focus
   const hit = S.prefill && el.querySelector(`li[data-sid="${CSS.escape(S.prefill)}"]`); S.prefill = "";
+  subsPaid(el, list);
   if (hit) { hit.classList.add("is-hit"); setTimeout(() => { hit.scrollIntoView({ block: "center" }); hit.querySelector("select").focus({ preventScroll: true }); }, 50); }
   el.querySelectorAll("[data-save]").forEach((b) => b.addEventListener("click", async () => {
     const li = b.closest("li"), sid = li.dataset.sid, status = li.querySelector('[data-f="status"]').value, day = li.querySelector('[data-f="end"]').value;
@@ -1381,6 +1512,27 @@ function tabSubs() {
     const x = S.stores.find((y) => y.id === sid); Object.assign(x, { subscription_status: r.data.subscription_status, trial_ends_at: r.data.trial_ends_at });
     toast("تم حفظ الاشتراك ✓"); askPublish(); tabSubs();
   }));
+}
+
+// the subscriptions list also shows what each store paid and the money recorded this month and last month (019)
+async function subsPaid(el, list) {
+  const r = await sb.from("store_payments").select("store_id, amount, paid_at, paid_until").order("paid_at", { ascending: false }).limit(2000);
+  if (r.error || S.teamTab !== "subs") return;
+  const today = todayISO(), m0 = today.slice(0, 7), d = new Date(today + "T12:00:00"); d.setDate(1); d.setMonth(d.getMonth() - 1);
+  const m1 = d.toLocaleDateString("en-CA").slice(0, 7);
+  const sum = (m) => r.data.filter((p) => p.paid_at.slice(0, 7) === m).reduce((s, p) => s + Number(p.amount), 0);
+  const head = document.createElement("p"); head.className = "p-pay-sum";
+  head.innerHTML = `المداخيل المسجلة: هذا الشهر <b>${fmt(sum(m0))} درهم</b> · الشهر الماضي <b>${fmt(sum(m1))} درهم</b>`;
+  el.prepend(head);
+  list.forEach((x) => {
+    const li = el.querySelector(`li[data-sid="${CSS.escape(x.id)}"] > div`); if (!li) return;
+    const until = r.data.filter((p) => p.store_id === x.id).reduce((m, p) => (p.paid_until > m ? p.paid_until : m), "");
+    const s = document.createElement("small");
+    const late = until && until < today && x.subscription_status === "active";
+    s.className = late ? "p-sub-late" : "";
+    s.textContent = !until ? "لا يوجد أداء مسجل" : late ? `⚠️ متأخر · آخر أداء حتى ${dateAr(until)}` : `💰 مؤدى حتى ${dateAr(until)}`;
+    li.append(s);
+  });
 }
 
 // 👥 الفريق › الأعضاء (admin): who is in the team and with which role; add, change the role, remove
@@ -1447,13 +1599,15 @@ const LOG_ACTION = {
   "requests.insert": "أرسل طلب عطر", "requests.update": "راجع طلب عطر", "requests.delete": "حذف طلب عطر",
   "store_members.insert": "ربط حساباً بمتجر", "store_members.delete": "أزال حساباً من متجر",
   "team.createMerchant": "أنشأ حساب تاجر", "team.resetPassword": "أعطى كلمة سر جديدة", "team.unlinkMerchant": "أزال وصول حساب لمتجر",
+  "store_payments.insert": "سجّل أداءً", "store_payments.update": "عدّل أداءً", "store_payments.delete": "حذف أداءً",
+  "store_notes.insert": "أضاف ملاحظة", "store_notes.update": "حدّث ملاحظة", "store_notes.delete": "حذف ملاحظة",
   "team.changeEmail": "غيّر بريد حساب تاجر", "team.addTeam": "أضاف عضواً للفريق", "team.setRole": "غيّر دور عضو", "team.removeTeam": "أزال عضواً من الفريق",
 };
 const LOG_FIELD = { price: "الثمن", in_stock: "التوفر", active: "نشط", variants: "الأحجام", name: "الاسم", brand: "الماركة", gender: "لمن", subscription_status: "الاشتراك",
   trial_ends_at: "نهاية التجربة", status: "الحالة", admin_note: "ملاحظة", city: "المدينة", whatsapp: "الواتساب", instagram: "Instagram", website: "الموقع", color: "اللون",
   logo_url: "اللوگو", cover_url: "صورة الغلاف", theme: "الأجواء", welcome_title: "العنوان", welcome_text: "جملة الترحيب", role: "الدور", character: "العائلة", occasion: "المناسبة",
   season: "الفصل", notes_top: "نوتات الافتتاح", notes_mid: "نوتات القلب", notes_base: "نوتات القاعدة", concentration: "التركيز", size: "الحجم", image_url: "الصورة", world: "الفئة",
-  store_created: "متجر جديد", new_user: "حساب جديد", email: "البريد الإلكتروني" };
+  store_created: "متجر جديد", new_user: "حساب جديد", email: "البريد الإلكتروني", done: "تمت المتابعة", follow_up: "التذكير", amount: "المبلغ", paid_until: "مؤدى حتى", paid_at: "تاريخ الأداء", method: "الطريقة", body: "الملاحظة" };
 function logVal(v) {
   if (v === null || v === undefined || v === "") return "—";
   if (v === true) return "نعم"; if (v === false) return "لا";
