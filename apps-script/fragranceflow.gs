@@ -824,7 +824,7 @@ function logAction_(me, action, l) {
       store_id: l.store_id || null, target: String(l.target || '').slice(0, 200), detail: l.detail || {} });
   } catch (e) { /* the action itself already succeeded */ }
 }
-var ADMIN_ONLY = ['unlinkMerchant', 'team', 'addTeam', 'setRole', 'removeTeam'];
+var ADMIN_ONLY = ['unlinkMerchant', 'changeEmail', 'team', 'addTeam', 'setRole', 'removeTeam'];
 var TEAM_ACTIONS = {
   // the RihaFlow team with roles and last sign-in
   team: function () {
@@ -902,6 +902,20 @@ var MERCHANT_ACTIONS = {
       return { user_id: x.user_id, email: u.email || '?', store_id: x.store_id, store: (x.stores && x.stores.name) || x.store_id,
         created_at: x.created_at, last_sign_in_at: u.last_sign_in_at || null };
     }), admins: admins.length };
+  },
+  // change a merchant's login email (admin only): same password, the new email is confirmed directly
+  changeEmail: function (b) {
+    if (!/^[0-9a-f-]{36}$/.test(String(b.user_id))) throw new Error('bad user');
+    var email = String(b.email || '').trim().toLowerCase();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || email.length > 120) throw new Error('البريد الإلكتروني غير صحيح');
+    var users = allUsers_();
+    if (users.some(function (u) { return String(u.email).toLowerCase() === email && u.id !== b.user_id; })) throw new Error('هذا البريد مستعمل في حساب آخر.');
+    var mine = users.filter(function (u) { return u.id === b.user_id; })[0];
+    if (!mine) throw new Error('الحساب غير موجود.');
+    var old = String(mine.email || '');
+    var r = sbCall_('put', 'auth/v1/admin/users/' + b.user_id, { email: email, email_confirm: true });
+    if (r.code >= 300) throw new Error('لم يتم التغيير: ' + JSON.stringify(r.data).slice(0, 200));
+    return { ok: true, email: email, log: { store_id: b.store_id || null, target: email, detail: { email: [old, email] } } };
   },
   // new (or existing) store + new (or existing) login, linked together
   createMerchant: function (b) {

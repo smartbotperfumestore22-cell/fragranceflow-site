@@ -745,12 +745,71 @@ function renderTeam() {
      perfumes: tabPerfumes, review: tabReview, members: tabMembers, log: tabLog }[S.teamTab] || tabOverview)();
 }
 const manageCell = (x) => S.stores.some((y) => y.id === x.id)
-  ? `<button type="button" class="d-btn a-open" data-manage="${esc(x.id)}">إدارة المتجر</button>` : "<small>غير موجود في Supabase</small>";
+  ? `<span class="a-acts"><button type="button" class="d-btn a-open" data-manage="${esc(x.id)}">إدارة المتجر</button><button type="button" class="p-link" data-edit="${esc(x.id)}">✏️ تعديل</button></span>` : "<small>غير موجود في Supabase</small>";
+
+// 🏪 المتاجر › ✏️ تعديل: the store's name (team, rename_store 017) and its account's email (admin, Apps Script changeEmail).
+// The store_id stays: the link and the printed QR codes use it.
+async function editStore(id) {
+  const st = S.stores.find((x) => x.id === id), el = document.getElementById("tab");
+  if (!st || !el) return;
+  let box = document.getElementById("p-edit");
+  if (!box) { box = document.createElement("section"); box.id = "p-edit"; box.className = "d-card p-edit"; el.prepend(box); }
+  box.setAttribute("aria-labelledby", "p-edit-t");
+  box.innerHTML = `<div class="p-steps-head"><h2 id="p-edit-t">تعديل المتجر</h2><button type="button" class="p-link" data-close>إغلاق</button></div>
+    <p class="p-small">store_id: <code dir="ltr">${esc(st.id)}</code> · لا يتغيّر، حتى يبقى رابط المتجر والـ QR المطبوع يعملان.</p>
+    <form id="f-sname" class="p-edit-row" novalidate><label>اسم المتجر<input name="name" id="e-name" maxlength="80" value="${esc(st.name)}" required></label>
+      <button type="submit" class="d-btn">حفظ الاسم</button></form>
+    <h3 class="p-h3">حساب التاجر</h3>
+    <div id="e-accounts">${isBoss() ? '<p class="d-msg">جارٍ تحميل الحساب…</p>' : '<p class="p-small">تغيير البريد الإلكتروني خاص بالـ admin.</p>'}</div>`;
+  box.scrollIntoView({ behavior: "smooth", block: "start" });
+  box.querySelector("[data-close]").addEventListener("click", () => box.remove());
+  const f = document.getElementById("f-sname");
+  f.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const name = f.name.value.trim().replace(/\s+/g, " ");
+    if (name.length < 2) return toast("اكتب اسم المتجر.", true);
+    if (name === st.name) return toast("الاسم لم يتغيّر.");
+    const b = f.querySelector("[type=submit]"); b.disabled = true;
+    const r = await sb.rpc("rename_store", { p_store: st.id, p_name: name });
+    b.disabled = false;
+    if (r.error) return toast(/rename_store|PGRST202|42883/.test((r.error.message || "") + r.error.code) ? "شغّل 017_store_edit.sql في Supabase أولاً." : errText(r.error), true);
+    if (r.data && r.data.error) return toast({ forbidden: "هذا الإجراء خاص بفريق RihaFlow.", name: "يجب أن يتكون الاسم من 2 إلى 80 حرفاً.", store: "المتجر غير موجود." }[r.data.error] || "لم يتم الحفظ.", true);
+    st.name = r.data.name; toast("تم حفظ الاسم ✓ يظهر في الكويز بعد النشر."); askPublish();
+    await tabStores(); editStore(st.id);
+  });
+  if (!isBoss()) return;
+  const acc = document.getElementById("e-accounts");
+  let r; try { r = await teamCall("merchants"); } catch (er) { r = { error: "net" }; }
+  if (!document.body.contains(acc)) return;
+  if (r.error) { acc.innerHTML = `<p class="d-msg">${esc(r.message || "تعذّر تحميل الحساب.")}</p>`; return; }
+  const mine = r.accounts.filter((a) => a.store_id === st.id);
+  acc.innerHTML = mine.length ? mine.map((a, i) => `<form class="p-edit-row" data-uid="${esc(a.user_id)}" novalidate>
+      <label>البريد الإلكتروني<input type="email" name="email" id="e-mail-${i}" dir="ltr" value="${esc(a.email)}" autocomplete="off"></label>
+      <button type="submit" class="d-btn">حفظ البريد</button></form>`).join("") + '<p class="p-small">يبقى التاجر يدخل بنفس كلمة السر، بالبريد الجديد. أخبره بالتغيير.</p>'
+    : '<p class="p-small">لا يوجد حساب لهذا المتجر.</p><button type="button" class="d-btn" data-newacc>أنشئ حساباً</button>';
+  const na = acc.querySelector("[data-newacc]");
+  if (na) na.addEventListener("click", () => { S.teamTab = "newacc"; S.prefill = st.id; renderTeam(); scrollTo(0, 0); });
+  acc.querySelectorAll("form").forEach((fm) => fm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const email = fm.email.value.trim().toLowerCase(), before = mine.find((a) => a.user_id === fm.dataset.uid).email;
+    if (!/^\S+@\S+\.\S+$/.test(email)) return toast("اكتب بريداً إلكترونياً صحيحاً.", true);
+    if (email === before.toLowerCase()) return toast("البريد لم يتغيّر.");
+    const b = fm.querySelector("[type=submit]");
+    if (b.dataset.sure !== "1") { b.dataset.sure = "1"; b.textContent = "متأكد؟ اضغط مرة أخرى"; return; }
+    b.disabled = true;
+    const r2 = await teamCall("changeEmail", { user_id: fm.dataset.uid, email, store_id: st.id });
+    b.disabled = false; b.dataset.sure = ""; b.textContent = "حفظ البريد";
+    if (r2.error) return toast(r2.message || "لم يتم التغيير.", true);
+    mine.find((a) => a.user_id === fm.dataset.uid).email = r2.email;
+    toast("تم تغيير البريد ✓ أخبر التاجر أن يدخل بالبريد الجديد.");
+  }));
+}
 // numbers per store for the chosen period (admin_stats), plus the stores that have none yet
 async function adminData() {
   let d = null;
   try { const r = await sb.rpc("admin_stats", { p_days: S.days }); if (!r.error && r.data && Array.isArray(r.data.stores)) d = r.data; } catch (e) {}
   if (!d) return null;
+  d.stores.forEach((x) => { const s = S.stores.find((y) => y.id === x.id); if (s) x.name = s.name; });   // a name just changed shows at once
   const known = new Set(d.stores.map((x) => x.id));
   S.stores.forEach((x) => { if (!known.has(x.id)) d.stores.push({ id: x.id, name: x.name, active: x.active !== false, perfumes: 0, experiences: 0, completed: 0, whatsapp: 0, last: "" }); });
   return d;
@@ -767,6 +826,7 @@ async function tabStores() {
   el.innerHTML = range + storesHTML(d, manageCell);
   wire(); wireStoreSearch(el);
   el.querySelectorAll("[data-manage]").forEach((b) => b.addEventListener("click", () => openStore(b.dataset.manage)));
+  el.querySelectorAll("[data-edit]").forEach((b) => b.addEventListener("click", () => editStore(b.dataset.edit)));
 }
 // each alert takes you to where it is fixed: a store without an account → the new-account form with that store chosen;
 // an ended trial → the subscriptions (admin); a store without perfumes → its perfumes with «+ أضف عطوراً» open;
@@ -1333,13 +1393,13 @@ const LOG_ACTION = {
   "requests.insert": "أرسل طلب عطر", "requests.update": "راجع طلب عطر", "requests.delete": "حذف طلب عطر",
   "store_members.insert": "ربط حساباً بمتجر", "store_members.delete": "أزال حساباً من متجر",
   "team.createMerchant": "أنشأ حساب تاجر", "team.resetPassword": "أعطى كلمة سر جديدة", "team.unlinkMerchant": "أزال وصول حساب لمتجر",
-  "team.addTeam": "أضاف عضواً للفريق", "team.setRole": "غيّر دور عضو", "team.removeTeam": "أزال عضواً من الفريق",
+  "team.changeEmail": "غيّر بريد حساب تاجر", "team.addTeam": "أضاف عضواً للفريق", "team.setRole": "غيّر دور عضو", "team.removeTeam": "أزال عضواً من الفريق",
 };
 const LOG_FIELD = { price: "الثمن", in_stock: "التوفر", active: "نشط", variants: "الأحجام", name: "الاسم", brand: "الماركة", gender: "لمن", subscription_status: "الاشتراك",
   trial_ends_at: "نهاية التجربة", status: "الحالة", admin_note: "ملاحظة", city: "المدينة", whatsapp: "الواتساب", instagram: "Instagram", website: "الموقع", color: "اللون",
   logo_url: "اللوگو", cover_url: "صورة الغلاف", theme: "الأجواء", welcome_title: "العنوان", welcome_text: "جملة الترحيب", role: "الدور", character: "العائلة", occasion: "المناسبة",
   season: "الفصل", notes_top: "نوتات الافتتاح", notes_mid: "نوتات القلب", notes_base: "نوتات القاعدة", concentration: "التركيز", size: "الحجم", image_url: "الصورة", world: "الفئة",
-  store_created: "متجر جديد", new_user: "حساب جديد" };
+  store_created: "متجر جديد", new_user: "حساب جديد", email: "البريد الإلكتروني" };
 function logVal(v) {
   if (v === null || v === undefined || v === "") return "—";
   if (v === true) return "نعم"; if (v === false) return "لا";
