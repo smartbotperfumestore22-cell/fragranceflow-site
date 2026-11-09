@@ -4,7 +4,7 @@
 import "./dashboard.css";
 import "./portal.css";
 import { sb } from "./supabase.js";
-import { esc, fmt } from "./dash-common.js";
+import { esc, fmt, FAMILY as FAM_LABEL, IMPRESSION as IMP_LABEL } from "./dash-common.js";
 import { adminHTML, storesHTML, wireStoreSearch } from "./admin-view.js";
 import { insightsHTML } from "./admin-insights.js";
 import { renderDashboard } from "./dashboard-view.js";
@@ -214,7 +214,7 @@ function trialBanner(s) {
 // four sections instead of eight tabs: 🏠 home (what to do now), 🧴 my perfumes (+ add, import, request, opinion),
 // 📊 numbers (statistics, monthly report), 🏪 my store (share the link, quiz page, details). S.tab is the view shown.
 const SECTIONS = [["home", "🏠", "الرئيسية"], ["perfumes", "🧴", "عطوري"], ["numbers", "📊", "الأرقام"], ["store", "🏪", "متجري"]];
-const TAB_SEC = { home: "home", offers: "perfumes", add: "perfumes", import: "perfumes", requests: "perfumes", reviews: "perfumes", stats: "numbers", report: "numbers", settings: "store" };
+const TAB_SEC = { home: "home", offers: "perfumes", add: "perfumes", import: "perfumes", requests: "perfumes", reviews: "perfumes", stats: "numbers", missed: "numbers", report: "numbers", settings: "store" };
 const SEC_FIRST = { home: "home", perfumes: "offers", numbers: "stats", store: "settings" };
 const hasPrice = (o) => vlist(o).some((v) => Number(v.price) > 0) || Number(o.price) > 0;
 // steps the merchant ticked on this device (tried the quiz, shared the link); nothing breaks without storage
@@ -242,7 +242,7 @@ function render() {
           <button type="button" data-tab="requests"><b>📝 عطر غير موجود${pending ? ` <small>${pending}</small>` : ""}</b><span>اطلبه وسنضيفه إلى الكتالوگ</span></button>
         </div>`;
   }
-  if (sec === "numbers") top = sub([["stats", "الإحصائيات"], ["report", "التقرير الشهري"]]);
+  if (sec === "numbers") top = sub([["stats", "الإحصائيات"], ["missed", "🔍 ما لم يجدوه"], ["report", "التقرير الشهري"]]);
   const wide = sec === "home" || sec === "numbers";
   app.innerHTML = `
     ${S.admin ? '<div class="p-backbar"><button type="button" class="p-link" id="b-team">← العودة إلى اللوحة العامة</button><span>أنت ترى المتجر كما يراه التاجر</span></div>' : ""}
@@ -266,7 +266,7 @@ function render() {
   if (sec === "store") wireLinkCard(s);
   const back = document.getElementById("b-team");
   if (back) back.addEventListener("click", () => { S.mode = "team"; sessionStorage.setItem("ff_mode", "team"); renderTeam(); });
-  ({ home: tabHome, offers: tabOffers, add: tabAdd, requests: tabRequests, reviews: tabReviews, import: tabImport, settings: tabSettings, stats: tabStats, report: tabReport }[S.tab] || tabHome)();
+  ({ home: tabHome, offers: tabOffers, add: tabAdd, requests: tabRequests, reviews: tabReviews, import: tabImport, settings: tabSettings, stats: tabStats, missed: tabMissed, report: tabReport }[S.tab] || tabHome)();
 }
 
 // 🏠 home: the account's state, the first steps (until they are all done), this week's numbers, one question
@@ -292,6 +292,7 @@ function tabHome() {
       <div class="p-steps-head"><h2 id="p-week-t">آخر 7 أيام</h2><button type="button" class="p-link" data-go="stats">كل الأرقام ←</button></div>
       <div class="p-week-n" id="p-week"><p class="d-msg">جارٍ تحميل الأرقام…</p></div>
     </section>
+    <div id="p-miss-home"></div>
     <div id="p-rvq"></div>
     ${allDone ? `<section class="d-card p-quicklink"><h2>🔗 رابط متجرك</h2>
       <div class="p-linkrow"><input readonly dir="ltr" value="${esc(storeLink(s))}" aria-label="رابط متجرك" id="p-home-url"><button type="button" class="d-btn" id="b-home-copy">نسخ</button></div>
@@ -306,6 +307,17 @@ function tabHome() {
   });
   drawQueue();
   week();
+  missHome();
+  // what customers asked for without finding it (018): one line here, the detail in 📊 الأرقام
+  async function missHome() {
+    const d = await loadMissed(30), box = document.getElementById("p-miss-home");
+    if (S.tab !== "home" || !box || d.error || !d.missed) return;
+    const x = (d.requests || [])[0];
+    box.innerHTML = `<section class="d-card p-miss-home"><div><h2>🔍 ${fmt(d.missed)} ${d.missed === 1 ? "زبون لم يجد" : "زبائن لم يجدوا"} ما طلبوه</h2>
+      <p class="p-small">آخر 30 يوماً${x ? ` · الأكثر طلباً: ${esc(M_GENDER[x.gender] || "")}${x.gender ? " · " : ""}${esc(FAM_LABEL[x.family] || x.family)}` : ""}</p></div>
+      <button type="button" class="d-btn ghost" id="b-miss-go">ماذا طلبوا؟ ←</button></section>`;
+    document.getElementById("b-miss-go").addEventListener("click", () => { S.tab = "missed"; render(); scrollTo(0, 0); });
+  }
   async function week() {
     let d; try { d = await fetchStats({ days: 7 }); } catch (e) { d = { error: "net" }; }
     const box = document.getElementById("p-week");
@@ -589,6 +601,48 @@ async function tabStats() {
   if (d.error) { box.innerHTML = `<p class="d-msg">${statsError(d)}</p>`; return; }
   renderDashboard(box, d, { inPortal: true });
 }
+// 📊 الأرقام › «ما لم يجدوه»: what the store's customers asked for in the quiz without finding a perfume that fits
+// well among its perfumes (store_missed, 018). Answers only, no personal data.
+const M_GENDER = { women: "👩 نسائي", men: "👨 رجالي", unisex: "👥 للجميع" };
+const M_OCC = { daily: "العمل / يومي", evening: "السهرات", dates: "الأمسيات الخاصة", travel: "السفر والخروج", allday: "كل المناسبات" };
+const M_SEASON = { summer: "ربيع / صيف", winter: "خريف / شتاء", allseasons: "طول العام" };
+const mBudget = (b) => { const c = /^c(\d+)$/.exec(b || ""); if (c) return `حتى ${fmt(c[1])} درهم`;
+  return { low: "ميزانية صغيرة", mid: "ميزانية متوسطة", high: "ميزانية مرتفعة", luxury: "ميزانية فاخرة" }[b] || ""; };
+async function loadMissed(days) {
+  let r; try { r = await sb.rpc("store_missed", { p_store: S.store.id, p_days: days }); } catch (e) { return { error: "net" }; }
+  if (r.error) return { error: /store_missed|PGRST202|42883/.test((r.error.message || "") + r.error.code) ? "sql" : "net" };
+  return r.data || { error: "net" };
+}
+async function tabMissed() {
+  const el = document.getElementById("tab"), days = S.missDays || 30;
+  const range = `<div class="dh-range p-range" role="group" aria-label="المدة">${[7, 30, 90].map((d) => `<button type="button" data-days="${d}" aria-pressed="${days === d}">${d === 7 ? "7 أيام" : d + " يوماً"}</button>`).join("")}</div>`;
+  el.innerHTML = range + '<div id="p-missed" aria-live="polite"><p class="d-msg">جارٍ تحميل الطلبات…</p></div>';
+  el.querySelectorAll("[data-days]").forEach((b) => b.addEventListener("click", () => { S.missDays = Number(b.dataset.days); tabMissed(); }));
+  const d = await loadMissed(days), box = document.getElementById("p-missed");
+  if (S.tab !== "missed" || !box) return;
+  if (d.error) { box.innerHTML = `<p class="d-msg">${d.error === "sql" ? "هذا القسم يعمل بعد تشغيل 018_store_missed.sql في Supabase." : d.error === "invalid" ? "سجّل الخروج ثم ادخل من جديد." : "تعذّر تحميل الطلبات الآن. أعد المحاولة بعد قليل."}</p>`; return; }
+  const req = d.requests || [], top = Object.entries(d.budget || {}).sort((a, b) => b[1] - a[1])[0];
+  box.innerHTML = `
+    <section class="d-card p-miss-sum">
+      <p class="p-miss-big"><b>${fmt(d.missed)}</b> ${d.missed === 1 ? "زبون" : "زبائن"}</p>
+      <p>في آخر ${d.days} ${d.days === 7 ? "أيام" : "يوماً"}، لم يجدوا في عطورك عطراً يناسب ما طلبوه في الكويز بشكل كافٍ${d.completed ? `، من أصل ${fmt(d.completed)} أكملوا الكويز` : ""}.</p>
+      ${top ? `<p class="p-small">الميزانية الأكثر طلباً عندهم: <b>${esc(mBudget(top[0]) || top[0])}</b> (${fmt(top[1])})</p>` : ""}
+    </section>
+    ${req.length ? `<h2 class="p-sec-h">الطلبات الأكثر تكراراً</h2>
+    <ol class="p-miss-list">${req.map((x) => {
+      const bits = [M_OCC[x.occasion], IMP_LABEL[x.impression], M_SEASON[x.season], mBudget(x.budget)].filter(Boolean);
+      return `<li class="d-card">
+        <div class="p-miss-head"><h3>${esc(M_GENDER[x.gender] || "")}${x.gender ? " · " : ""}${esc(FAM_LABEL[x.family] || x.family)}</h3><span class="p-miss-n">${fmt(x.n)} ${x.n === 1 ? "زبون" : "زبائن"}</span></div>
+        ${bits.length ? `<p class="p-miss-bits">${bits.map((b) => `<span>${esc(b)}</span>`).join("")}</p>` : ""}
+        <p class="p-miss-have ${x.have ? "" : "is-none"}">${x.have ? `عندك ${fmt(x.have)} ${x.have === 1 ? "عطر متوفر" : "عطور متوفرة"} من هذا النوع، ${x.have === 1 ? "لكنه لم يطابق" : "لكنها لم تطابق"} باقي الطلب.` : "ليس عندك أي عطر متوفر من هذا النوع."}</p>
+      </li>`; }).join("")}</ol>
+    <div class="p-miss-act"><button type="button" class="d-btn" id="b-miss-add">+ أضف عطوراً</button><span class="p-small">كل عطر تضيفه يدخل في الكويز، فيجد زبناء مثل هؤلاء نتائج أقرب لما يطلبون.</span></div>`
+    : `<p class="d-empty">${d.completed ? "كل من أكمل الكويز وجد عطراً مناسباً في عطورك 👍" : "تظهر هنا الطلبات عندما يبدأ الزبناء في اجتياز الكويز."}</p>`}
+    <p class="d-foot">نحسب أجوبة الكويز فقط، دون أي معلومة شخصية. الزبون الذي يعيد نفس الطلب يُحسب مرة واحدة.</p>`;
+  const add = document.getElementById("b-miss-add");
+  if (add) add.addEventListener("click", () => { S.tab = "offers"; S.addMenu = true; render(); scrollTo(0, 0); });
+}
+
 async function tabReport(month) {
   const el = document.getElementById("tab");
   const m = month || S.reportMonth || defaultMonth();

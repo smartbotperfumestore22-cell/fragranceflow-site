@@ -396,3 +396,22 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--v); outline
 .p-edit .p-h3 { font-size: .95rem; margin: 4px 0 0; }
 .p-edit-row { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 10px; }
 .p-edit-row label { flex: 1 1 220px; min-width: 0; }
+
+/* 📊 الأرقام › ما لم يجدوه */
+.p-miss-sum { padding: 16px 18px; display: grid; gap: 6px; }
+.p-miss-sum p { margin: 0; }
+.p-miss-big { font-size: 1rem; color: var(--muted); }
+.p-miss-big b { font-size: 2rem; font-weight: 800; color: var(--ink); margin-inline-end: 4px; }
+.p-miss-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.p-miss-list li { padding: 14px 16px; display: grid; gap: 8px; }
+.p-miss-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 6px 12px; }
+.p-miss-head h3 { margin: 0; font-size: 1rem; font-weight: 800; }
+.p-miss-n { font-weight: 800; color: var(--v); font-variant-numeric: tabular-nums; }
+.p-miss-bits { display: flex; flex-wrap: wrap; gap: 6px; margin: 0; }
+.p-miss-bits span { font-size: .8rem; font-weight: 600; padding: 3px 10px; border-radius: 999px; background: var(--v-soft); color: var(--ink); }
+.p-miss-have { margin: 0; font-size: .85rem; color: var(--muted); }
+.p-miss-have.is-none { color: #8A3B00; font-weight: 700; }
+.p-miss-act { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; }
+.p-miss-home { padding: 14px 18px; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; border-color: #FCE3CC; background: #FFF8F1; }
+.p-miss-home h2 { margin: 0; font-size: 1rem; font-weight: 800; }
+.p-miss-home p { margin: 2px 0 0; }
