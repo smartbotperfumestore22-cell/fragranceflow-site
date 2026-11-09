@@ -13,7 +13,7 @@ function ago(day, today) {
   const n = Math.round((new Date(today + "T12:00:00Z") - new Date(day + "T12:00:00Z")) / 864e5);
   return n <= 0 ? "اليوم" : n === 1 ? "أمس" : `من ${n} أيام`;
 }
-const ALERT = { inactive: "💤", token: "🔑", catalog: "🧴", data: "⚠️" };
+const ALERT = { inactive: "💤", token: "🔑", catalog: "🧴", trial: "⏳", data: "⚠️" };
 const RANGE = { 1: "اليوم", 7: "آخر 7 أيام", 30: "آخر 30 يوماً" };
 
 export function adminHTML(d, storeCell, foot = "لوحة خاصة بك. لا ترسل هذا الرابط لأي أحد.", opts = {}) {
@@ -30,7 +30,7 @@ export function adminHTML(d, storeCell, foot = "لوحة خاصة بك. لا ت�
     ${d.site && d.site.experiences ? `<p class="a-site">الكويز العام (بدون متجر): ${fmt(d.site.experiences)} تجربة، ${fmt(d.site.completed)} مكتملة. غير محسوبة في المجموع.</p>` : ""}
     <section class="d-card a-alerts" aria-labelledby="a-alerts-title">
       <h2 id="a-alerts-title">التنبيهات ${d.alerts.length ? `<span class="a-count">${d.alerts.length}</span>` : ""}</h2>
-      ${d.alerts.length ? `<ul>${d.alerts.map((a) => `<li class="is-${a.type}"><span aria-hidden="true">${ALERT[a.type] || "•"}</span><div>${a.store ? `<b>${esc(a.store)}</b> ` : ""}${esc(a.text)}</div></li>`).join("")}</ul>`
+      ${d.alerts.length ? `<ul>${d.alerts.map((a, i) => `<li class="is-${a.type}"><span aria-hidden="true">${ALERT[a.type] || "•"}</span><div>${a.store ? `<b>${esc(a.store)}</b> ` : ""}${esc(a.text)}</div>${opts.fix ? opts.fix(a, i) : ""}</li>`).join("")}</ul>`
         : '<p class="d-empty">كل شيء على ما يرام ✅</p>'}
     </section>
     ${opts.stores === false ? "" : storesHTML(d, storeCell)}

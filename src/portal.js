@@ -701,9 +701,9 @@ function wireLinkCard(s) {
 }
 
 // the RihaFlow team's own space: overview of every store, accounts, requests
-function openStore(id) {
+function openStore(id, tab) {
   S.store = S.stores.find((x) => x.id === id); if (!S.store) return;
-  S.mode = "store"; S.tab = "home"; sessionStorage.setItem("ff_mode", "store");
+  S.mode = "store"; S.tab = tab || "home"; sessionStorage.setItem("ff_mode", "store");
   loadStore();
 }
 // the RihaFlow team's space in four sections, like the store space:
@@ -768,6 +768,23 @@ async function tabStores() {
   wire(); wireStoreSearch(el);
   el.querySelectorAll("[data-manage]").forEach((b) => b.addEventListener("click", () => openStore(b.dataset.manage)));
 }
+// each alert takes you to where it is fixed: a store without an account → the new-account form with that store chosen;
+// an ended trial → the subscriptions (admin); a store without perfumes → its perfumes with «+ أضف عطوراً» open;
+// no activity → the store's link and QR, to send to the merchant
+const FIX_LABEL = { token: "أنشئ حساباً", trial: "الاشتراك", catalog: "أضف عطوراً", inactive: "رابط المتجر" };
+const alertStore = (a) => S.stores.find((x) => x.name === a.store);
+function alertFix(a, i) {
+  if (!FIX_LABEL[a.type] || !alertStore(a) || (a.type === "trial" && !isBoss())) return "";
+  return `<button type="button" class="a-fix" data-fix="${i}">${FIX_LABEL[a.type]} ←</button>`;
+}
+function fixAlert(a) {
+  const st = a && alertStore(a); if (!st) return;
+  if (a.type === "token") { S.teamTab = "newacc"; S.prefill = st.id; renderTeam(); }
+  else if (a.type === "trial") { S.teamTab = "subs"; S.prefill = st.id; renderTeam(); }
+  else if (a.type === "catalog") { S.addMenu = true; openStore(st.id, "offers"); }
+  else if (a.type === "inactive") openStore(st.id, "settings");
+  scrollTo(0, 0);
+}
 async function tabOverview() {
   const el = document.getElementById("tab");
   const range = `<div class="p-range dh-range" role="group" aria-label="المدة">${[[1, "اليوم"], [7, "7 أيام"], [30, "30 يوماً"]].map(([d, l]) => `<button type="button" data-days="${d}" aria-pressed="${S.days === d}">${l}</button>`).join("")}</div>`;
@@ -782,8 +799,9 @@ async function tabOverview() {
   // stores that exist in Supabase but have no numbers yet still appear, so every store can be opened from here
   const known = new Set(d.stores.map((x) => x.id));
   S.stores.forEach((x) => { if (!known.has(x.id)) d.stores.push({ id: x.id, name: x.name, active: x.active !== false, perfumes: 0, experiences: 0, completed: 0, whatsapp: 0, last: "" }); });
-  el.innerHTML = range + adminHTML({ ...d, title: "اللوحة العامة" }, manageCell, "الأرقام والمتاجر والحسابات من Supabase.", { stores: false });
+  el.innerHTML = range + adminHTML({ ...d, title: "اللوحة العامة" }, manageCell, "الأرقام والمتاجر والحسابات من Supabase.", { stores: false, fix: alertFix });
   wire();
+  el.querySelectorAll("[data-fix]").forEach((b) => b.addEventListener("click", () => fixAlert(d.alerts[Number(b.dataset.fix)])));
   // platform numbers (013_admin_insights.sql), under the alerts; nothing shown when the function is not there yet
   const days = S.days;
   try {
@@ -1160,6 +1178,7 @@ async function tabAccounts(mode) {
     <div id="acc-result"></div>`;
   const f = document.getElementById("f-acc"), ns = el.querySelector(".p-newstore"), out = document.getElementById("acc-result");
   const toggle = () => { ns.hidden = !!f.store.value; };
+  if (S.prefill && S.stores.some((x) => x.id === S.prefill)) { f.store.value = S.prefill; S.prefill = ""; setTimeout(() => f.email.focus(), 50); }
   f.store.addEventListener("change", toggle); toggle();
   f.name.addEventListener("input", () => { if (!f.store_id.dataset.touched) f.store_id.value = f.name.value.toLowerCase().normalize("NFKD").replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 40); });
   f.store_id.addEventListener("input", () => { f.store_id.dataset.touched = "1"; });
@@ -1233,6 +1252,9 @@ function tabSubs() {
           <label class="p-sub-end"${st === "trial" ? "" : " hidden"}><span class="sr">نهاية التجربة</span><input type="date" data-f="end" value="${esc(end && !late ? end : isoDay(Date.now() + 7 * 864e5))}" dir="ltr"></label>
           <button type="button" class="d-btn" data-save>حفظ</button></div></li>`; }).join("") || '<li class="d-empty">لا توجد متاجر بعد.</li>'}</ul>`;
   el.querySelectorAll('[data-f="status"]').forEach((s) => s.addEventListener("change", () => { s.closest("li").querySelector(".p-sub-end").hidden = s.value !== "trial"; }));
+  // opened from an alert: that store is highlighted and its choice gets the focus
+  const hit = S.prefill && el.querySelector(`li[data-sid="${CSS.escape(S.prefill)}"]`); S.prefill = "";
+  if (hit) { hit.classList.add("is-hit"); setTimeout(() => { hit.scrollIntoView({ block: "center" }); hit.querySelector("select").focus({ preventScroll: true }); }, 50); }
   el.querySelectorAll("[data-save]").forEach((b) => b.addEventListener("click", async () => {
     const li = b.closest("li"), sid = li.dataset.sid, status = li.querySelector('[data-f="status"]').value, day = li.querySelector('[data-f="end"]').value;
     const p = { p_store: sid, p_status: status };

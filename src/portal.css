@@ -382,3 +382,10 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--v); outline
 .p-log-tools label { display: flex; align-items: center; gap: 8px; }
 .p-log-tools select { width: auto; }
 @media (max-width: 640px) { .p-log li { grid-template-columns: minmax(0, 1fr); gap: 2px; } .p-sub-edit { width: 100%; } }
+/* an alert's button: straight to where it is fixed */
+.a-alerts li { align-items: center; flex-wrap: wrap; }
+.a-alerts li > div { flex: 1 1 180px; min-width: 0; }
+.a-fix { margin-inline-start: auto; flex: none; border: 1px solid var(--line); background: #FFF; color: var(--v); font: inherit; font-size: .82rem; font-weight: 700; padding: 6px 12px; border-radius: 999px; cursor: pointer; white-space: nowrap; }
+.a-fix:hover { border-color: var(--v); }
+.a-fix:focus-visible { outline: 2px solid var(--v); outline-offset: 2px; }
+.p-subs li.is-hit { border-color: var(--v); box-shadow: 0 0 0 3px var(--v-soft); }
