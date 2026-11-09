@@ -638,7 +638,7 @@ async function tabMissed() {
       </li>`; }).join("")}</ol>
     <div class="p-miss-act"><button type="button" class="d-btn" id="b-miss-add">+ أضف عطوراً</button><span class="p-small">كل عطر تضيفه يدخل في الكويز، فيجد زبناء مثل هؤلاء نتائج أقرب لما يطلبون.</span></div>`
     : `<p class="d-empty">${d.completed ? "كل من أكمل الكويز وجد عطراً مناسباً في عطورك 👍" : "تظهر هنا الطلبات عندما يبدأ الزبناء في اجتياز الكويز."}</p>`}
-    <p class="d-foot">نحسب أجوبة الكويز فقط، دون أي معلومة شخصية. الزبون الذي يعيد نفس الطلب يُحسب مرة واحدة.</p>`;
+    <p class="d-foot">الأرقام من أجوبة الكويز فقط، والزبون يُحسب مرة واحدة.</p>`;
   const add = document.getElementById("b-miss-add");
   if (add) add.addEventListener("click", () => { S.tab = "offers"; S.addMenu = true; render(); scrollTo(0, 0); });
 }
