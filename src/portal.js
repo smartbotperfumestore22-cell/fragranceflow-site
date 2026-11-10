@@ -213,7 +213,26 @@ function trialBanner(s) {
 
 // four sections instead of eight tabs: 🏠 home (what to do now), 🧴 my perfumes (+ add, import, request, opinion),
 // 📊 numbers (statistics, monthly report), 🏪 my store (share the link, quiz page, details). S.tab is the view shown.
-const SECTIONS = [["home", "🏠", "الرئيسية"], ["perfumes", "🧴", "عطوري"], ["numbers", "📊", "الأرقام"], ["store", "🏪", "متجري"]];
+// line icons (one stroke style everywhere), drawn with the text color
+const svg = (d, w = 20) => `<svg aria-hidden="true" width="${w}" height="${w}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${d}</svg>`;
+const ICON = {
+  home: svg('<path d="M3 11 12 4l9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/>'),
+  perfumes: svg('<path d="M9 3h6v3H9z"/><rect x="6" y="6" width="12" height="15" rx="3"/>'),
+  numbers: svg('<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>'),
+  store: svg('<path d="M3 9 5 4h14l2 5M3 9h18v2a3 3 0 0 1-6 0 3 3 0 0 1-6 0 3 3 0 0 1-6 0zM5 13v7h14v-7"/>'),
+  check: svg('<path d="M20 6 9 17l-5-5"/>', 18),
+  chat: svg('<path d="M21 12a9 9 0 0 1-13.5 7.8L3 21l1.2-4.5A9 9 0 1 1 21 12z"/>', 18),
+  search: svg('<circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/>', 18),
+};
+const SECTIONS = [["home", ICON.home, "الرئيسية"], ["perfumes", ICON.perfumes, "عطوري"], ["numbers", ICON.numbers, "الأرقام"], ["store", ICON.store, "متجري"]];
+const greeting = () => (new Date().getHours() < 12 ? "صباح الخير" : "مساء الخير");
+// the account's state in one chip next to the store's name
+function subChip(s) {
+  if (s.subscription_status === "active") return '<span class="p-chip is-ok"><i></i>الاشتراك مفعّل</span>';
+  if (subBad(s)) return '<span class="p-chip is-bad"><i></i>لا يظهر للزبناء</span>';
+  if (s.subscription_status === "trial" && s.trial_ends_at) { const n = daysLeft(s.trial_ends_at); return `<span class="p-chip is-trial"><i></i>تجربة · ${n} ${n === 1 ? "يوم" : "أيام"}</span>`; }
+  return "";
+}
 const TAB_SEC = { home: "home", offers: "perfumes", add: "perfumes", import: "perfumes", requests: "perfumes", reviews: "perfumes", stats: "numbers", missed: "numbers", report: "numbers", settings: "store" };
 const SEC_FIRST = { home: "home", perfumes: "offers", numbers: "stats", store: "settings" };
 const hasPrice = (o) => vlist(o).some((v) => Number(v.price) > 0) || Number(o.price) > 0;
@@ -248,10 +267,11 @@ function render() {
     ${S.admin ? '<div class="p-backbar"><button type="button" class="p-link" id="b-team">← العودة إلى اللوحة العامة</button><span>أنت ترى المتجر كما يراه التاجر</span></div>' : ""}
     <section class="d-head p-head">
       <span class="d-seal" style="${s.color ? "background:" + esc(s.color) : ""}">${s.logo_url ? `<img src="${esc(s.logo_url)}" alt="">` : esc(s.name.slice(0, 2).toUpperCase())}</span>
-      <div><h1>${esc(s.name)}</h1><p>${fmt(live.length)} عطر في الكويز</p></div>
+      <div><p class="p-hello">${greeting()}</p><h1>${esc(s.name)}</h1></div>
+      ${subChip(s)}
       ${!S.admin && S.stores.length > 1 ? `<label class="p-pick">المتجر<select id="s-store">${S.stores.map((x) => `<option value="${esc(x.id)}"${x.id === s.id ? " selected" : ""}>${esc(x.name)}</option>`).join("")}</select></label>` : ""}
     </section>
-    <nav class="p-nav" aria-label="الأقسام">${SECTIONS.map(([k, i, l]) => `<button type="button" data-sec="${k}"${sec === k ? ' aria-current="page"' : ""}><span aria-hidden="true">${i}</span>${l}</button>`).join("")}</nav>
+    <nav class="p-nav" aria-label="الأقسام">${SECTIONS.map(([k, i, l]) => `<button type="button" data-sec="${k}"${sec === k ? ' aria-current="page"' : ""}><span class="p-nav-i">${i}</span>${l}</button>`).join("")}</nav>
     ${sec !== "home" && subBad(s) ? trialBanner(s) : ""}
     ${top}
     ${sec === "store" ? `<h2 class="p-sec-h">شارك متجرك</h2>${linkCard(s)}<h2 class="p-sec-h">المعلومات وصفحة الكويز</h2>` : ""}
@@ -280,19 +300,26 @@ function tabHome() {
     ["shared", "شارك رابط متجرك", "في البيو على Instagram، أو عبر الواتساب، أو QR في المحل", !!f.shared, '<button type="button" class="d-btn ghost" id="b-home-copy">انسخ الرابط</button>'],
   ];
   const done = steps.filter((x) => x[3]).length, allDone = done === steps.length;
-  const status = subBad(s) ? trialBanner(s) : s.subscription_status === "active" ? '<p class="p-status is-ok">✓ الاشتراك مفعّل، وعطورك تظهر للزبناء.</p>' : trialBanner(s);
+  const status = subBad(s) ? trialBanner(s) : "";   // the chip in the header says the rest
   el.innerHTML = `${status}
+    <section class="p-hero" aria-labelledby="p-week-t">
+      <div class="p-hero-top"><h2 id="p-week-t">زيارات الكويز · آخر 7 أيام</h2><span class="p-hero-diff" id="p-hero-diff" hidden></span></div>
+      <p class="p-hero-n" id="p-hero-n">…</p>
+      <div class="p-hero-bars" id="p-hero-bars" aria-hidden="true">${"<i></i>".repeat(7)}</div>
+      <div class="p-hero-days" id="p-hero-days"><span></span><span>اليوم</span></div>
+    </section>
+    <div class="p-tiles">
+      <div class="p-tile k-done"><span class="p-tile-i">${ICON.check}</span><b id="p-t-done">…</b><span>أكملوا الكويز</span></div>
+      <div class="p-tile k-wa"><span class="p-tile-i">${ICON.chat}</span><b id="p-t-wa">…</b><span>نقرات الواتساب</span></div>
+    </div>
+    <p class="p-week-foot" id="p-week"><button type="button" class="p-link" data-go="stats">كل الأرقام ←</button></p>
+    <div id="p-miss-home"></div>
     ${allDone ? "" : `<section class="d-card p-steps" aria-labelledby="p-steps-t">
       <div class="p-steps-head"><h2 id="p-steps-t">ابدأ من هنا</h2><span>${done} من ${steps.length}</span></div>
       <span class="p-rv-bar" aria-hidden="true"><i style="width:${(done / steps.length) * 100}%"></i></span>
       <ol>${steps.map(([k, l, hint, ok, act], i) => `<li class="${ok ? "is-done" : ""}"><span class="p-step-n" aria-hidden="true">${ok ? "✓" : i + 1}</span>
         <div><b>${l}</b><small>${hint}</small></div>${ok ? '<span class="p-step-ok">تم</span>' : act}</li>`).join("")}</ol>
     </section>`}
-    <section class="d-card p-week" aria-labelledby="p-week-t">
-      <div class="p-steps-head"><h2 id="p-week-t">آخر 7 أيام</h2><button type="button" class="p-link" data-go="stats">كل الأرقام ←</button></div>
-      <div class="p-week-n" id="p-week"><p class="d-msg">جارٍ تحميل الأرقام…</p></div>
-    </section>
-    <div id="p-miss-home"></div>
     <div id="p-rvq"></div>
     ${allDone ? `<section class="d-card p-quicklink"><h2>🔗 رابط متجرك</h2>
       <div class="p-linkrow"><input readonly dir="ltr" value="${esc(storeLink(s))}" aria-label="رابط متجرك" id="p-home-url"><button type="button" class="d-btn" id="b-home-copy">نسخ</button></div>
@@ -313,7 +340,7 @@ function tabHome() {
     const d = await loadMissed(30), box = document.getElementById("p-miss-home");
     if (S.tab !== "home" || !box || d.error || !d.missed) return;
     const x = (d.requests || [])[0];
-    box.innerHTML = `<section class="d-card p-miss-home"><div><h2>🔍 ${fmt(d.missed)} ${d.missed === 1 ? "زبون لم يجد" : "زبائن لم يجدوا"} ما طلبوه</h2>
+    box.innerHTML = `<section class="d-card p-miss-home"><span class="p-tile-i">${ICON.search}</span><div><h2>${fmt(d.missed)} ${d.missed === 1 ? "زبون لم يجد" : "زبائن لم يجدوا"} ما طلبوه</h2>
       <p class="p-small">آخر 30 يوماً${x ? ` · الأكثر طلباً: ${esc(M_GENDER[x.gender] || "")}${x.gender ? " · " : ""}${esc(FAM_LABEL[x.family] || x.family)}` : ""}</p></div>
       <button type="button" class="d-btn ghost" id="b-miss-go">ماذا طلبوا؟ ←</button></section>`;
     document.getElementById("b-miss-go").addEventListener("click", () => { S.tab = "missed"; render(); scrollTo(0, 0); });
@@ -325,8 +352,15 @@ function tabHome() {
     if (d.error) { box.innerHTML = `<p class="d-msg">${statsError(d)}</p>`; return; }
     const t = d.totals || {};
     if (t.experiences && !f.shared) { onbSet("shared"); return render(); }   // customers came: the link was shared
-    box.innerHTML = [["زيارات", t.experiences], ["أكملوا الكويز", t.completed], ["نقرات الواتساب", t.whatsapp]].map(([l, v]) => `<div><b>${fmt(v || 0)}</b><span>${l}</span></div>`).join("")
-      + (t.experiences ? "" : '<p class="p-small p-week-empty">تظهر الأرقام هنا عندما يبدأ الزبناء في اجتياز الكويز. شارك الرابط لتبدأ.</p>');
+    const set = (id, v) => { const x = document.getElementById(id); if (x) x.textContent = fmt(v || 0); };
+    set("p-hero-n", t.experiences); set("p-t-done", t.completed); set("p-t-wa", t.whatsapp);
+    const series = (d.series && d.series.experiences) || [], top = Math.max(1, ...series);
+    document.getElementById("p-hero-bars").innerHTML = series.map((v, i) => `<i class="${i === series.length - 1 ? "is-today" : ""}" style="height:${12 + (v / top) * 52}px"></i>`).join("");
+    const first = (d.days || [])[0];
+    if (first) document.querySelector("#p-hero-days span").textContent = new Date(first + "T12:00:00").toLocaleDateString("ar-MA", { weekday: "long" });
+    const prev = d.prev && d.prev.experiences, diff = document.getElementById("p-hero-diff");
+    if (prev != null && diff) { const n = (t.experiences || 0) - prev; diff.textContent = n === 0 ? "مثل الأسبوع السابق" : `${n > 0 ? "+" : "−"}${fmt(Math.abs(n))} عن الأسبوع السابق`; diff.hidden = false; }
+    if (!t.experiences) box.insertAdjacentHTML("afterbegin", '<span class="p-small">تظهر الأرقام هنا عندما يبدأ الزبناء في اجتياز الكويز. شارك الرابط لتبدأ.</span>');
   }
 }
 
@@ -603,7 +637,7 @@ async function tabStats() {
 }
 // 📊 الأرقام › «ما لم يجدوه»: what the store's customers asked for in the quiz without finding a perfume that fits
 // well among its perfumes (store_missed, 018). Answers only, no personal data.
-const M_GENDER = { women: "👩 نسائي", men: "👨 رجالي", unisex: "👥 للجميع" };
+const M_GENDER = { women: "نسائي", men: "رجالي", unisex: "للجميع" };
 const M_OCC = { daily: "العمل / يومي", evening: "السهرات", dates: "الأمسيات الخاصة", travel: "السفر والخروج", allday: "كل المناسبات" };
 const M_SEASON = { summer: "ربيع / صيف", winter: "خريف / شتاء", allseasons: "طول العام" };
 const mBudget = (b) => { const c = /^c(\d+)$/.exec(b || ""); if (c) return `حتى ${fmt(c[1])} درهم`;
@@ -1069,14 +1103,22 @@ const thumb = (p) => (p && p.image_url ? `<img src="${esc(p.image_url)}" alt="" 
 // my offers
 function tabOffers() {
   const el = document.getElementById("tab");
-  el.innerHTML = `${search("ابحث عن عطر في عطورك…")}<ul class="p-list" id="list"></ul>`;
+  const noPrice = (o) => !(Number(o.price) > 0) && !vlist(o).some((v) => Number(v.price) > 0);
+  const FILTERS = [["all", "الكل", () => true], ["in", "متوفر", (o) => o.active && o.in_stock], ["out", "غير متوفر", (o) => o.active && !o.in_stock], ["noprice", "بدون ثمن", (o) => o.active && noPrice(o)]];
+  const pass = () => (FILTERS.find((x) => x[0] === (S.of || "all")) || FILTERS[0])[2];
+  el.innerHTML = `${search("ابحث بالاسم أو الماركة…")}
+    <div class="p-filters" role="group" aria-label="تصفية">${FILTERS.map(([k, l, fn]) => `<button type="button" data-of="${k}" class="${k === "noprice" ? "is-gold" : ""}" aria-pressed="${(S.of || "all") === k}">${l} <small>${S.offers.filter(fn).length}</small></button>`).join("")}</div>
+    <ul class="p-list" id="list"></ul>`;
+  el.querySelectorAll("[data-of]").forEach((b) => b.addEventListener("click", () => {
+    S.of = b.dataset.of; el.querySelectorAll("[data-of]").forEach((x) => x.setAttribute("aria-pressed", x === b)); draw();
+  }));
   const draw = () => {
-    const list = S.offers.filter((o) => match(o.perfumes || { name: o.perfume_id, brand: "" }, S.q));
+    const list = S.offers.filter((o) => pass()(o) && match(o.perfumes || { name: o.perfume_id, brand: "" }, S.q));
     const ul = document.getElementById("list");
     if (!S.offers.length) { ul.innerHTML = '<li class="d-empty">لا توجد عطور بعد. أضف من «أضف عطراً».</li>'; return; }
-    if (!list.length) { ul.innerHTML = '<li class="d-empty">لا توجد نتائج بهذا الاسم.</li>'; return; }
-    ul.innerHTML = list.map((o) => `<li class="p-item${o.active ? "" : " is-removed"}${o.in_stock ? "" : " is-out"}" data-id="${o.id}">
-      ${thumb(o.perfumes)}
+    if (!list.length) { ul.innerHTML = `<li class="d-empty">${S.q ? "لا توجد نتائج بهذا الاسم." : "لا توجد عطور هنا."}</li>`; return; }
+    ul.innerHTML = list.map((o, i) => `<li class="p-item${o.active ? "" : " is-removed"}${o.in_stock ? "" : " is-out"}${o.active && noPrice(o) ? " is-noprice" : ""}" data-id="${o.id}">
+      ${thumb(o.perfumes).replace('class="p-bottle"', `class="p-bottle b${i % 5}"`)}
       <div class="p-name"><b dir="ltr">${esc(o.perfumes?.name || o.perfume_id)}</b><small dir="ltr">${esc(o.perfumes?.brand || "")}${o.size ? " · " + esc(o.size) : ""}</small>
         ${o.active ? `<button type="button" class="p-link p-sizes-btn" data-act="sizes">📏 الأحجام والأثمنة${vlist(o).length > 1 ? ` (${vlist(o).length})` : ""}</button>` : ""}</div>
       ${o.active ? `${vlist(o).length > 1 ? `<span class="p-from">من ${fmt(o.price)} <em>درهم</em><small>${vlist(o).length} أحجام</small></span>`

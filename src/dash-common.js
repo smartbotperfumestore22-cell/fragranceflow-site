@@ -33,9 +33,9 @@ export function line(days, a, b) {
   const ticks = [0, Math.floor((n - 1) / 2), n - 1].filter((v, i, arr) => arr.indexOf(v) === i);
   return `<svg class="d-line" viewBox="0 0 ${W} ${H}" role="img" aria-label="التجارب والتجارب المكملة يوم بيوم" dir="ltr">
     <line x1="${P}" y1="${H - P}" x2="${W - P}" y2="${H - P}" stroke="#E5DCFB"/>
-    <path d="${area}" fill="rgba(91,53,200,.10)"/>
-    <path d="${path(a)}" fill="none" stroke="#5B35C8" stroke-width="2.5" stroke-linejoin="round"/>
-    <path d="${path(b)}" fill="none" stroke="#B9A3F7" stroke-width="2" stroke-dasharray="5 4" stroke-linejoin="round"/>
+    <path d="${area}" style="fill:var(--line-area, rgba(91,53,200,.10))"/>
+    <path d="${path(a)}" fill="none" style="stroke:var(--line-a, #5B35C8)" stroke-width="2.5" stroke-linejoin="round"/>
+    <path d="${path(b)}" fill="none" style="stroke:var(--line-b, #B9A3F7)" stroke-width="2" stroke-dasharray="5 4" stroke-linejoin="round"/>
     ${ticks.map((i) => `<text x="${x(i)}" y="${H - 6}" text-anchor="middle" font-size="11" fill="#5F5873">${dayLabel(days[i])}</text>`).join("")}
     <text x="${P}" y="14" font-size="11" fill="#5F5873">${fmt(max)}</text>
   </svg>`;

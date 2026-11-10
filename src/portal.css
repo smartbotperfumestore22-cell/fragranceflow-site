@@ -437,3 +437,131 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--v); outline
 .p-follow li { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 12px; padding: 10px 12px; border-radius: 12px; background: #FFF8F1; border: 1px solid #FCE3CC; }
 .p-follow li > div:first-child { flex: 1 1 220px; min-width: 0; display: grid; gap: 2px; overflow-wrap: anywhere; }
 .p-follow small { color: var(--muted); font-size: .8rem; }
+
+/* ═════════ RihaFlow look (2026-11): the warm direction with the clean one's order ═════════
+   Readex Pro, a light peach ground, white cards, moderate rounding, the week's visits in one plum card.
+   Colours keep one meaning everywhere: blue = visits, green = WhatsApp, orange = what customers did not find,
+   pink = perfumes, gold = perfumes without a price, purple = the brand and the buttons only. */
+:root {
+  --font: "Readex Pro", "IBM Plex Sans Arabic", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --bg: #FFF4EE; --ink: #2B1B24; --muted: #6E5A64; --line: #F1DFD6; --card-line: #F4E7E0;
+  --v: #6D3FD6; --v-deep: #4F2BA8; --v-soft: #EEE6FF;
+  --plum: #3E1F52; --plum-bar: #F2B84B;
+  --c-visit: #2560E0; --c-visit-soft: #E4ECFF; --c-done: #4F46B8; --c-done-soft: #E9E7FB;
+  --c-wa: #13804A; --c-wa-soft: #DFF3E7; --c-miss: #C2531A; --c-miss-soft: #FFE7D6;
+  --c-perf: #C0306A; --c-perf-soft: #FFE1EC; --c-gold: #9A6B0E; --c-gold-soft: #FBEFD2;
+  --r-card: 20px; --r-in: 12px;
+  --line-a: var(--c-visit); --line-b: #9DB8F2; --line-area: rgba(37, 96, 224, .10);
+}
+body { background: var(--bg); color: var(--ink); }
+.dh { border-bottom-color: var(--card-line); }
+.d-card { border: 1px solid var(--card-line); border-radius: var(--r-card); box-shadow: 0 1px 2px rgba(43, 27, 36, .04); }
+.d-btn { border-radius: var(--r-in); }
+
+/* header: greeting, name, the account's chip */
+.p-head { align-items: center; gap: 12px; }
+.p-head .d-seal { width: 48px; height: 48px; border-radius: 15px; background: var(--v); font-size: 1rem; }
+.p-head h1 { font-size: clamp(1.3rem, 4.6vw, 1.7rem); line-height: 1.2; }
+.p-hello { font-size: .82rem !important; color: var(--muted); margin: 0; }
+.p-chip { margin-inline-start: auto; display: inline-flex; align-items: center; gap: 6px; font-size: .78rem; font-weight: 600; padding: 6px 12px; border-radius: 999px; white-space: nowrap; }
+.p-chip i { width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+.p-chip.is-ok { background: var(--c-wa-soft); color: var(--c-wa); }
+.p-chip.is-trial { background: var(--c-gold-soft); color: var(--c-gold); }
+.p-chip.is-bad { background: var(--c-miss-soft); color: var(--c-miss); }
+
+/* sections: line icons; the current one in a soft purple pill */
+.p-nav { border-color: var(--card-line); border-radius: 18px; }
+.p-nav button { color: var(--muted); font-weight: 600; }
+.p-nav-i { display: inline-grid; place-items: center; }
+.p-nav button[aria-current="page"] { background: var(--v-soft); color: var(--v); font-weight: 700; }
+@media (max-width: 640px) {
+  .p-nav { border-radius: 0; border-color: var(--card-line); box-shadow: 0 -4px 18px rgba(43, 27, 36, .06); }
+  .p-nav button { font-size: .72rem; }
+  .p-nav button[aria-current="page"] { background: none; }
+  .p-nav button[aria-current="page"] .p-nav-i { background: var(--v-soft); }
+  .p-nav-i { width: 46px; height: 30px; border-radius: 999px; }
+}
+.p-seg { background: #F6E6DD; }
+.p-seg button[aria-pressed="true"] { color: var(--ink); }
+
+/* home: the week in a plum card, two tiles, the orange «not found» card */
+.p-hero { background: var(--plum); color: #FFF; border-radius: var(--r-card); padding: 20px; display: grid; gap: 12px; }
+.p-hero-top { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 6px 10px; }
+.p-hero h2 { margin: 0; font-size: .92rem; font-weight: 500; opacity: .88; }
+.p-hero-diff { font-size: .76rem; font-weight: 600; padding: 4px 10px; border-radius: 999px; background: rgba(255, 255, 255, .16); }
+.p-hero-n { margin: 0; font-size: 3.2rem; font-weight: 700; line-height: 1; font-variant-numeric: tabular-nums; }
+.p-hero-bars { display: flex; align-items: flex-end; gap: 8px; height: 66px; }
+.p-hero-bars i { flex: 1; height: 12px; border-radius: 6px; background: rgba(255, 255, 255, .22); }
+.p-hero-bars i.is-today { background: var(--plum-bar); }
+.p-hero-days { display: flex; justify-content: space-between; font-size: .72rem; opacity: .75; }
+.p-tiles { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.p-tile { background: #FFF; border: 1px solid var(--card-line); border-radius: var(--r-card); padding: 16px; display: grid; gap: 6px; }
+.p-tile b { font-size: 1.8rem; font-weight: 700; line-height: 1.1; font-variant-numeric: tabular-nums; }
+.p-tile > span:last-child { font-size: .82rem; color: var(--muted); }
+.p-tile-i { width: 36px; height: 36px; border-radius: 11px; display: grid; place-items: center; flex: none; }
+.p-tile.k-done .p-tile-i { background: var(--c-visit-soft); color: var(--c-visit); }
+.p-tile.k-wa .p-tile-i { background: var(--c-wa-soft); color: var(--c-wa); }
+.p-week-foot { margin: -4px 0 0; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 6px; }
+.p-miss-home { background: var(--c-miss-soft); border-color: transparent; flex-wrap: nowrap; align-items: flex-start; gap: 12px; }
+.p-miss-home > div { flex: 1; min-width: 0; }
+.p-miss-home .p-tile-i { background: var(--c-miss); color: #FFF; }
+.p-miss-home .d-btn.ghost { color: var(--c-miss); border-color: transparent; background: #FFF; }
+@media (max-width: 420px) { .p-miss-home { flex-wrap: wrap; } .p-miss-home .d-btn { margin-inline-start: 48px; } }
+.p-steps .p-step-n { background: var(--v-soft); color: var(--v); }
+.p-steps li.is-done .p-step-n { background: var(--c-wa); }
+.p-step-ok { color: var(--c-wa); }
+.p-rv-bar i { background: var(--c-wa); }
+
+/* my perfumes: filters, then one white card per perfume */
+.p-filters { display: flex; flex-wrap: wrap; gap: 8px; }
+.p-filters button { border: 1px solid var(--card-line); background: #FFF; color: var(--ink); font: inherit; font-size: .84rem; font-weight: 600; padding: 7px 14px; border-radius: 999px; cursor: pointer; }
+.p-filters button small { color: var(--muted); font-weight: 500; margin-inline-start: 2px; }
+.p-filters button[aria-pressed="true"] { background: var(--ink); border-color: var(--ink); color: #FFF; }
+.p-filters button[aria-pressed="true"] small { color: rgba(255, 255, 255, .75); }
+.p-filters button.is-gold { background: var(--c-gold-soft); border-color: transparent; color: var(--c-gold); }
+.p-filters button.is-gold[aria-pressed="true"] { background: var(--c-gold); color: #FFF; }
+.p-filters button:focus-visible { outline: 2px solid var(--v); outline-offset: 2px; }
+#tab:has(.p-filters) { background: none; border: 0; box-shadow: none; padding: 0; display: grid; gap: 12px; }
+#tab .p-list { gap: 10px; }
+#tab .p-list .p-item { background: #FFF; border: 1px solid var(--card-line); border-radius: var(--r-card); padding: 12px; grid-template-columns: 56px minmax(0, 1fr) 130px auto 36px; }
+#tab .p-list .p-item.is-removed { grid-template-columns: 56px minmax(0, 1fr) auto auto; }
+#tab .p-list .p-item img, #tab .p-list .p-bottle { width: 56px; height: 64px; border-radius: 14px; background: var(--c-perf-soft); }
+.p-bottle { position: relative; display: grid; place-items: center; }
+.p-bottle::before { content: ""; width: 22px; height: 34px; border-radius: 7px 7px 9px 9px; background: var(--c-perf); margin-top: 8px; }
+.p-bottle::after { content: ""; position: absolute; top: 12px; width: 12px; height: 7px; border-radius: 3px; background: var(--c-perf); }
+.p-bottle.b1 { background: var(--c-gold-soft) !important; } .p-bottle.b1::before, .p-bottle.b1::after { background: var(--c-gold); }
+.p-bottle.b2 { background: var(--v-soft) !important; } .p-bottle.b2::before, .p-bottle.b2::after { background: var(--plum); }
+.p-bottle.b3 { background: var(--c-visit-soft) !important; } .p-bottle.b3::before, .p-bottle.b3::after { background: var(--c-visit); }
+.p-bottle.b4 { background: var(--c-wa-soft) !important; } .p-bottle.b4::before, .p-bottle.b4::after { background: var(--c-wa); }
+.p-item .p-name b { font-size: .98rem; }
+.p-item.is-noprice .p-price input { border-color: #EBCB85; background: var(--c-gold-soft); }
+.p-item.is-noprice .p-name small::after { content: " · بدون ثمن"; color: var(--c-gold); font-weight: 700; }
+.p-switch input:checked { background: var(--c-wa); }
+.p-from { font-weight: 700; }
+@media (max-width: 640px) {
+  #tab .p-list .p-item { grid-template-columns: 56px minmax(0, 1fr) auto; }
+  #tab .p-list .p-item.is-removed { grid-template-columns: 56px minmax(0, 1fr) auto; }
+}
+
+/* numbers: each figure in its own colour */
+.d-kpis .d-card { border-top: 0; }
+.d-kpis .k-visit b { color: var(--c-visit); }
+.d-kpis .k-done b { color: var(--c-done); }
+.d-kpis .k-wa b { color: var(--c-wa); }
+.d-kpis .k-share b { color: var(--c-perf); }
+.d-kpis .d-card span { color: var(--muted); }
+.d-funnel .d-bar { height: 12px; border-radius: 999px; }
+.d-funnel .f-visit .d-bar { background: var(--c-visit-soft); } .d-funnel .f-visit .d-bar i { background: var(--c-visit); }
+.d-funnel .f-done .d-bar { background: var(--c-done-soft); } .d-funnel .f-done .d-bar i { background: var(--c-done); }
+.d-funnel .f-wa .d-bar { background: var(--c-wa-soft); } .d-funnel .f-wa .d-bar i { background: var(--c-wa); }
+.d-bars .d-bar i { background: var(--c-perf); }
+.d-bars .d-bar { background: var(--c-perf-soft); }
+.d-legend i { background: var(--c-visit); } .d-legend i.is-b { background: #9DB8F2; }
+.d-table .d-bar i { background: var(--c-perf); }
+.p-miss-n { color: var(--c-miss); }
+.p-miss-bits span { background: var(--c-miss-soft); }
+.p-miss-big b { color: var(--c-miss); }
+/* preference bars (families, impressions, sources) stay neutral: pink is for perfumes only */
+.d-bars .d-bar { background: #F3E8E2; } .d-bars .d-bar i { background: #7A6670; }
+@media (max-width: 420px) { .p-steps li { grid-template-columns: 30px minmax(0, 1fr) auto; } .p-steps li > :last-child { grid-column: auto; justify-self: end; } }
+@media (max-width: 640px) { .p-miss-home { flex-wrap: wrap; } .p-miss-home .d-btn { margin-inline-start: 48px; } }

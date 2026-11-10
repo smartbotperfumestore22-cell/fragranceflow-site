@@ -61,7 +61,7 @@ export function renderDashboard(root, d, opts = {}) {
       <p>من ${esc(d.from)} إلى ${esc(d.to)} · يتحدّث كل ليلة، وأرقام اليوم مباشرة.${pv ? " النسب مقارنة بالفترة السابقة." : ""}</p></div>
       ${inPortal ? "" : `<a class="d-btn d-report" href="/dashboard/report.html${opts.token ? "?t=" + encodeURIComponent(opts.token) : ""}">التقرير الشهري</a>${opts.portalMode ? '<a class="p-back" href="/portal/">العودة إلى فضاء التاجر</a>' : ""}`}
     </section>
-    <section class="d-kpis">${kpis.map(([l, v, s, dl]) => `<div class="d-card"><small>${l}</small><b>${v}${dl}</b><span>${s}</span></div>`).join("")}</section>
+    <section class="d-kpis">${kpis.map(([l, v, s, dl], i) => `<div class="d-card k-${["visit", "done", "wa", "share"][i]}"><small>${l}</small><b>${v}${dl}</b><span>${s}</span></div>`).join("")}</section>
     ${tip ? `<p class="d-insight"><span aria-hidden="true">✦</span>${esc(tip)}</p>` : ""}
     <section class="d-grid">
       <div class="d-card d-wide">
@@ -71,7 +71,7 @@ export function renderDashboard(root, d, opts = {}) {
       </div>
       <div class="d-card${SHOW_SOURCES ? "" : " d-wide"}">
         <h2>من التجربة إلى الواتساب</h2>
-        <ol class="d-funnel">${funnel.map(([l, v]) => `<li><span>${l}</span><span class="d-bar"><i style="width:${exp ? Math.max(3, (v / exp) * 100) : 0}%"></i></span><b>${fmt(v)}</b></li>`).join("")}</ol>
+        <ol class="d-funnel">${funnel.map(([l, v], i) => `<li class="f-${["visit", "done", "wa"][i]}"><span>${l}</span><span class="d-bar"><i style="width:${exp ? Math.max(3, (v / exp) * 100) : 0}%"></i></span><b>${fmt(v)}</b></li>`).join("")}</ol>
         ${t.near ? `<p class="d-note">${fmt(t.near)} مرة لم يجد الزبون عطراً يجمع كل ما طلبه، فاقترحنا عليه الأقرب.</p>` : ""}
       </div>
       ${SHOW_SOURCES ? `      <div class="d-card">
