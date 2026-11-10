@@ -600,3 +600,26 @@ body { background: var(--bg); color: var(--ink); }
 .p-notes li.is-due { background: var(--c-miss-soft); border-color: transparent; }
 .p-role { background: var(--v-soft); color: var(--v); }
 .p-role.is-admin { background: var(--plum); }
+
+/* 📊 الأرقام › تقرير الأسبوع: the optional question, then the report */
+.p-wq { padding: 20px 18px; display: grid; gap: 12px; }
+.p-wq h2 { margin: 0; font-size: 1.1rem; font-weight: 700; line-height: 1.5; }
+.p-wq-form { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
+.p-wq-n { display: inline-flex; align-items: center; gap: 6px; }
+.p-wq-n input { width: 84px; text-align: center; font-size: 1.4rem; font-weight: 700; padding: 8px; font-variant-numeric: tabular-nums; }
+.p-wq-step { width: 44px; height: 44px; border-radius: var(--r-in); border: 1px solid var(--card-line); background: #FFF; color: var(--ink); font: inherit; font-size: 1.3rem; cursor: pointer; }
+.p-wq-step:focus-visible { outline: 2px solid var(--v); outline-offset: 2px; }
+.p-wq-alt { display: flex; flex-wrap: wrap; gap: 6px 18px; }
+.p-wtitle { margin: 0; font-weight: 700; color: var(--muted); }
+.p-wsales { padding: 14px 16px; display: flex; flex-wrap: wrap; align-items: center; gap: 12px; background: var(--c-wa-soft); border-color: transparent; }
+.p-wsales > div { flex: 1 1 200px; min-width: 0; }
+.p-wsales p { margin: 0; }
+.p-wsales .p-tile-i { background: var(--c-wa); color: #FFF; }
+.p-wsales-n b { font-size: 1.6rem; font-weight: 700; color: var(--c-wa); margin-inline-end: 4px; }
+.p-wsales.is-open { background: #FFF; border-color: var(--card-line); }
+.p-week-home { padding: 14px 16px; display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
+.p-week-home > div { flex: 1 1 200px; min-width: 0; }
+.p-week-home h2 { margin: 0; font-size: 1rem; font-weight: 700; }
+.p-week-home p { margin: 2px 0 0; }
+.p-week-home .p-tile-i { background: var(--c-wa-soft); color: var(--c-wa); }
+#p-wdash { display: grid; gap: 16px; }

@@ -234,7 +234,7 @@ function subChip(s) {
   if (s.subscription_status === "trial" && s.trial_ends_at) { const n = daysLeft(s.trial_ends_at); return `<span class="p-chip is-trial"><i></i>تجربة · ${n} ${n === 1 ? "يوم" : "أيام"}</span>`; }
   return "";
 }
-const TAB_SEC = { home: "home", offers: "perfumes", add: "perfumes", import: "perfumes", requests: "perfumes", reviews: "perfumes", stats: "numbers", missed: "numbers", report: "numbers", settings: "store" };
+const TAB_SEC = { home: "home", offers: "perfumes", add: "perfumes", import: "perfumes", requests: "perfumes", reviews: "perfumes", stats: "numbers", week: "numbers", missed: "numbers", report: "numbers", settings: "store" };
 const SEC_FIRST = { home: "home", perfumes: "offers", numbers: "stats", store: "settings" };
 const hasPrice = (o) => vlist(o).some((v) => Number(v.price) > 0) || Number(o.price) > 0;
 // steps the merchant ticked on this device (tried the quiz, shared the link); nothing breaks without storage
@@ -262,7 +262,7 @@ function render() {
           <button type="button" data-tab="requests"><b>📝 عطر غير موجود${pending ? ` <small>${pending}</small>` : ""}</b><span>اطلبه وسنضيفه إلى الكتالوگ</span></button>
         </div>`;
   }
-  if (sec === "numbers") top = sub([["stats", "الإحصائيات"], ["missed", "🔍 ما لم يجدوه"], ["report", "التقرير الشهري"]]);
+  if (sec === "numbers") top = sub([["stats", "الإحصائيات"], ["week", "تقرير الأسبوع"], ["missed", "ما لم يجدوه"], ["report", "التقرير الشهري"]]);
   const wide = sec === "home" || sec === "numbers";
   app.innerHTML = `
     ${S.admin ? '<div class="p-backbar"><button type="button" class="p-link" id="b-team">← العودة إلى اللوحة العامة</button><span>أنت ترى المتجر كما يراه التاجر</span></div>' : ""}
@@ -287,7 +287,7 @@ function render() {
   if (sec === "store") wireLinkCard(s);
   const back = document.getElementById("b-team");
   if (back) back.addEventListener("click", () => { S.mode = "team"; sessionStorage.setItem("ff_mode", "team"); renderTeam(); });
-  ({ home: tabHome, offers: tabOffers, add: tabAdd, requests: tabRequests, reviews: tabReviews, import: tabImport, settings: tabSettings, stats: tabStats, missed: tabMissed, report: tabReport }[S.tab] || tabHome)();
+  ({ home: tabHome, offers: tabOffers, add: tabAdd, requests: tabRequests, reviews: tabReviews, import: tabImport, settings: tabSettings, stats: tabStats, week: tabWeek, missed: tabMissed, report: tabReport }[S.tab] || tabHome)();
 }
 
 // 🏠 home: the account's state, the first steps (until they are all done), this week's numbers, one question
@@ -314,6 +314,7 @@ function tabHome() {
       <div class="p-tile k-wa"><span class="p-tile-i">${ICON.chat}</span><b id="p-t-wa">…</b><span>نقرات الواتساب</span></div>
     </div>
     <p class="p-week-foot" id="p-week"><button type="button" class="p-link" data-go="stats">كل الأرقام ←</button></p>
+    <div id="p-week-home"></div>
     <div id="p-miss-home"></div>
     ${allDone ? "" : `<section class="d-card p-steps" aria-labelledby="p-steps-t">
       <div class="p-steps-head"><h2 id="p-steps-t">ابدأ من هنا</h2><span>${done} من ${steps.length}</span></div>
@@ -336,6 +337,17 @@ function tabHome() {
   drawQueue();
   week();
   missHome();
+  weekHome();
+  // last week's report is ready and its question not answered yet: one card, the question opens with the report
+  async function weekHome() {
+    const d = await loadWeek(), box = document.getElementById("p-week-home");
+    if (S.tab !== "home" || !box || d.error || d.answer || !weekChats(d)) return;
+    const n = weekChats(d);
+    box.innerHTML = `<section class="d-card p-week-home"><span class="p-tile-i">${ICON.check}</span><div><h2>تقرير الأسبوع الماضي جاهز</h2>
+      <p class="p-small">${weekLabel(d)} · ضغط ${fmt(n)} ${n === 1 ? "زبون" : "زبائن"} على الواتساب. كم منهم اشترى؟</p></div>
+      <button type="button" class="d-btn" id="b-week-go">افتح التقرير</button></section>`;
+    document.getElementById("b-week-go").addEventListener("click", () => { S.tab = "week"; render(); scrollTo(0, 0); });
+  }
   // what customers asked for without finding it (018): one line here, the detail in 📊 الأرقام
   async function missHome() {
     const d = await loadMissed(30), box = document.getElementById("p-miss-home");
@@ -676,6 +688,69 @@ async function tabMissed() {
     <p class="d-foot">الأرقام من أجوبة الكويز فقط، والزبون يُحسب مرة واحدة.</p>`;
   const add = document.getElementById("b-miss-add");
   if (add) add.addEventListener("click", () => { S.tab = "offers"; S.addMenu = true; render(); scrollTo(0, 0); });
+}
+
+// 📊 الأرقام › «📋 تقرير الأسبوع»: last week (Monday to Sunday), opened by one optional question:
+// how many of the customers who pressed WhatsApp really bought? (store_week and store_week_sales, 021)
+const weekLabel = (d) => `${dateAr(d.week)} – ${dateAr(d.week_end)}`;
+async function loadWeek() {
+  let r; try { r = await sb.rpc("store_week", { p_store: S.store.id }); } catch (e) { return { error: "net" }; }
+  if (r.error) return { error: /store_week|PGRST202|42883/.test((r.error.message || "") + r.error.code) ? "sql" : "net" };
+  return r.data || { error: "net" };
+}
+const weekChats = (d) => ((d.totals || {}).whatsapp_visits || 0);
+async function tabWeek() {
+  const el = document.getElementById("tab");
+  el.innerHTML = '<div id="p-weekr" aria-live="polite"><p class="d-msg">جارٍ إعداد تقرير الأسبوع…</p></div>';
+  const d = await loadWeek(), box = document.getElementById("p-weekr");
+  if (S.tab !== "week" || !box) return;
+  if (d.error) { box.innerHTML = `<p class="d-msg">${d.error === "sql" ? "هذا القسم يعمل بعد تشغيل 021_weekly_report.sql في Supabase." : d.error === "invalid" ? "سجّل الخروج ثم ادخل من جديد." : d.error === "range" ? "لا توجد أرقام لهذا الأسبوع بعد." : "تعذّر تحميل التقرير الآن. أعد المحاولة بعد قليل."}</p>`; return; }
+  const chats = weekChats(d);
+  S.weekLater = S.weekLater || {};
+  if (!d.answer && chats > 0 && !S.weekLater[d.week]) return weekQuestion(box, d, chats);
+  weekReport(box, d, chats);
+}
+function weekQuestion(box, d, chats) {
+  box.innerHTML = `<section class="d-card p-wq" aria-labelledby="p-wq-t">
+      <p class="p-small">أسبوع ${weekLabel(d)} · قبل التقرير، سؤال واحد</p>
+      <h2 id="p-wq-t">ضغط ${fmt(chats)} ${chats === 1 ? "زبون" : "زبائن"} على زر الواتساب من الكويز. كم واحد منهم اشترى فعلاً؟</h2>
+      <form id="f-wq" class="p-wq-form" novalidate>
+        <label class="p-wq-n"><span class="sr">عدد المبيعات</span>
+          <button type="button" class="p-wq-step" data-step="-1" aria-label="ناقص واحد">−</button>
+          <input type="number" name="sales" id="wq-sales" min="0" max="1000" step="1" value="0" inputmode="numeric" dir="ltr">
+          <button type="button" class="p-wq-step" data-step="1" aria-label="زائد واحد">+</button></label>
+        <button type="submit" class="d-btn">حفظ وعرض التقرير</button>
+      </form>
+      <div class="p-wq-alt"><button type="button" class="p-link" id="wq-unknown">لا أعرف</button><button type="button" class="p-link" id="wq-later">لاحقاً، اعرض التقرير</button></div>
+      <p class="p-small">ليس كل من ضغط على الزر أرسل رسالة. جوابك يبقى خاصاً بك وبفريق RihaFlow، ويساعدك على معرفة ما يجلبه لك الكويز فعلاً.</p>
+    </section>`;
+  const f = document.getElementById("f-wq"), inp = document.getElementById("wq-sales");
+  box.querySelectorAll("[data-step]").forEach((b) => b.addEventListener("click", () => { inp.value = Math.max(0, Math.min(1000, (Number(inp.value) || 0) + Number(b.dataset.step))); }));
+  const save = async (row) => {
+    const r = await sb.from("store_week_sales").upsert({ store_id: S.store.id, week_start: d.week, chats, ...row, answered_at: new Date().toISOString() });
+    if (r.error) return toast(errText(r.error), true);
+    d.answer = { chats, sales: row.sales ?? null, unknown: !!row.unknown };
+    toast("شكراً ✓"); weekReport(box, d, chats);
+  };
+  f.addEventListener("submit", (e) => {
+    e.preventDefault();
+    const n = Number(inp.value);
+    if (!Number.isInteger(n) || n < 0 || n > 1000) return toast("اكتب عدداً صحيحاً.", true);
+    save({ sales: n, unknown: false });
+  });
+  document.getElementById("wq-unknown").addEventListener("click", () => save({ sales: null, unknown: true }));
+  document.getElementById("wq-later").addEventListener("click", () => { S.weekLater[d.week] = true; weekReport(box, d, chats); });
+}
+function weekReport(box, d, chats) {
+  const a = d.answer;
+  const head = a && !a.unknown && a.sales != null
+    ? `<section class="d-card p-wsales"><span class="p-tile-i">${ICON.check}</span><div><p class="p-wsales-n"><b>${fmt(a.sales)}</b> ${a.sales === 1 ? "بيع" : "مبيعات"} من ${fmt(a.chats)} ${a.chats === 1 ? "زبون ضغط" : "زبائن ضغطوا"} على الواتساب</p><p class="p-small">حسب جوابك · <button type="button" class="p-link" id="wq-edit">تعديل</button></p></div></section>`
+    : a && a.unknown ? `<p class="p-small">أجبت «لا أعرف» عن مبيعات هذا الأسبوع. <button type="button" class="p-link" id="wq-edit">أجب الآن</button></p>`
+    : chats > 0 ? `<section class="d-card p-wsales is-open"><div><p>لم تجب بعد: كم من ${fmt(chats)} ${chats === 1 ? "زبون" : "زبائن"} اشتروا فعلاً؟</p></div><button type="button" class="d-btn ghost" id="wq-edit">أجب الآن</button></section>` : "";
+  box.innerHTML = `<p class="p-wtitle">أسبوع ${weekLabel(d)}</p>${head}<div id="p-wdash"></div>`;
+  renderDashboard(document.getElementById("p-wdash"), d, { inPortal: true });
+  const ed = document.getElementById("wq-edit");
+  if (ed) ed.addEventListener("click", () => { weekQuestion(box, d, chats); const i = document.getElementById("wq-sales"); if (i && a && a.sales != null) i.value = a.sales; });
 }
 
 async function tabReport(month) {
