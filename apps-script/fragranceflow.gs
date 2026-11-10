@@ -1059,7 +1059,7 @@ function digestHtml_(s) {
     parts.push('<p style="margin:0 0 6px">لم يجرّب أي زبون الكويز هذا الأسبوع. شارك رابط متجرك في البيو على Instagram أو عبر الواتساب أو كـ QR في المحل:</p>' +
       '<p style="margin:0;direction:ltr;text-align:right"><a href="' + link + '" style="color:#5B35C8">' + esc(link) + '</a></p>');
   }
-  if (top && top.name) parts.push('<p style="margin:0">⭐ العطر الأكثر ظهوراً لزبنائك: <b dir="ltr">' + esc(top.name) + '</b>' + (top.brand ? ' · <span dir="ltr">' + esc(top.brand) + '</span>' : '') + '</p>');
+  if (top && top.name) parts.push('<p style="margin:0">⭐ العطر الأكثر ظهوراً لزبنائك: <b dir="ltr" style="unicode-bidi:isolate">' + esc(top.name) + (top.brand ? ' · ' + esc(top.brand) : '') + '</b></p>');
   if (miss.n) {
     var r = miss.top || {}, what = [D_GENDER[r.gender], D_FAMILY[r.family] || r.family].filter(Boolean).join(' · ');
     parts.push('<p style="margin:0">🔍 <b>' + miss.n + (miss.n === 1 ? ' زبون لم يجد' : ' زبائن لم يجدوا') + '</b> ما طلبوه في عطورك' + (what ? '. الأكثر طلباً: <b>' + esc(what) + '</b>' : '') +
