@@ -181,6 +181,9 @@ function onOpen() {
     .addItem('🔑 رابط الإحصائيات ديال متجر', 'dashboardLinkPrompt')
     .addItem('🔐 رابط لوحة الـ admin', 'adminLinkPrompt')
     .addSeparator()
+    .addItem('📧 الملخص الأسبوعي للمتاجر: شعل', 'enableWeeklyDigest')
+    .addItem('📧 الملخص الأسبوعي للمتاجر: طفي', 'disableWeeklyDigest')
+    .addSeparator()
     .addItem('🔑 بدل رابط النشر (Deploy Hook)', 'setDeployHook')
     .addSeparator()
     .addItem('🗝 Supabase: حط المفتاح السري', 'setSupabaseKey')
@@ -824,7 +827,7 @@ function logAction_(me, action, l) {
       store_id: l.store_id || null, target: String(l.target || '').slice(0, 200), detail: l.detail || {} });
   } catch (e) { /* the action itself already succeeded */ }
 }
-var ADMIN_ONLY = ['unlinkMerchant', 'changeEmail', 'team', 'addTeam', 'setRole', 'removeTeam'];
+var ADMIN_ONLY = ['unlinkMerchant', 'changeEmail', 'digestTest', 'team', 'addTeam', 'setRole', 'removeTeam'];
 var TEAM_ACTIONS = {
   // the RihaFlow team with roles and last sign-in
   team: function () {
@@ -902,6 +905,14 @@ var MERCHANT_ACTIONS = {
       return { user_id: x.user_id, email: u.email || '?', store_id: x.store_id, store: (x.stores && x.stores.name) || x.store_id,
         created_at: x.created_at, last_sign_in_at: u.last_sign_in_at || null };
     }), admins: admins.length };
+  },
+  // send this week's summary of one store to the admin asking, to see what merchants receive
+  digestTest: function (b, me) {
+    var s = loadDigest_().filter(function (x) { return x.id === String(b.store_id || ''); })[0];
+    if (!s) throw new Error('هذا المتجر لا يستقبل الملخص: لا يوجد حساب، أو أوقفه التاجر، أو المتجر لا يظهر للزبناء (تجربة منتهية أو موقوف).');
+    if (!me.email) throw new Error('لا يوجد بريد في حسابك.');
+    sendDigest_(s, me.email);
+    return { ok: true, email: me.email, log: { store_id: s.id, target: me.email } };
   },
   // change a merchant's login email (admin only): same password, the new email is confirmed directly
   changeEmail: function (b) {
@@ -1020,3 +1031,86 @@ function clip_(v, n) {
 }
 function text_(t) { return ContentService.createTextOutput(t).setMimeType(ContentService.MimeType.TEXT); }
 function json_(o) { return ContentService.createTextOutput(JSON.stringify(o)).setMimeType(ContentService.MimeType.JSON); }
+
+/* ---------------- weekly summary e-mail to each store (020_weekly_digest.sql) ----------------
+   Every Monday around 9:00 (Casablanca), each live store that has an account and has not turned it off
+   (⚙️ إعدادات المتجر) receives its last 7 days by e-mail. Sent from the Google account that owns this script,
+   under the name RihaFlow; replies go to DIGEST_REPLY_TO (Script Properties) when it is set.
+   Gmail allows about 100 e-mails a day on a personal account, 1500 on Google Workspace. */
+var D_FAMILY = { floral: 'زهري', woody: 'خشبي', fresh: 'منعش وحمضي', aquatic: 'أكواتيك وبحري', oriental: 'شرقي وعميق', sweet: 'حلو ودافئ', clean: 'نظيف', musky: 'مسكي وناعم', fruity: 'فاكهي وحيوي', heavy: 'عميق' };
+var D_GENDER = { women: 'نسائي', men: 'رجالي', unisex: 'للجميع' };
+
+function digestHtml_(s) {
+  var t = (s.stats && s.stats.totals) || {}, p = (s.stats && s.stats.prev) || null, top = s.stats && s.stats.top, miss = s.missed || {};
+  var esc = function (x) { return String(x == null ? '' : x).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); };
+  var diff = function (k) {
+    if (!p || p[k] == null) return '';
+    var d = (t[k] || 0) - (p[k] || 0);
+    return d === 0 ? 'مثل الأسبوع السابق' : (d > 0 ? '+' : '−') + Math.abs(d) + ' مقارنة بالأسبوع السابق';
+  };
+  var box = function (n, label, k) {
+    return '<td style="width:33%;padding:6px"><div style="background:#F3EEFF;border-radius:12px;padding:14px 8px;text-align:center">' +
+      '<div style="font-size:26px;font-weight:800;color:#1D1430">' + (t[k] || 0) + '</div><div style="font-size:13px;color:#5B4F73;font-weight:700">' + label + '</div>' +
+      '<div style="font-size:11px;color:#8A80A0;margin-top:4px">' + diff(k) + '</div></div></td>';
+  };
+  var portal = SITE_URL + '/portal/', link = SITE_URL + '/?store=' + encodeURIComponent(s.id) + '#quiz';
+  var parts = [];
+  if (!t.experiences) {
+    parts.push('<p style="margin:0 0 6px">لم يجرّب أي زبون الكويز هذا الأسبوع. شارك رابط متجرك في البيو على Instagram أو عبر الواتساب أو كـ QR في المحل:</p>' +
+      '<p style="margin:0;direction:ltr;text-align:right"><a href="' + link + '" style="color:#5B35C8">' + esc(link) + '</a></p>');
+  }
+  if (top && top.name) parts.push('<p style="margin:0">⭐ العطر الأكثر ظهوراً لزبنائك: <b dir="ltr">' + esc(top.name) + '</b>' + (top.brand ? ' · <span dir="ltr">' + esc(top.brand) + '</span>' : '') + '</p>');
+  if (miss.n) {
+    var r = miss.top || {}, what = [D_GENDER[r.gender], D_FAMILY[r.family] || r.family].filter(Boolean).join(' · ');
+    parts.push('<p style="margin:0">🔍 <b>' + miss.n + (miss.n === 1 ? ' زبون لم يجد' : ' زبائن لم يجدوا') + '</b> ما طلبوه في عطورك' + (what ? '. الأكثر طلباً: <b>' + esc(what) + '</b>' : '') +
+      (r.family && !r.have ? '، وليس عندك أي عطر متوفر من هذا النوع' : '') + '. التفاصيل في «📊 الأرقام › 🔍 ما لم يجدوه».</p>');
+  }
+  if (!s.offers) parts.push('<p style="margin:0">⚠️ لا يوجد أي عطر متوفر في متجرك، فالكويز لا يقترح شيئاً لزبنائك. أضف عطورك من «🧴 عطوري».</p>');
+  return '<div dir="rtl" style="font-family:Tahoma,Arial,sans-serif;background:#F7F5FC;padding:20px 10px"><div style="max-width:560px;margin:0 auto;background:#FFF;border-radius:16px;padding:22px 18px;color:#1D1430;line-height:1.7;font-size:15px">' +
+    '<p style="margin:0 0 4px;font-size:13px;color:#5B35C8;font-weight:700">RihaFlow</p>' +
+    '<h1 style="margin:0 0 12px;font-size:20px">ملخص أسبوعك · ' + esc(s.name) + '</h1>' +
+    '<p style="margin:0 0 10px">مرحباً 👋 هذه أرقام آخر 7 أيام:</p>' +
+    '<table role="presentation" style="width:100%;border-collapse:collapse"><tr>' + box(0, 'زيارات الكويز', 'experiences') + box(0, 'أكملوا الكويز', 'completed') + box(0, 'نقرات الواتساب', 'whatsapp') + '</tr></table>' +
+    (parts.length ? '<div style="margin:14px 0 0;display:block">' + parts.join('<div style="height:10px"></div>') + '</div>' : '') +
+    '<p style="margin:20px 0 0;text-align:center"><a href="' + portal + '" style="display:inline-block;background:#5B35C8;color:#FFF;text-decoration:none;font-weight:700;padding:12px 26px;border-radius:12px">افتح فضاء التاجر</a></p>' +
+    '<p style="margin:18px 0 0;font-size:12px;color:#8A80A0">يصلك هذا البريد كل يوم اثنين. يمكنك إيقافه من «⚙️ إعدادات المتجر» في فضاء التاجر. نقرات الواتساب هي نقرات على زر الواتساب، وليست طلبات مؤكدة.</p>' +
+    '</div></div>';
+}
+function digestSubject_(s) {
+  var t = (s.stats && s.stats.totals) || {};
+  return 'ملخص أسبوعك في RihaFlow · ' + s.name + ': ' + (t.experiences || 0) + ' زيارة، ' + (t.whatsapp || 0) + ' نقرة واتساب';
+}
+function sendDigest_(s, to) {
+  var opt = { to: to, subject: digestSubject_(s), htmlBody: digestHtml_(s), name: 'RihaFlow' };
+  var reply = PropertiesService.getScriptProperties().getProperty('DIGEST_REPLY_TO');
+  if (reply) opt.replyTo = reply;
+  MailApp.sendEmail(opt);
+}
+function loadDigest_() {
+  var r = sbCall_('post', 'rest/v1/rpc/weekly_digest', {});
+  if (r.code !== 200) throw new Error('weekly_digest: ' + r.code + ' (شغّل 020_weekly_digest.sql في Supabase)');
+  return r.data || [];
+}
+// the Monday run: one e-mail per account of each store; the count goes to the activity log
+function weeklyDigest() {
+  var stores = loadDigest_(), sent = 0, failed = 0;
+  stores.forEach(function (s) {
+    (s.emails || []).forEach(function (to) {
+      if (MailApp.getRemainingDailyQuota() < 1) { failed++; return; }
+      try { sendDigest_(s, to); sent++; } catch (e) { failed++; }
+    });
+  });
+  try {
+    sbCall_('post', 'rest/v1/activity_log', { actor_email: 'apps-script', actor_role: 'system', action: 'team.weeklyDigest', target: sent + ' بريد', detail: { sent: sent, failed: failed, stores: stores.length } });
+  } catch (e) { /* the e-mails are already sent */ }
+  return { sent: sent, failed: failed };
+}
+function enableWeeklyDigest() {
+  disableWeeklyDigest(true);
+  ScriptApp.newTrigger('weeklyDigest').timeBased().onWeekDay(ScriptApp.WeekDay.MONDAY).atHour(9).inTimezone('Africa/Casablanca').create();
+  SpreadsheetApp.getUi().alert('📧 تشعل: كل متجر غادي يوصلو ملخص أسبوعي فالإيميل كل نهار الاثنين مع 9 د الصباح تقريبا.');
+}
+function disableWeeklyDigest(silent) {
+  ScriptApp.getProjectTriggers().forEach(function (t) { if (t.getHandlerFunction() === 'weeklyDigest') ScriptApp.deleteTrigger(t); });
+  if (silent !== true) SpreadsheetApp.getUi().alert('⏹ الملخص الأسبوعي طفا.');
+}

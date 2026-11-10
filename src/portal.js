@@ -940,12 +940,21 @@ async function editStore(id) {
       <button type="submit" class="d-btn">حفظ الاسم</button></form>
     <h3 class="p-h3">حساب التاجر</h3>
     <div id="e-accounts">${isBoss() ? '<p class="d-msg">جارٍ تحميل الحساب…</p>' : '<p class="p-small">تغيير البريد الإلكتروني خاص بالـ admin.</p>'}</div>
+    ${isBoss() ? '<p class="p-review"><button type="button" class="p-link" id="b-digest-test">📧 أرسل لي نسخة من الملخص الأسبوعي لهذا المتجر</button></p>' : ""}
     <h3 class="p-h3">📝 الملاحظات</h3><div id="e-notes"></div>
     ${isBoss() ? '<h3 class="p-h3">💰 الأداءات</h3><div id="e-pays"><p class="d-msg">جارٍ تحميل الأداءات…</p></div>' : ""}`;
   box.scrollIntoView({ behavior: "smooth", block: "start" });
   box.querySelector("[data-close]").addEventListener("click", () => box.remove());
   storeNotes(st);
   if (isBoss()) storePayments(st);
+  const dt = document.getElementById("b-digest-test");
+  if (dt) dt.addEventListener("click", async () => {
+    dt.disabled = true;
+    let r; try { r = await teamCall("digestTest", { store_id: st.id }); } catch (er) { r = { error: "net" }; }
+    dt.disabled = false;
+    if (r.error) return toast(r.message || "لم يتم الإرسال. تأكد من Apps Script (New version) و 020_weekly_digest.sql.", true);
+    toast(`تم الإرسال ✓ تفقّد ${r.email}`);
+  });
   const f = document.getElementById("f-sname");
   f.addEventListener("submit", async (e) => {
     e.preventDefault();
@@ -1293,6 +1302,7 @@ function tabSettings() {
       <label>موقعك<input name="website" dir="ltr" placeholder="https://…" value="${esc(s.website || "")}"></label>
       <label>لون المتجر<span class="p-color"><input type="color" name="color" value="${/^#[0-9a-f]{6}$/i.test(s.color || "") ? esc(s.color) : "#5b35c8"}"><button type="button" class="p-link" id="b-nocolor">بدون لون</button></span></label>
     </div>
+    ${"digest" in s ? `<label class="p-check"><input type="checkbox" name="digest" id="s-digest"${s.digest ? " checked" : ""}> 📧 أرسل لي ملخصاً أسبوعياً بالبريد الإلكتروني (كل يوم اثنين)</label>` : ""}
     <h2 class="p-h2">🎨 صفحة الكويز الخاصة بك</h2>
     <p class="p-small">يظهر هذا للزبون في أول صفحة الكويز. إذا تركتها فارغة، يظهر النص الافتراضي.</p>
     <fieldset class="p-themes"><legend>أجواء الصفحة</legend>
@@ -1369,6 +1379,7 @@ function tabSettings() {
     const row = { whatsapp: w, city: f.city.value.trim(), instagram: f.instagram.value.trim(), website: f.website.value.trim(),
       color: noColor ? "" : f.color.value.toLowerCase(), welcome_title: f.welcome_title.value.trim(), welcome_text: f.welcome_text.value.trim(),
       theme: (f.querySelector("input[name=theme]:checked") || {}).value || "luxury" };
+    if (f.digest) row.digest = f.digest.checked;   // the weekly e-mail (020); only when the column exists
     if (w && !/^\d{11,15}$/.test(w)) return toast("رقم الواتساب غير صحيح. مثال: 0612345678", true);
     for (const k of ["instagram", "website"]) if (!https(row[k])) return toast("يجب أن تبدأ الروابط بـ https://", true);
     const b = f.querySelector("[type=submit]"); b.disabled = true;
@@ -1601,13 +1612,13 @@ const LOG_ACTION = {
   "team.createMerchant": "أنشأ حساب تاجر", "team.resetPassword": "أعطى كلمة سر جديدة", "team.unlinkMerchant": "أزال وصول حساب لمتجر",
   "store_payments.insert": "سجّل أداءً", "store_payments.update": "عدّل أداءً", "store_payments.delete": "حذف أداءً",
   "store_notes.insert": "أضاف ملاحظة", "store_notes.update": "حدّث ملاحظة", "store_notes.delete": "حذف ملاحظة",
-  "team.changeEmail": "غيّر بريد حساب تاجر", "team.addTeam": "أضاف عضواً للفريق", "team.setRole": "غيّر دور عضو", "team.removeTeam": "أزال عضواً من الفريق",
+  "team.changeEmail": "غيّر بريد حساب تاجر", "team.digestTest": "أرسل نسخة تجريبية من الملخص", "team.weeklyDigest": "أُرسل الملخص الأسبوعي للمتاجر", "team.addTeam": "أضاف عضواً للفريق", "team.setRole": "غيّر دور عضو", "team.removeTeam": "أزال عضواً من الفريق",
 };
 const LOG_FIELD = { price: "الثمن", in_stock: "التوفر", active: "نشط", variants: "الأحجام", name: "الاسم", brand: "الماركة", gender: "لمن", subscription_status: "الاشتراك",
   trial_ends_at: "نهاية التجربة", status: "الحالة", admin_note: "ملاحظة", city: "المدينة", whatsapp: "الواتساب", instagram: "Instagram", website: "الموقع", color: "اللون",
   logo_url: "اللوگو", cover_url: "صورة الغلاف", theme: "الأجواء", welcome_title: "العنوان", welcome_text: "جملة الترحيب", role: "الدور", character: "العائلة", occasion: "المناسبة",
   season: "الفصل", notes_top: "نوتات الافتتاح", notes_mid: "نوتات القلب", notes_base: "نوتات القاعدة", concentration: "التركيز", size: "الحجم", image_url: "الصورة", world: "الفئة",
-  store_created: "متجر جديد", new_user: "حساب جديد", email: "البريد الإلكتروني", done: "تمت المتابعة", follow_up: "التذكير", amount: "المبلغ", paid_until: "مؤدى حتى", paid_at: "تاريخ الأداء", method: "الطريقة", body: "الملاحظة" };
+  store_created: "متجر جديد", new_user: "حساب جديد", email: "البريد الإلكتروني", done: "تمت المتابعة", follow_up: "التذكير", amount: "المبلغ", paid_until: "مؤدى حتى", paid_at: "تاريخ الأداء", method: "الطريقة", body: "الملاحظة", sent: "أُرسل", failed: "لم يُرسل", stores: "المتاجر", digest: "الملخص الأسبوعي" };
 function logVal(v) {
   if (v === null || v === undefined || v === "") return "—";
   if (v === true) return "نعم"; if (v === false) return "لا";
@@ -1632,7 +1643,7 @@ async function tabLog() {
   const fmtTime = (d) => new Date(d).toLocaleString("ar-MA", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
   const draw = () => {
     ul.innerHTML = st.rows.length ? st.rows.map((x) => `<li><time datetime="${esc(x.at)}">${fmtTime(x.at)}</time>
-      <div><p><b dir="ltr">${esc(x.actor_email || "—")}</b> <span class="p-role is-${esc(x.actor_role)}">${x.actor_role === "agent" ? "Agent" : "Admin"}</span> ${esc(LOG_ACTION[x.action] || x.action)}</p>
+      <div><p><b dir="ltr">${esc(x.actor_email || "—")}</b> <span class="p-role is-${esc(x.actor_role)}">${x.actor_role === "agent" ? "Agent" : x.actor_role === "system" ? "تلقائي" : "Admin"}</span> ${esc(LOG_ACTION[x.action] || x.action)}</p>
         <p class="p-log-what">${x.target ? `<b dir="auto">${esc(x.target)}</b>` : ""}${x.store_id && !/^stores\./.test(x.action) ? ` · <span dir="ltr">${esc(x.store_id)}</span>` : ""}</p>
         <p class="p-log-d">${logDetail(x.detail)}</p></div></li>`).join("") : '<li class="d-empty">لا يوجد أي نشاط بعد.</li>';
     more.hidden = st.done;
