@@ -565,3 +565,38 @@ body { background: var(--bg); color: var(--ink); }
 .d-bars .d-bar { background: #F3E8E2; } .d-bars .d-bar i { background: #7A6670; }
 @media (max-width: 420px) { .p-steps li { grid-template-columns: 30px minmax(0, 1fr) auto; } .p-steps li > :last-child { grid-column: auto; justify-self: end; } }
 @media (max-width: 640px) { .p-miss-home { flex-wrap: wrap; } .p-miss-home .d-btn { margin-inline-start: 48px; } }
+
+/* ═════════ the team space in the same look ═════════ */
+.p-seal-team { background: var(--plum) !important; color: #FFF; font-weight: 700; }
+.p-chip.is-admin { background: var(--plum); color: #FFF; }
+.p-chip.is-agent { background: var(--v-soft); color: var(--v); }
+.p-publish { margin-inline-start: 0; }
+/* alerts: one coloured icon per kind (blue no visits, plum no account, pink no perfumes, orange trial, red data) */
+#app .a-alerts ul { list-style: none; padding: 0; margin: 0; display: grid; gap: 8px; }
+#app .a-alerts li { display: flex; gap: 12px; padding: 10px 12px; border-radius: 14px; background: #FFF; border: 1px solid var(--card-line); }
+#app .a-ico { width: 36px; height: 36px; flex: none; border-radius: 11px; display: grid; place-items: center; }
+#app .a-alerts li.is-inactive .a-ico { background: var(--c-visit-soft); color: var(--c-visit); }
+#app .a-alerts li.is-token .a-ico { background: var(--v-soft); color: var(--plum); }
+#app .a-alerts li.is-catalog .a-ico { background: var(--c-perf-soft); color: var(--c-perf); }
+#app .a-alerts li.is-trial .a-ico { background: var(--c-miss-soft); color: var(--c-miss); }
+#app .a-alerts li.is-data .a-ico { background: #FDE4E2; color: #B42318; }
+#app .a-count:not(.a-count-n) { background: var(--c-miss); color: #FFF; }
+.p-follow .a-count { background: var(--c-miss); }
+/* platform numbers: each figure in its own colour */
+#app .a-kpis .k-visit b { color: var(--c-visit); } #app .a-kpis .k-done b { color: var(--c-done); } #app .a-kpis .k-wa b { color: var(--c-wa); }
+#app .a-kpis .k-store b { color: var(--plum); } #app .a-kpis .k-share b, #app .a-kpis .k-perf b { color: var(--c-perf); } #app .a-kpis .k-miss b { color: var(--c-miss); }
+#app .a-kpis .d-card span { color: var(--muted); }
+#app .a-table td.t-visit { color: var(--c-visit); font-weight: 700; }
+#app .a-table td.t-wa { color: var(--c-wa); font-weight: 700; }
+#app .a-table td.t-perf { color: var(--c-perf); font-weight: 700; }
+#app .a-status.is-on { background: var(--c-wa-soft); color: var(--c-wa); }
+#app .a-subs li.is-on b { color: var(--c-wa); } #app .a-subs li.is-trial b { color: var(--c-gold); } #app .a-subs li.is-warn b { color: var(--c-miss); }
+#app .a-health li.is-warn em { color: var(--c-miss); }
+#app .a-fix { border-color: var(--card-line); }
+.p-follow { border-color: #F5CBA8; }
+.p-follow li { background: var(--c-miss-soft); border-color: transparent; }
+.p-edit { border-color: var(--card-line); }
+.p-pay-state.is-ok { color: var(--c-wa); } .p-pay-state.is-late, .p-sub-late { color: var(--c-miss); }
+.p-notes li.is-due { background: var(--c-miss-soft); border-color: transparent; }
+.p-role { background: var(--v-soft); color: var(--v); }
+.p-role.is-admin { background: var(--plum); }

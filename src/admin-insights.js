@@ -18,10 +18,10 @@ export function insightsHTML(d, { revenue = true } = {}) {
   ];
   return `
     <section class="d-kpis a-kpis a-kpis-sm">
-      <div class="d-card"><small>مشاركات البصمة</small><b>${fmt(t.shares)}</b><span>عبر الواتساب، Instagram…</span></div>
-      <div class="d-card"><small>لم يجدوا كل ما يريدون</small><b>${fmt(t.near)}</b><span>${pct(t.near || 0, t.completed || 0)}% ممن أكملوا · اقترحنا الأقرب</span></div>
-      <div class="d-card"><small>العطور في الكتالوگ</small><b>${fmt(c.perfumes)}</b><span>نشيطين</span></div>
-      <div class="d-card"><small>العروض المتوفرة</small><b>${fmt(c.offers)}</b><span>عطر × متجر، متوفرة الآن</span></div>
+      <div class="d-card k-share"><small>مشاركات البصمة</small><b>${fmt(t.shares)}</b><span>عبر الواتساب، Instagram…</span></div>
+      <div class="d-card k-miss"><small>لم يجدوا كل ما يريدون</small><b>${fmt(t.near)}</b><span>${pct(t.near || 0, t.completed || 0)}% ممن أكملوا · اقترحنا الأقرب</span></div>
+      <div class="d-card k-perf"><small>العطور في الكتالوگ</small><b>${fmt(c.perfumes)}</b><span>نشيطين</span></div>
+      <div class="d-card k-perf"><small>العروض المتوفرة</small><b>${fmt(c.offers)}</b><span>عطر × متجر، متوفرة الآن</span></div>
     </section>
     <section class="d-grid a-ins">
       <div class="d-card d-wide">
@@ -56,8 +56,8 @@ export function insightsHTML(d, { revenue = true } = {}) {
       <div class="d-card">
         <h2>الاشتراكات</h2>
         <ul class="a-subs">
-          <li><b>${fmt(s.active)}</b><span>مفعّل</span></li>
-          <li><b>${fmt(s.trial)}</b><span>في التجربة</span></li>
+          <li class="is-on"><b>${fmt(s.active)}</b><span>مفعّل</span></li>
+          <li class="is-trial"><b>${fmt(s.trial)}</b><span>في التجربة</span></li>
           <li class="${s.expired ? "is-warn" : ""}"><b>${fmt(s.expired)}</b><span>انتهت التجربة</span></li>
           <li><b>${fmt(s.paused)}</b><span>موقوف</span></li>
         </ul>

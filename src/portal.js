@@ -223,6 +223,7 @@ const ICON = {
   check: svg('<path d="M20 6 9 17l-5-5"/>', 18),
   chat: svg('<path d="M21 12a9 9 0 0 1-13.5 7.8L3 21l1.2-4.5A9 9 0 1 1 21 12z"/>', 18),
   search: svg('<circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/>', 18),
+  team: svg('<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0M16 4.5a3.5 3.5 0 0 1 0 7M18 14a6 6 0 0 1 3.5 6"/>'),
 };
 const SECTIONS = [["home", ICON.home, "الرئيسية"], ["perfumes", ICON.perfumes, "عطوري"], ["numbers", ICON.numbers, "الأرقام"], ["store", ICON.store, "متجري"]];
 const greeting = () => (new Date().getHours() < 12 ? "صباح الخير" : "مساء الخير");
@@ -798,7 +799,7 @@ function openStore(id, tab) {
 // 🏠 الرئيسية (alerts, platform numbers) · 🏪 المتاجر (stores, accounts, new store, subscriptions) · 🧴 الكاتالوگ (perfumes, requests)
 // · 👥 الفريق (members and activity log, admin only). An agent sees the first three (016_team_roles.sql).
 const isBoss = () => S.role !== "agent";
-const T_SECTIONS = () => [["home", "🏠", "الرئيسية"], ["stores", "🏪", "المتاجر"], ["catalog", "🧴", "الكاتالوگ"]].concat(isBoss() ? [["team", "👥", "الفريق"]] : []);
+const T_SECTIONS = () => [["home", ICON.home, "الرئيسية"], ["stores", ICON.store, "المتاجر"], ["catalog", ICON.perfumes, "الكاتالوگ"]].concat(isBoss() ? [["team", ICON.team, "الفريق"]] : []);
 const T_SEC = { overview: "home", stores: "stores", accounts: "stores", newacc: "stores", subs: "stores", perfumes: "catalog", review: "catalog", members: "team", log: "team" };
 const T_FIRST = { home: "overview", stores: "stores", catalog: "perfumes", team: "members" };
 function renderTeam() {
@@ -811,9 +812,11 @@ function renderTeam() {
     team: seg([["members", "الأعضاء"], ["log", "سجل النشاط"]]),
   }[sec] || "";
   app.innerHTML = `
-    <section class="d-head p-head"><div><h1>لوحة RihaFlow</h1><p>${fmt(S.stores.length)} متجر · ${S.role === "agent" ? "حسابك: Agent" : "حسابك: Admin"}</p></div>
+    <section class="d-head p-head"><span class="d-seal p-seal-team" aria-hidden="true">R</span>
+      <div><p class="p-hello">${greeting()}</p><h1>فريق RihaFlow</h1></div>
+      <span class="p-chip ${S.role === "agent" ? "is-agent" : "is-admin"}"><i></i>${S.role === "agent" ? "Agent" : "Admin"}</span>
       <button type="button" class="d-btn p-publish" id="b-publish">🚀 انشر الموقع الآن</button></section>
-    <nav class="p-nav" aria-label="الأقسام">${T_SECTIONS().map(([k, i, l]) => `<button type="button" data-tsec="${k}"${sec === k ? ' aria-current="page"' : ""}><span aria-hidden="true">${i}</span>${l}</button>`).join("")}</nav>
+    <nav class="p-nav" aria-label="الأقسام">${T_SECTIONS().map(([k, i, l]) => `<button type="button" data-tsec="${k}"${sec === k ? ' aria-current="page"' : ""}><span class="p-nav-i">${i}</span>${l}</button>`).join("")}</nav>
     ${sub}
     <section id="tab" class="${S.teamTab === "overview" || S.teamTab === "stores" ? "p-overview" : "d-card p-panel"}"></section>`;
   app.querySelectorAll("[data-tsec]").forEach((b) => b.addEventListener("click", () => { S.teamTab = T_FIRST[b.dataset.tsec]; S.q = ""; renderTeam(); scrollTo(0, 0); }));
