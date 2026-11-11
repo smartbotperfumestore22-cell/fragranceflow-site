@@ -1087,6 +1087,9 @@ async function tabOverview() {
   // stores that exist in Supabase but have no numbers yet still appear, so every store can be opened from here
   const known = new Set(d.stores.map((x) => x.id));
   S.stores.forEach((x) => { if (!known.has(x.id)) d.stores.push({ id: x.id, name: x.name, active: x.active !== false, perfumes: 0, experiences: 0, completed: 0, whatsapp: 0, last: "" }); });
+  // a store the team stopped on purpose (cancelled, paused, switched off) raises no alerts: it is not expected to work
+  const stopped = (a) => { const st = alertStore(a); return !!st && (st.active === false || ["cancelled", "paused"].includes(st.subscription_status)); };
+  d.alerts = (d.alerts || []).filter((a) => !stopped(a));
   el.innerHTML = range + adminHTML({ ...d, title: "اللوحة العامة" }, manageCell, "الأرقام والمتاجر والحسابات من Supabase.", { stores: false, fix: alertFix });
   wire();
   el.querySelectorAll("[data-fix]").forEach((b) => b.addEventListener("click", () => fixAlert(d.alerts[Number(b.dataset.fix)])));
