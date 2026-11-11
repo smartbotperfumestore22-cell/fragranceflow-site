@@ -1104,6 +1104,37 @@ async function tabOverview() {
       alerts.after(box);
     }
   } catch (e) {}
+  quizSteps(el, days);
+}
+
+// 🏠 (team) «أين يتوقف الزبناء؟»: visits that opened the page, answered each question, finished (quiz_steps, 022)
+const STEP_LABEL = { gender: "لمن العطر", occasion: "المناسبة", season: "الموسم", character: "العائلة العطرية", impression: "الانطباع",
+  world: "نوع العطور", sizeType: "قنينة أو ديكونط", budget: "الميزانية" };
+async function quizSteps(el, days, store) {
+  let r; try { r = await sb.rpc("quiz_steps", { p_days: days, p_store: store || null }); } catch (e) { return; }
+  if (r.error || !r.data || r.data.error || S.teamTab !== "overview" || S.days !== days) return;
+  const d = r.data;
+  let sec = document.getElementById("p-steps-funnel");
+  if (!sec) { sec = document.createElement("section"); sec.id = "p-steps-funnel"; sec.className = "d-card p-sfun"; sec.setAttribute("aria-labelledby", "p-sfun-t"); el.append(sec); }
+  const pick = `<label class="p-sfun-pick"><span class="sr">المتجر</span><select id="sfun-store"><option value="">جميع المتاجر</option>${S.stores.map((x) => `<option value="${esc(x.id)}"${x.id === store ? " selected" : ""}>${esc(x.name)}</option>`).join("")}</select></label>`;
+  const head = `<div class="p-steps-head"><h2 id="p-sfun-t">أين يتوقف الزبناء؟</h2>${pick}</div>`;
+  if (!d.tracking) {
+    sec.innerHTML = head + '<p class="d-empty">يبدأ الحساب مع أول زبون يجيب عن سؤال بعد هذا التحديث.</p>';
+  } else {
+    const rows = [["زاروا الصفحة", d.opened]].concat((d.steps || []).map((s) => [`أجابوا: ${STEP_LABEL[s.q] || s.q}`, s.n])).concat([["أكملوا الكويز", d.completed]]);
+    const top = Math.max(1, rows[0][1], ...rows.map((x) => x[1]));
+    let worst = -1, worstDrop = 0;
+    // the biggest stop is the biggest share lost from one step to the next
+    rows.forEach((x, i) => { if (i && rows[i - 1][1]) { const drop = (rows[i - 1][1] - x[1]) / rows[i - 1][1]; if (drop > worstDrop) { worstDrop = drop; worst = i; } } });
+    sec.innerHTML = head + `<ol class="p-sfun-list">${rows.map(([l, n], i) => {
+      const lost = i ? rows[i - 1][1] - n : 0;
+      return `<li class="${i === worst && worstDrop > 0 ? "is-worst" : ""}"><div class="p-sfun-row"><span>${esc(l)}</span><b>${fmt(n)}</b></div>
+        <span class="p-sfun-bar"><i style="width:${Math.max(2, (n / top) * 100)}%"></i></span>
+        ${i && lost > 0 ? `<small>${i === worst ? "أكبر توقف: " : ""}توقف ${fmt(lost)} (${Math.round((lost / Math.max(1, rows[i - 1][1])) * 100)}%)</small>` : ""}</li>`; }).join("")}</ol>
+      <p class="p-small">زيارات منذ ${dateAr(d.since)}. الزائر يُحسب مرة واحدة في كل خطوة.</p>`;
+  }
+  const sel = document.getElementById("sfun-store");
+  if (sel) sel.addEventListener("change", () => quizSteps(el, days, sel.value));
 }
 
 const search = (ph) => `<div class="p-search"><input type="search" id="q" placeholder="${ph}" value="${esc(S.q)}" autocomplete="off"></div>`;

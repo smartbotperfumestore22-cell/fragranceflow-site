@@ -4368,6 +4368,8 @@ function WidgetContent({ onClose, lang: langProp, initialStep="intro" }) {
   }
 
   const answer = async (qId, val) => {
+    // where customers stop: one «quiz_step» per question and visit (no answer value, no personal data)
+    if (!STEPS_SENT.has(qId)) { STEPS_SENT.add(qId); window.track && window.track("quiz_step", { q: qId, step: String(qi + 1) }); }
     let na = {...ans, [qId]:val};
     // a new fragrance world changes the budget ranges, so an earlier budget answer no longer applies
     if (qId === "world" && val !== ans.world) na.budget = null;
@@ -5387,6 +5389,7 @@ function FakePage() {
 //  ROOT
 // ═══════════════════════════════════════════════════════════════
 console.log('FF_BUILD_2026');
+const STEPS_SENT = new Set();   // questions already reported in this tab (quiz_step, 022)
 window.track = async function track(event, data) {
   try {
     const cfg = window.__FF_CONFIG__ || {};
