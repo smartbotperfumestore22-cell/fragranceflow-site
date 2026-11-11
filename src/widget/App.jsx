@@ -2290,7 +2290,7 @@ const QS_BASE = [
     ] },
 
   // Q4 — العائلة العطرية
-{ id:"character", q:"ما هي العائلة العطرية التي تميل إليها؟", sub:"هذا هو قلب الاختيار",
+{ id:"character", q:"ما هي العائلة العطرية التي تميل إليها؟", sub:"كل العائلات تناسب الرجال والنساء.",
    opts:[
   {v:"floral",  l:"زهري",              i:"🌸", d:"Rose · Jasmin · Iris",             ic:"#6B1A45", bg:"#5f1a3a"},
   {v:"woody",   l:"خشبي",              i:"🌲", d:"Cedarwood · Sandalwood · Oud",      ic:"#3A2A0A", bg:"#4a3a0a"},
