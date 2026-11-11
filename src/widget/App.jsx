@@ -245,7 +245,7 @@ const QS_FR = [
       {v:"winter",    l:"Automne / Hiver",   i:"🍂", d:"Chaud et profond",           ic:"#1A4A6B", bg:"#1a3a5f"},
       {v:"allseasons",l:"Toute l'année",    i:"🌍", d:"Adapté à toutes saisons",    ic:"#2A5A2A", bg:"#1a4a1a"},
     ] },
-  { id:"character", q:"Quelle famille olfactive vous attire ?", sub:"C'est le cœur du choix",
+  { id:"character", q:"Quelle famille olfactive vous attire ?", sub:"Toutes les familles conviennent aux hommes comme aux femmes.",
     opts:[
       {v:"floral",  l:"Floral",             i:"🌸", d:"Rose · Jasmin · Iris",         ic:"#6B1A45", bg:"#5f1a3a"},
       {v:"woody",   l:"Boisé",              i:"🌲", d:"Cèdre · Santal · Oud",         ic:"#3A2A0A", bg:"#4a3a0a"},
