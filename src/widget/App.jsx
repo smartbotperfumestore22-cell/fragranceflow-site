@@ -2972,7 +2972,6 @@ const RV_LABELS = {
     match:"Match", why:"لماذا اخترناه لك؟",
     matchShort:"توافق", matchHint:"درجة التوافق بين اختياراتك وهذا العطر",
     rankLine:["✨ الأكثر مطابقة لذوقك", "اختيار قريب من ذوقك", "اختيار آخر قريب من ذوقك"],
-    bridge:"وبناءً على بصمتك العطرية، هذه العطور الأقرب إلى ذوقك.",
     rows:{ gender:"لمن", family:"العائلة", vibe:"الطابع", occasion:"المناسبة", season:"الفصل", alsoOcc:"مناسبات أخرى", alsoSeason:"فصول أخرى", sprays:"الرشات" }, about:"تقريباً",
     profileSub:"بناءً على اختياراتك", profileNote:"اخترنا لك العطور الأقرب لذوقك.", top3:"أفضل 3 عطور لك",
     view:"عرض العطر", where:"أين تجده؟", buy:"عرض المنتج", price:"درهم",
@@ -2992,7 +2991,6 @@ const RV_LABELS = {
     match:"Match", why:"Pourquoi ce choix ?",
     matchShort:"Affinité", matchHint:"Degré d'affinité entre vos choix et ce parfum",
     rankLine:["✨ Le plus proche de vos goûts", "Un choix proche de vos goûts", "Un autre choix proche de vos goûts"],
-    bridge:"D'après votre signature olfactive, voici les parfums les plus proches de vos goûts.",
     rows:{ gender:"Pour", family:"Famille", vibe:"Caractère", occasion:"Occasion", season:"Saison", alsoOcc:"Autres occasions", alsoSeason:"Autres saisons", sprays:"Pulvérisations" }, about:"Environ",
     profileSub:"D'après vos réponses", profileNote:"Nous avons choisi les parfums les plus proches de vos goûts.", top3:"Vos 3 meilleurs parfums",
     view:"Voir le parfum", where:"Où le trouver ?", buy:"Voir le produit", price:"DH",
@@ -3884,10 +3882,6 @@ function ResultsPage({ res, pers, ans, lang, t, questions, reset, favPicked, pic
         )
       )}
 
-      {/* the link between the signature and the fragrances */}
-      {pers && ans.isGift !== "gift" ? (
-        <p className="ffr-bridge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M12 3c-4 4 4 8 0 14"/><path d="m8 14 4 4 4-4"/></svg><span>{L.bridge}</span></p>
-      ) : null}
 
       {/* 2. the fragrances, with the visitor's choices shown once */}
       {near ? (
