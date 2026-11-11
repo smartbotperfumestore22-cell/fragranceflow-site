@@ -58,7 +58,7 @@ export function storesHTML(d, storeCell) {
           <td><b>${esc(s.name)}</b><small dir="ltr">${esc(s.id)}</small></td>
           <td data-l="التجارب" class="t-visit">${fmt(s.experiences)}</td><td data-l="المكملة">${fmt(s.completed)} <small>${s.experiences ? pct(s.completed, s.experiences) + "%" : ""}</small></td>
           <td data-l="واتساب" class="t-wa">${fmt(s.whatsapp)}</td><td data-l="العطور" class="t-perf">${fmt(s.perfumes)}</td><td data-l="آخر نشاط">${ago(s.last, d.to)}</td>
-          <td data-l="الحالة"><span class="a-status ${s.active ? "is-on" : ""}">${s.active ? "نشيط" : "موقوف"}</span></td>
+          <td data-l="الحالة"><span class="a-status ${s.state ? "is-" + s.state[0] : s.active ? "is-on" : ""}">${s.state ? s.state[1] : s.active ? "نشيط" : "موقوف"}</span></td>
           <td>${storeCell(s)}</td>
         </tr>`).join("")}</tbody>
       </table></div>

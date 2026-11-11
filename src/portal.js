@@ -1029,7 +1029,8 @@ async function adminData() {
   let d = null;
   try { const r = await sb.rpc("admin_stats", { p_days: S.days }); if (!r.error && r.data && Array.isArray(r.data.stores)) d = r.data; } catch (e) {}
   if (!d) return null;
-  d.stores.forEach((x) => { const s = S.stores.find((y) => y.id === x.id); if (s) x.name = s.name; });   // a name just changed shows at once
+  // a name just changed shows at once; the status says whether customers see the store (subscription, trial, active)
+  d.stores.forEach((x) => { const s = S.stores.find((y) => y.id === x.id); if (s) { x.name = s.name; x.state = storeState(s); } });
   const known = new Set(d.stores.map((x) => x.id));
   S.stores.forEach((x) => { if (!known.has(x.id)) d.stores.push({ id: x.id, name: x.name, active: x.active !== false, perfumes: 0, experiences: 0, completed: 0, whatsapp: 0, last: "" }); });
   return d;
@@ -1047,6 +1048,13 @@ async function tabStores() {
   wire(); wireStoreSearch(el);
   el.querySelectorAll("[data-manage]").forEach((b) => b.addEventListener("click", () => openStore(b.dataset.manage)));
   el.querySelectorAll("[data-edit]").forEach((b) => b.addEventListener("click", () => editStore(b.dataset.edit)));
+}
+// what customers see: [css class, label] from the store's subscription (same rule as store_is_live in Supabase)
+function storeState(s) {
+  if (s.active === false) return ["off", "موقوف"];
+  if (s.subscription_status === "active") return ["on", "مفعّل"];
+  if (s.subscription_status === "trial") return s.trial_ends_at && daysLeft(s.trial_ends_at) <= 0 ? ["off", "انتهت التجربة"] : ["trial", "تجربة"];
+  return ["off", SUB_LABEL[s.subscription_status] || "لا يظهر"];
 }
 // each alert takes you to where it is fixed: a store without an account → the new-account form with that store chosen;
 // an ended trial → the subscriptions (admin); a store without perfumes → its perfumes with «+ أضف عطوراً» open;

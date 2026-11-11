@@ -600,3 +600,5 @@ body { background: var(--bg); color: var(--ink); }
 .p-notes li.is-due { background: var(--c-miss-soft); border-color: transparent; }
 .p-role { background: var(--v-soft); color: var(--v); }
 .p-role.is-admin { background: var(--plum); }
+#app .a-status.is-trial { background: var(--c-gold-soft); color: var(--c-gold); }
+#app .a-status.is-off { background: #F1E9E5; color: var(--muted); }
