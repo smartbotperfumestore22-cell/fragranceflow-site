@@ -304,6 +304,7 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--v); outline
 .p-imp-foot { position: sticky; bottom: 0; background: #FFF; padding: 12px 0 4px; border-top: 1px solid #ECE6F4; display: grid; gap: 8px; }
 .p-imp-foot p { margin: 0; }
 .p-imp-warn { color: #9A5212; font-weight: 700; }
+.p-imp-note { color: #8A4A10; font-size: .9rem; line-height: 1.6; }
 .p-imp-done h2 { margin: 0; font-size: 1.15rem; }
 @media (max-width: 420px) { .p-imp-found li { grid-template-columns: minmax(0, 1fr) 1fr 32px; } .p-imp-n { grid-column: 1 / -1; } }
 

@@ -22,6 +22,17 @@ function withMessage(url, name, inStore) {
   return url + "?text=" + encodeURIComponent(text);
 }
 
+// the budget question shows on a store link only when at least this share of its perfumes has a price
+export const BUDGET_MIN_PRICED = 0.8;
+
+// what the store sells for one offer, with or without a price: ["full"], ["decant"] or both
+export function offerTypes(offer) {
+  const out = new Set();
+  for (const v of Array.isArray(offer.variants) ? offer.variants : []) if (v && v.size) out.add(v.type === "decant" ? "decant" : "full");
+  if (!out.size) for (const f of Array.isArray(offer.formats) && offer.formats.length ? offer.formats : ["full"]) out.add(f === "decant" ? "decant" : "full");
+  return [...out];
+}
+
 // cheapest price per purchase type for one store offer: { full?: number, decant?: number }
 // from its sizes (decants 3ml, 5ml… and bottles), or, for an offer saved before sizes existed, from its formats and price
 export function offerTypePrices(offer) {
@@ -57,14 +68,20 @@ export function applyStoreMode(db) {
     // the store's own price and link; "where to buy" lists only this store
     // Rule: through a store link the budget uses THIS store's prices, by purchase type: the cheapest full bottle
     // when the visitor buys a bottle, the cheapest decant when they buy decants (typePrices; read by the quiz).
+    // A perfume the merchant added without a price keeps no price here (never the catalogue's reference price):
+    // it is shown to visitors who set no budget ceiling, and the store answers about the price on WhatsApp.
     const typePrices = offerTypePrices(offer);
-    const price = typePrices.full || typePrices.decant || offer.price || p.price;
-    mine.push({ ...p, price, typePrices, stores: [offer] });
+    const price = typePrices.full || typePrices.decant || Number(offer.price) || null;
+    mine.push({ ...p, price, typePrices, types: offerTypes(offer), stores: [offer] });
   }
   if (!mine.length) return { db: all, store: null };
-  store.count = mine.filter((p) => p.active !== false).length;
-  // which purchase types this store sells (the quiz asks bottle / decant only when it sells both)
-  store.hasFull = mine.some((p) => p.typePrices.full != null);
-  store.hasDecant = mine.some((p) => p.typePrices.decant != null);
+  const live = mine.filter((p) => p.active !== false);
+  store.count = live.length;
+  // which purchase types this store sells, priced or not (the quiz asks bottle / decant only when it sells both)
+  store.hasFull = mine.some((p) => p.types.includes("full"));
+  store.hasDecant = mine.some((p) => p.types.includes("decant"));
+  // the budget question only when at least 80% of the store's perfumes have a price
+  const priced = live.filter((p) => Object.values(p.typePrices).some((v) => Number(v) > 0)).length;
+  store.askBudget = live.length > 0 && priced / live.length >= BUDGET_MIN_PRICED;
   return { db: mine, store };
 }

@@ -65,5 +65,7 @@ export const catalogReady = loadCatalog().then((SHEET) => {
     window.__FF_CONFIG__.HAS_DECANT = store.hasDecant;
     // both types: «ما مهمش» until the visitor says otherwise (the engine picks the best purchase in the budget)
     window.__FF_CONFIG__.DEFAULT_SIZE = store.hasFull && store.hasDecant ? "any" : store.hasFull ? "full" : "decant";
+    // no budget question when too few of the store's perfumes have a price (fewer than 80%)
+    window.__FF_CONFIG__.HAS_BUDGET_QUESTION = store.askBudget;
   }
 });

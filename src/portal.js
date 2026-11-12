@@ -410,7 +410,7 @@ function tabImport() {
   if (IMP.step === "done") return drawImportDone(el);
   el.innerHTML = `<div class="p-imp">
     <h2 class="p-imp-h">أضف عدة عطور دفعة واحدة</h2>
-    <ol class="p-imp-how"><li>الصق لائحة عطورك هنا: <b>عطر في كل سطر</b>.</li><li>نبحث عن كل عطر في الكتالوگ.</li><li>راجع الأثمنة، ثم اضغط «أضف».</li></ol>
+    <ol class="p-imp-how"><li>الصق لائحة عطورك هنا: <b>عطر في كل سطر</b>.</li><li>نبحث عن كل عطر في الكتالوگ.</li><li>راجع العطور، ثم اضغط «أضف». الحجم والثمن اختياريان، ويمكنك إضافتهما لاحقاً.</li></ol>
     <textarea id="imp-text" rows="8" dir="auto" aria-label="لائحة العطور" placeholder="مثال:&#10;Lattafa Khamrah 100ml 350&#10;Dior Sauvage 100ml 1200&#10;Yara 10ml 60">${esc(IMP.text)}</textarea>
     <div class="p-imp-acts">
       <button type="button" class="d-btn" id="imp-go">ابحث عن العطور</button>
@@ -465,7 +465,7 @@ function drawImport(el) {
       ${ask.map(({ x, i }) => `<div class="p-imp-q" data-i="${i}"><p dir="auto">«${esc(x.raw)}»</p><div class="p-imp-btns">
         ${x.cands.map((c) => `<button type="button" class="p-imp-pick" data-pick="${esc(c.perfume_id)}"><b dir="ltr">${esc(c.name)}</b><small dir="ltr">${esc(c.brand)}</small></button>`).join("")}
         <button type="button" class="p-imp-pick is-none" data-drop>غير موجود</button></div></div>`).join("")}</section>` : ""}
-    ${found.length ? `<section class="p-imp-sec"><h3>✅ ستتم إضافتها <small>راجع الحجم والثمن</small></h3>
+    ${found.length ? `<section class="p-imp-sec"><h3>✅ ستتم إضافتها <small>الحجم والثمن اختياريان</small></h3>
       <ul class="p-imp-found">${found.map(({ x, i }) => `<li data-i="${i}"><div class="p-imp-n"><b dir="ltr">${esc(name(x))}</b><small dir="ltr">${esc(brand(x))}</small>${x.type === "decant" ? '<span class="p-tag">ديكونط</span>' : ""}</div>
         <input data-f="size" value="${esc(x.size)}" placeholder="الحجم" aria-label="الحجم" dir="ltr" maxlength="20" class="${x.size ? "" : "is-miss"}">
         <input data-f="price" type="number" min="1" step="1" inputmode="decimal" value="${x.price ?? ""}" placeholder="الثمن" aria-label="الثمن بالدرهم" class="${x.price > 0 ? "" : "is-miss"}">
@@ -496,8 +496,9 @@ function importFoot(el) {
   const groups = new Set(found.map((x) => x.pick)).size, missing = found.filter((x) => !(x.price > 0) || !x.size).length;
   const reqs = IMP.sendReq === false ? 0 : IMP.rows.filter((x) => !x.pick && (x.status === "none" || x.dropped)).length;
   const foot = el.querySelector(".p-imp-foot");
-  foot.innerHTML = `${missing ? `<p class="p-imp-warn">${fmt(missing)} ينقصها الحجم أو الثمن (باللون البرتقالي).</p>` : ""}
-    <div class="p-imp-acts"><button type="button" class="d-btn" id="imp-save"${(groups && !missing) || (!groups && reqs) ? "" : " disabled"}>${groups ? `أضف ${fmt(groups)} عطر` : "أرسل الطلبات"}</button>
+  // size and price are optional: the perfume is added anyway and shows in the quiz; the price can come later
+  foot.innerHTML = `${missing ? `<p class="p-imp-note">${fmt(missing)} بدون حجم أو ثمن (باللون البرتقالي). ستُضاف وتظهر في الكويز، ويمكنك إضافة الثمن لاحقاً من «عطوري».</p>` : ""}
+    <div class="p-imp-acts"><button type="button" class="d-btn" id="imp-save"${groups || reqs ? "" : " disabled"}>${groups ? `أضف ${fmt(groups)} عطر` : "أرسل الطلبات"}</button>
       <button type="button" class="p-link" id="imp-back">رجوع</button></div>`;
   foot.querySelector("#imp-back").addEventListener("click", () => { IMP.step = "input"; tabImport(); });
   foot.querySelector("#imp-save").addEventListener("click", () => saveImport(el));
@@ -507,14 +508,23 @@ async function saveImport(el) {
   const have = new Set(S.offers.filter((o) => o.active).map((o) => o.perfume_id.toUpperCase()));
   const groups = new Map();
   IMP.rows.filter((x) => x.pick && !have.has(x.pick.toUpperCase())).forEach((x) => {
-    const g = groups.get(x.pick) || { pick: x.pick, name: (x.cands.find((c) => c.perfume_id === x.pick) || {}).name || x.name, variants: [] };
-    const key = x.type + "|" + x.size.toLowerCase();
-    if (!g.variants.some((v) => v.type + "|" + v.size.toLowerCase() === key)) g.variants.push({ type: x.type, size: x.size, price: x.price });
+    const g = groups.get(x.pick) || { pick: x.pick, name: (x.cands.find((c) => c.perfume_id === x.pick) || {}).name || x.name, variants: [], rest: [] };
+    const size = (x.size || "").trim(), type = x.type === "decant" ? "decant" : "full";
+    // a size with its price becomes one of the offer's sizes; a line without one is kept as it is (added without a price)
+    if (size && x.price > 0) {
+      const key = type + "|" + size.toLowerCase();
+      if (!g.variants.some((v) => v.type + "|" + v.size.toLowerCase() === key)) g.variants.push({ type, size, price: x.price });
+    } else g.rest.push({ type, size, price: x.price > 0 ? x.price : null });
     groups.set(x.pick, g);
   });
   const added = [], failed = [];
+  let unpriced = 0;
   for (const g of groups.values()) {
-    const { data, error } = await sb.from("offers").insert({ store_id: S.store.id, perfume_id: g.pick, variants: g.variants, in_stock: true })
+    const first = g.rest[0] || { type: "full", size: "", price: null };
+    const row = g.variants.length ? { variants: g.variants }
+      : { variants: [], size: first.size, size_type: first.type, price: first.price };
+    if (!g.variants.length && !first.price) unpriced++;
+    const { data, error } = await sb.from("offers").insert({ store_id: S.store.id, perfume_id: g.pick, in_stock: true, ...row })
       .select("id, perfume_id, size, size_type, price, in_stock, active, updated_at, variants, perfumes(name, brand, gender, image_url, size)").single();
     if (error) failed.push(g.name + " (" + errText(error) + ")"); else { added.push(g.name); S.offers.push(data); }
   }
@@ -522,7 +532,7 @@ async function saveImport(el) {
     .map((x) => ({ store_id: S.store.id, perfume_name: x.name.slice(0, 120), brand: "", size: x.size, price: x.price, note: "من الاستيراد: " + x.raw.slice(0, 400) }));
   let reqs = 0;
   if (reqRows.length) { const r = await sb.from("requests").insert(reqRows).select("*"); if (r.error) failed.push("الطلبات (" + errText(r.error) + ")"); else { reqs = r.data.length; S.requests.unshift(...r.data); } }
-  IMP.result = { added, failed, reqs }; IMP.step = "done";
+  IMP.result = { added, failed, reqs, unpriced }; IMP.step = "done";
   if (added.length) askPublish();
   render();
 }
@@ -531,6 +541,7 @@ function drawImportDone(el) {
   el.innerHTML = `<div class="p-imp p-imp-done">
     <h2>${r.added.length ? `تمت إضافة ${fmt(r.added.length)} عطر إلى كتالوگك ✓` : "لم تتم إضافة أي عطر"}</h2>
     ${r.reqs ? `<p>تم إرسال ${fmt(r.reqs)} طلبات لعطور جديدة. سنضيفها إلى الكتالوگ ونخبرك.</p>` : ""}
+    ${r.unpriced ? `<p class="p-imp-note">${fmt(r.unpriced)} عطر بدون ثمن. تظهر في الكويز، وسؤال الميزانية يظهر للزبناء فقط حين يكون لـ 80% من عطورك ثمن.</p>` : ""}
     ${r.failed.length ? `<p class="p-imp-warn">لم تتم إضافة: ${r.failed.map(esc).join("، ")}</p>` : ""}
     <p class="p-small">تظهر العطور الجديدة للزبناء في الكويز خلال 10 إلى 15 دقيقة.</p>
     <div class="p-imp-acts"><button type="button" class="d-btn" id="imp-mine">عرض عطوري</button><button type="button" class="p-link" id="imp-again">استيراد لائحة أخرى</button></div></div>`;

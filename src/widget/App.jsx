@@ -1484,7 +1484,10 @@ function scoreP(p, ans) {
   if (p.typePrices) {
     const mode = effectiveSizeType || "any";
     const bud = ans.budget && ans.budget !== "any" ? (calcDynamicBudget(mode, "ar", ans.world) || []).find(b => b.v === ans.budget) : null;
-    if (!bestOffer(p, mode, budgetCap(bud))) return 0;
+    const cap = budgetCap(bud);
+    // with a ceiling: only what has a price within it; without one: everything the store sells of this type,
+    // including perfumes the merchant has not priced yet
+    if (Number.isFinite(cap) ? !bestOffer(p, mode, cap) : !hasType(p, mode)) return 0;
   }
   // ── Budget HARD FILTER — يحذف العطور اللي فوق الميزانية ──
   else if (ans.budget && ans.budget !== "any") {
@@ -2353,6 +2356,7 @@ const WORLDS = ["designer", "niche", "ultra_niche", "arabian"];
 // (typePrices: { full, decant }, from its sizes); elsewhere its own sizeType and reference price, as before
 // st "any" (store link, visitor said «ما مهمش»): any purchase type the store sells
 function hasType(p, st) {
+  if (p && Array.isArray(p.types)) return st === "any" ? p.types.length > 0 : p.types.includes(st);   // store link: sold, priced or not
   if (p && p.typePrices) return st === "any" ? Object.values(p.typePrices).some(v => v != null) : p.typePrices[st] != null;
   return p && p.sizeType === st;
 }
