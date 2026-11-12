@@ -163,13 +163,25 @@ async function loadCatalog() {
 }
 // one page of the catalogue matching what is typed (search_perfumes, 011): ready for thousands of perfumes,
 // since Supabase returns at most 1000 rows per request. Before 011 is run: the old full list, filtered here.
-async function findPerfumes(q, { all = false, off = 0, lim = 30 } = {}) {
+async function findPerfumes(q, { all = false, off = 0, lim = 30, noImage = false } = {}) {
+  if (noImage) return findWithoutImage(q, off, lim);
   const r = await sb.rpc("search_perfumes", { q: q || "", only_active: !all, lim, off });
   if (!r.error) return { rows: (r.data || []).map((x) => x.p), total: r.data && r.data.length ? Number(r.data[0].total) : 0 };
   if (!/search_perfumes|PGRST202|42883/.test((r.error.message || "") + r.error.code)) throw r.error;
   const src = all ? ((await sb.from("perfumes").select("*").order("brand").order("name")).data || []) : await loadCatalog();
   const hits = src.filter((p) => match(p, q));
   return { rows: hits.slice(off, off + lim), total: hits.length };
+}
+// the team's «بدون صورة» filter: active perfumes without a photo, every typed word in the name, brand or id
+async function findWithoutImage(q, off, lim) {
+  let req = sb.from("perfumes").select("*", { count: "exact" }).eq("active", true).or("image_url.is.null,image_url.eq.");
+  for (const w of String(q || "").trim().split(/\s+/).filter(Boolean).slice(0, 6)) {
+    const x = w.replace(/[%_,()*\\]/g, "");
+    if (x) req = req.or(`name.ilike.*${x}*,brand.ilike.*${x}*,perfume_id.ilike.*${x}*`);
+  }
+  const { data, error, count } = await req.order("brand").order("name").range(off, off + lim - 1);
+  if (error) throw error;
+  return { rows: data || [], total: count || 0 };
 }
 // a list fed page by page from the server: search as you type, «عرض المزيد» at the bottom
 function serverList(opts, drawRow, onDraw) {
@@ -1478,6 +1490,34 @@ function tabSettings() {
 }
 
 // shrink a picture before upload (a phone photo of 5 MB becomes ~150 KB); WebP when the browser can, else JPEG
+// one perfume's photo → WebP (600 px at most) in the «perfume-images» bucket (025), then perfumes.image_url;
+// the previous photo of this perfume in the bucket is removed. Returns the saved perfume, or null.
+async function uploadPerfumePhoto(p, file, lab) {
+  if (!/^image\/(png|jpe?g|webp)$/.test(file.type)) { toast("اختر صورة PNG أو JPG أو WebP.", true); return null; }
+  if (file.size > 15 * 1024 * 1024) { toast("الصورة كبيرة جداً (أكثر من 15 MB).", true); return null; }
+  const text = lab.firstChild.textContent;
+  lab.classList.add("is-busy"); lab.firstChild.textContent = "جارٍ الرفع…";
+  try {
+    const blob = await shrinkImage(file, 600, 600);
+    const ext = blob.type === "image/webp" ? "webp" : "jpg";
+    const key = String(p.master_id || p.perfume_id).replace(/[^\w-]/g, "");
+    const path = `${key}-${Date.now()}.${ext}`;
+    const bucket = sb.storage.from("perfume-images");
+    const up = await bucket.upload(path, blob, { contentType: blob.type, cacheControl: "31536000", upsert: false });
+    if (up.error) throw up.error;
+    const url = bucket.getPublicUrl(path).data.publicUrl;
+    const { data, error } = await sb.from("perfumes").update({ image_url: url }).eq("perfume_id", p.perfume_id).select("*").single();
+    if (error) { await bucket.remove([path]); throw error; }
+    const old = String(p.image_url || "").split("/perfume-images/")[1];
+    if (old) bucket.remove([decodeURIComponent(old.split("?")[0])]).catch(() => {});
+    toast(`تم حفظ صورة ${data.name} ✓`); S.catalog = null; askPublish();
+    return data;
+  } catch (er) {
+    lab.classList.remove("is-busy"); lab.firstChild.textContent = text;
+    toast(/bucket|not found/i.test(String(er && er.message)) ? "التخزين غير جاهز بعد: شغّل 025_perfume_images.sql في Supabase." : errText(er), true);
+    return null;
+  }
+}
 async function shrinkImage(file, maxW, maxH) {
   const img = await createImageBitmap(file);
   const k = Math.min(1, maxW / img.width, maxH / img.height);
@@ -1757,18 +1797,35 @@ const P_GENDER = { men: "رجالي", women: "نسائي", unisex: "للجميع
 const P_CONC = ["EDP", "EDT", "Parfum", "Extrait", "EDC"];
 async function tabPerfumes() {
   const el = document.getElementById("tab");
+  S.pFilter = S.pFilter || "all";
   el.innerHTML = `<div class="p-review p-ptools">${search("ابحث بالاسم أو الماركة أو الرقم (FF-…)")}<button type="button" class="d-btn" id="b-newp">+ عطر جديد</button></div>
-    <p class="p-small">هذه هي القاعدة التي يعمل بها المحرك. أي تعديل يظهر في الكويز بعد النشر.</p><p class="p-count" id="cnt"></p>
+    <div class="p-filters" role="group" aria-label="عرض">${[["all", "الكل"], ["noimg", "بدون صورة"]].map(([k, l]) => `<button type="button" data-pf="${k}" aria-pressed="${S.pFilter === k}">${l}</button>`).join("")}</div>
+    <p class="p-small">هذه هي القاعدة التي يعمل بها المحرك. أي تعديل يظهر في الكويز بعد النشر. الصورة مشتركة بين كل المتاجر التي تبيع العطر.</p><p class="p-count" id="cnt"></p>
     <ul class="p-list" id="list"></ul><button type="button" class="d-btn p-more" id="more" hidden>عرض المزيد</button>`;
-  const L = serverList({ all: true }, (p) => `<li class="p-item p-item-add${p.active ? "" : " is-removed"}" data-pid="${esc(p.perfume_id)}">${thumb(p)}
+  const L = serverList({ all: true, noImage: S.pFilter === "noimg" }, (p) => `<li class="p-item p-item-add${p.active ? "" : " is-removed"}" data-pid="${esc(p.perfume_id)}">${thumb(p)}
       <div class="p-name"><b dir="ltr">${esc(p.name)}</b><small><span dir="ltr">${esc(p.brand)}</span> · ${P_GENDER[p.gender] || ""} · <span dir="ltr">${esc(p.perfume_id)}</span>${p.ref_price ? " · " + fmt(p.ref_price) + " درهم" : ""}</small></div>
-      <span class="p-have">${p.active ? "" : '<span class="p-tag">موقوف</span>'}<button type="button" class="p-link" data-edit="${esc(p.perfume_id)}">✏️ تعديل</button></span></li>`);
+      <span class="p-have">${p.active ? "" : '<span class="p-tag">موقوف</span>'}
+        <label class="p-link p-photo">${p.image_url ? "تغيير الصورة" : "📷 أضف صورة"}<input type="file" class="sr" accept="image/png,image/jpeg,image/webp" data-photo="${esc(p.perfume_id)}"></label>
+        <button type="button" class="p-link" data-edit="${esc(p.perfume_id)}">✏️ تعديل</button></span></li>`);
   const all = L.st, draw = L.draw;
-  el.addEventListener("click", (e) => {
+  el.querySelectorAll("[data-pf]").forEach((b) => b.addEventListener("click", () => { S.pFilter = b.dataset.pf; tabPerfumes(); }));
+  // handlers set (not added): the tab is redrawn when the filter changes, and one upload must stay one upload
+  el.onchange = async (e) => {
+    const id = e.target.dataset && e.target.dataset.photo, file = e.target.files && e.target.files[0];
+    if (!id || !file) return;
+    const p = all.rows.find((x) => x.perfume_id === id), lab = e.target.closest(".p-photo");
+    const saved = await uploadPerfumePhoto(p, file, lab);
+    if (!saved) return;
+    Object.assign(p, saved);
+    if (S.pFilter === "noimg") { all.rows = all.rows.filter((x) => x.perfume_id !== id); all.total = Math.max(0, all.total - 1); }
+    draw();
+    if (S.pFilter === "noimg" && !all.total && !S.q) document.getElementById("list").innerHTML = '<li class="d-empty">كل العطور النشيطة عندها صورة ✅</li>';
+  };
+  el.onclick = (e) => {
     const id = e.target.dataset && e.target.dataset.edit;
     if (id) perfumeForm(e.target.closest(".p-item"), all.rows.find((p) => p.perfume_id === id), (saved) => { Object.assign(all.rows.find((p) => p.perfume_id === saved.perfume_id), saved); draw(); });
     if (e.target.id === "b-newp") perfumeForm(null, null, (saved) => { all.rows.unshift(saved); all.total += 1; draw(); });
-  });
+  };
 }
 const chipSet = (name, labels, chosen) => `<div class="p-chips" role="group" aria-label="${name}">${Object.keys(labels).map((k) =>
   `<label class="p-chip2"><input type="checkbox" name="${name}" value="${k}"${chosen.includes(k) ? " checked" : ""}><span>${labels[k]}</span></label>`).join("")}</div>`;
