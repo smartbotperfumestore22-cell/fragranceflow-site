@@ -913,6 +913,8 @@ async function storeNotes(st) {
   draw();
 }
 
+// launch pricing (2026-11-13): 40 DH the first month, then 150 DH a month. The amount stays editable.
+const PRICE_FIRST = 40, PRICE_MONTH = 150;
 async function storePayments(st) {
   const box = document.getElementById("e-pays");
   if (!box) return;
@@ -925,7 +927,7 @@ async function storePayments(st) {
   const late = until && until < today && st.subscription_status === "active";
   box.innerHTML = `<p class="p-pay-state ${!until ? "" : late ? "is-late" : until >= today ? "is-ok" : ""}">${!until ? "لا يوجد أي أداء مسجل." : late ? `⚠️ متأخر: آخر أداء يغطي حتى ${dateAr(until)}.` : `مؤدى حتى ${dateAr(until)}.`}</p>
     <form id="f-pay" class="p-form" novalidate>
-      <div class="p-grid2"><label>المبلغ (درهم)<input type="number" name="amount" id="y-amount" min="1" step="1" value="299" inputmode="numeric" dir="ltr"></label>
+      <div class="p-grid2"><label>المبلغ (درهم)<input type="number" name="amount" id="y-amount" min="1" step="1" value="${pays.length ? PRICE_MONTH : PRICE_FIRST}" inputmode="numeric" dir="ltr"></label>
         <label>الطريقة<select name="method" id="y-method">${Object.entries(PAY_METHOD).map(([k, l]) => `<option value="${k}">${l}</option>`).join("")}</select></label>
         <label>تاريخ الأداء<input type="date" name="paid_at" id="y-at" value="${today}" dir="ltr"></label>
         <label>مؤدى حتى<input type="date" name="paid_until" id="y-until" value="${addMonth(from)}" dir="ltr"></label></div>
