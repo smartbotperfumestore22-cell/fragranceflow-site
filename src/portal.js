@@ -302,6 +302,27 @@ function render() {
   ({ home: tabHome, offers: tabOffers, add: tabAdd, requests: tabRequests, reviews: tabReviews, import: tabImport, settings: tabSettings, stats: tabStats, missed: tabMissed, report: tabReport }[S.tab] || tabHome)();
 }
 
+// ── keep RihaFlow on the merchant's phone ───────────────────────────────────
+// Chrome hands us its install prompt; on iPhone the person adds it from the share menu.
+let installPrompt = null;
+window.addEventListener("beforeinstallprompt", (e) => {
+  e.preventDefault(); installPrompt = e;
+  if (S.mode !== "team" && S.tab === "home" && document.getElementById("tab")) tabHome();
+});
+const standalone = () => matchMedia("(display-mode: standalone)").matches || navigator.standalone === true;
+const isIOS = () => /iphone|ipad|ipod/i.test(navigator.userAgent);
+// shown on a phone only, once the merchant has a link to open, and only until they install or dismiss it
+function appTip(f) {
+  if (f.app || standalone() || innerWidth > 640 || (!installPrompt && !isIOS())) return "";
+  return `<section class="d-card p-app" aria-labelledby="p-app-t">
+    <img src="/images/app/icon-192.png" alt="" width="48" height="48">
+    <div><h2 id="p-app-t">ضع RihaFlow في شاشة هاتفك</h2>
+      <p class="p-small">${installPrompt ? "افتح لوحتك بضغطة واحدة، دون كتابة الرابط في كل مرة."
+        : "من زر المشاركة في أسفل Safari، اختر «إضافة إلى الشاشة الرئيسية»."}</p></div>
+    <div class="p-app-acts">${installPrompt ? '<button type="button" class="d-btn" id="b-app-go">أضفه</button>' : ""}
+      <button type="button" class="p-link" id="b-app-no">ليس الآن</button></div></section>`;
+}
+
 // 🏠 home: the account's state, the first steps (until they are all done), this week's numbers, one question
 function tabHome() {
   const s = S.store, el = document.getElementById("tab"), live = S.offers.filter((o) => o.active), f = onbGet();
@@ -333,12 +354,23 @@ function tabHome() {
       <ol>${steps.map(([k, l, hint, ok, act], i) => `<li class="${ok ? "is-done" : ""}"><span class="p-step-n" aria-hidden="true">${ok ? "✓" : i + 1}</span>
         <div><b>${l}</b><small>${hint}</small></div>${ok ? '<span class="p-step-ok">تم</span>' : act}</li>`).join("")}</ol>
     </section>`}
+    ${appTip(f)}
     <div id="p-rvq"></div>
     ${allDone ? `<section class="d-card p-quicklink"><h2>🔗 رابط متجرك</h2>
       <div class="p-linkrow"><input readonly dir="ltr" value="${esc(storeLink(s))}" aria-label="رابط متجرك" id="p-home-url"><button type="button" class="d-btn" id="b-home-copy">نسخ</button></div>
       <button type="button" class="p-link" data-go="settings">QR، الواتساب، وموقعك ←</button></section>` : ""}`;
   el.querySelectorAll("[data-go]").forEach((b) => b.addEventListener("click", () => { S.tab = b.dataset.go; S.q = ""; S.addMenu = !!b.dataset.menu; render(); scrollTo(0, 0); }));
   el.querySelectorAll("[data-onb]").forEach((a) => a.addEventListener("click", () => { onbSet(a.dataset.onb); setTimeout(render, 300); }));
+  const no = document.getElementById("b-app-no");
+  if (no) no.addEventListener("click", () => { onbSet("app"); tabHome(); });
+  const go = document.getElementById("b-app-go");
+  if (go) go.addEventListener("click", async () => {
+    const p = installPrompt; if (!p) return;
+    installPrompt = null; p.prompt();
+    const r = await p.userChoice.catch(() => ({}));
+    if (r.outcome === "accepted") onbSet("app");
+    tabHome();
+  });
   const cp = document.getElementById("b-home-copy");
   if (cp) cp.addEventListener("click", async () => {
     try { await navigator.clipboard.writeText(storeLink(s)); toast("تم نسخ الرابط ✓ ألصقه في البيو أو أرسله للزبناء."); }

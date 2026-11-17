@@ -305,6 +305,10 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--v); outline
 .p-imp-foot p { margin: 0; }
 .p-imp-warn { color: #9A5212; font-weight: 700; }
 .p-imp-note { color: #8A4A10; font-size: .9rem; line-height: 1.6; }
+.p-app { display: grid; grid-template-columns: 48px minmax(0, 1fr); gap: 10px 12px; align-items: center; }
+.p-app img { border-radius: 12px; }
+.p-app h2 { margin: 0 0 2px; font-size: 1rem; }
+.p-app-acts { grid-column: 2; display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
 .p-imp-done h2 { margin: 0; font-size: 1.15rem; }
 /* the sticky action bar sat behind the fixed bottom nav on the phone */
 @media (max-width: 640px) { body:has(.p-nav) .p-imp-foot { bottom: calc(84px + env(safe-area-inset-bottom)); } }
