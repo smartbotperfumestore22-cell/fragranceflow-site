@@ -1491,34 +1491,127 @@ function tabSettings() {
   });
 }
 
-// shrink a picture before upload (a phone photo of 5 MB becomes ~150 KB); WebP when the browser can, else JPEG
 // one perfume's photo → WebP (600 px at most) in the «perfume-images» bucket (025), then perfumes.image_url;
-// the previous photo of this perfume in the bucket is removed. Returns the saved perfume, or null.
+// the previous photo of this perfume in the bucket is removed. Throws on failure, returns the saved perfume.
+const PHOTO_TYPE = /^image\/(png|jpe?g|webp)$/;
+const PHOTO_MAX = 15 * 1024 * 1024;
+function photoProblem(file) {
+  if (!PHOTO_TYPE.test(file.type)) return "ليست صورة PNG أو JPG أو WebP";
+  if (file.size > PHOTO_MAX) return "أكبر من 15 MB";
+  return "";
+}
+async function savePerfumePhoto(p, file) {
+  const blob = await shrinkImage(file, 600, 600);
+  const ext = blob.type === "image/webp" ? "webp" : "jpg";
+  const key = String(p.master_id || p.perfume_id).replace(/[^\w-]/g, "");
+  const path = `${key}-${Date.now()}.${ext}`;
+  const bucket = sb.storage.from("perfume-images");
+  const up = await bucket.upload(path, blob, { contentType: blob.type, cacheControl: "31536000", upsert: false });
+  if (up.error) throw up.error;
+  const url = bucket.getPublicUrl(path).data.publicUrl;
+  const { data, error } = await sb.from("perfumes").update({ image_url: url }).eq("perfume_id", p.perfume_id).select("*").single();
+  if (error) { await bucket.remove([path]); throw error; }
+  const old = String(p.image_url || "").split("/perfume-images/")[1];
+  if (old) bucket.remove([decodeURIComponent(old.split("?")[0])]).catch(() => {});
+  S.catalog = null;
+  return data;
+}
+const photoErr = (er) => /bucket|not found/i.test(String(er && er.message)) ? "التخزين غير جاهز بعد: شغّل 025_perfume_images.sql في Supabase." : errText(er);
+// one photo from the list, with the label as the progress indicator. Returns the saved perfume, or null.
 async function uploadPerfumePhoto(p, file, lab) {
-  if (!/^image\/(png|jpe?g|webp)$/.test(file.type)) { toast("اختر صورة PNG أو JPG أو WebP.", true); return null; }
-  if (file.size > 15 * 1024 * 1024) { toast("الصورة كبيرة جداً (أكثر من 15 MB).", true); return null; }
+  const bad = photoProblem(file);
+  if (bad) { toast(`الصورة ${bad}.`, true); return null; }
   const text = lab.firstChild.textContent;
   lab.classList.add("is-busy"); lab.firstChild.textContent = "جارٍ الرفع…";
   try {
-    const blob = await shrinkImage(file, 600, 600);
-    const ext = blob.type === "image/webp" ? "webp" : "jpg";
-    const key = String(p.master_id || p.perfume_id).replace(/[^\w-]/g, "");
-    const path = `${key}-${Date.now()}.${ext}`;
-    const bucket = sb.storage.from("perfume-images");
-    const up = await bucket.upload(path, blob, { contentType: blob.type, cacheControl: "31536000", upsert: false });
-    if (up.error) throw up.error;
-    const url = bucket.getPublicUrl(path).data.publicUrl;
-    const { data, error } = await sb.from("perfumes").update({ image_url: url }).eq("perfume_id", p.perfume_id).select("*").single();
-    if (error) { await bucket.remove([path]); throw error; }
-    const old = String(p.image_url || "").split("/perfume-images/")[1];
-    if (old) bucket.remove([decodeURIComponent(old.split("?")[0])]).catch(() => {});
-    toast(`تم حفظ صورة ${data.name} ✓`); S.catalog = null; askPublish();
+    const data = await savePerfumePhoto(p, file);
+    toast(`تم حفظ صورة ${data.name} ✓`); askPublish();
     return data;
   } catch (er) {
     lab.classList.remove("is-busy"); lab.firstChild.textContent = text;
-    toast(/bucket|not found/i.test(String(er && er.message)) ? "التخزين غير جاهز بعد: شغّل 025_perfume_images.sql في Supabase." : errText(er), true);
+    toast(photoErr(er), true);
     return null;
   }
+}
+
+// ── 📷 رفع مجموعة صور ────────────────────────────────────────────────────────
+// Every file is matched to a perfume by the id at the start of its name: «PFM-000109 - Afnan 9 PM.webp»
+// or just «FF-0039.jpg». Nothing is uploaded before the team sees what matched and what did not.
+function photoId(filename) {
+  const m = String(filename).match(/^\s*(pfm|ff)[-_ ]?(\d+)/i);
+  if (!m) return null;
+  const n = m[2].replace(/^0+/, "") || "0";
+  return m[1].toUpperCase() === "PFM" ? { master_id: "PFM-" + n.padStart(6, "0") } : { perfume_id: "FF-" + n.padStart(4, "0") };
+}
+// the perfumes behind a set of ids, by master_id or perfume_id, in requests of 150
+async function perfumesByIds(col, ids) {
+  const out = new Map();
+  for (let i = 0; i < ids.length; i += 150) {
+    const { data, error } = await sb.from("perfumes").select("*").in(col, ids.slice(i, i + 150));
+    if (error) throw error;
+    for (const p of data) out.set(p[col], p);
+  }
+  return out;
+}
+// Arabic counts: 1 صورة · 2 صورتان · 3–10 صور · 11+ صورة
+const photoN = (n) => n === 1 ? "صورة واحدة" : n === 2 ? "صورتان" : n >= 3 && n <= 10 ? `${fmt(n)} صور` : `${fmt(n)} صورة`;
+async function bulkPhotos(files) {
+  const el = document.getElementById("tab");
+  el.innerHTML = '<p class="d-msg">جارٍ قراءة الصور…</p>';
+  const rows = files.map((f) => ({ file: f, name: f.name, id: photoId(f.name), bad: photoProblem(f) }));
+  let found;
+  try {
+    const pick = (k) => [...new Set(rows.filter((r) => !r.bad && r.id && r.id[k]).map((r) => r.id[k]))];
+    const [byMaster, byFF] = await Promise.all([perfumesByIds("master_id", pick("master_id")), perfumesByIds("perfume_id", pick("perfume_id"))]);
+    found = (r) => (r.id && (r.id.master_id ? byMaster.get(r.id.master_id) : byFF.get(r.id.perfume_id))) || null;
+  } catch (er) { el.innerHTML = `<p class="d-msg">${esc(photoErr(er))}</p><button type="button" class="d-btn ghost" id="bp-back">رجوع</button>`; document.getElementById("bp-back").onclick = tabPerfumes; return; }
+  const seen = new Set();
+  for (const r of rows) {
+    r.p = r.bad ? null : found(r);
+    if (!r.p) { r.why = r.bad || (r.id ? "لا يوجد عطر بهذا الرقم" : "اسم الملف لا يبدأ برقم العطر"); continue; }
+    if (seen.has(r.p.perfume_id)) { r.p = null; r.why = "صورة أخرى لنفس العطر"; continue; }
+    seen.add(r.p.perfume_id);
+  }
+  const ok = rows.filter((r) => r.p), no = rows.filter((r) => !r.p);
+  const replacing = ok.filter((r) => r.p.image_url).length;
+  const line = (r) => r.p
+    ? `<li class="p-bulk-ok"><span dir="ltr" class="p-bulk-f">${esc(r.name)}</span><b dir="ltr">${esc(r.p.brand)} ${esc(r.p.name)}</b>${r.p.image_url ? '<small>تبديل الصورة الحالية</small>' : ""}</li>`
+    : `<li class="p-bulk-no"><span dir="ltr" class="p-bulk-f">${esc(r.name)}</span><small>${esc(r.why)}</small></li>`;
+  el.innerHTML = `<div class="p-imp">
+    <h2 class="p-imp-h">📷 رفع مجموعة صور <small class="p-small">${fmt(files.length)} ملف</small></h2>
+    ${ok.length ? `<section class="p-imp-sec"><h3>✅ جاهزة <small>${photoN(ok.length)}${replacing ? ` · منها ${fmt(replacing)} ستبدّل صورة حالية` : ""}</small></h3><ul class="p-bulk">${ok.map(line).join("")}</ul></section>` : ""}
+    ${no.length ? `<section class="p-imp-sec"><h3>⚠️ لن تُرفع <small>${photoN(no.length)}</small></h3><ul class="p-bulk">${no.map(line).join("")}</ul></section>` : ""}
+    <div class="p-imp-foot" id="bp-foot">
+      ${ok.length ? "" : '<p class="p-imp-warn">لم نتعرف على أي صورة. سمّ كل ملف برقم العطر، مثلاً: PFM-000109 - Afnan 9 PM.webp</p>'}
+      <div class="p-imp-acts"><button type="button" class="d-btn" id="bp-go"${ok.length ? "" : " disabled"}>ارفع ${photoN(ok.length)}</button>
+      <button type="button" class="p-link" id="bp-cancel">إلغاء</button></div></div></div>`;
+  document.getElementById("bp-cancel").onclick = tabPerfumes;
+  document.getElementById("bp-go").onclick = () => runBulkPhotos(ok);
+}
+// upload one by one: a single failure does not stop the rest, and the team can stop at any point
+async function runBulkPhotos(list) {
+  const foot = document.getElementById("bp-foot");
+  let done = 0, stop = false; const failed = [];
+  foot.innerHTML = `<p id="bp-prog" aria-live="polite">جارٍ الرفع… 0 من ${fmt(list.length)}</p>
+    <p class="p-small">لا تغلق هذه الصفحة حتى ينتهي الرفع.</p>
+    <div class="p-imp-acts"><button type="button" class="p-link" id="bp-stop">وقف</button></div>`;
+  document.getElementById("bp-stop").onclick = () => { stop = true; };
+  for (const r of list) {
+    if (stop) break;
+    try { Object.assign(r.p, await savePerfumePhoto(r.p, r.file)); r.li = true; }
+    catch (er) { failed.push({ name: r.name, why: photoErr(er) }); }
+    done++;
+    const prog = document.getElementById("bp-prog");
+    if (prog) prog.textContent = `جارٍ الرفع… ${fmt(done)} من ${fmt(list.length)}`;
+  }
+  const saved = done - failed.length;
+  if (saved) askPublish();
+  const el = document.getElementById("tab");
+  el.innerHTML = `<div class="p-imp p-imp-done"><h2>${saved ? "تم ✓" : "لم تُرفع أي صورة"}</h2>
+    <p>${photoN(saved)} محفوظة${stop ? " · أوقفتَ الرفع" : ""}.</p>
+    ${failed.length ? `<section class="p-imp-sec"><h3>⚠️ لم تُرفع <small>${photoN(failed.length)}</small></h3><ul class="p-bulk">${failed.map((f) => `<li class="p-bulk-no"><span dir="ltr" class="p-bulk-f">${esc(f.name)}</span><small>${esc(f.why)}</small></li>`).join("")}</ul></section>` : ""}
+    <div class="p-imp-acts"><button type="button" class="d-btn" id="bp-back">رجوع إلى العطور</button></div></div>`;
+  document.getElementById("bp-back").onclick = tabPerfumes;
 }
 async function shrinkImage(file, maxW, maxH) {
   const img = await createImageBitmap(file);
@@ -1800,7 +1893,8 @@ const P_CONC = ["EDP", "EDT", "Parfum", "Extrait", "EDC"];
 async function tabPerfumes() {
   const el = document.getElementById("tab");
   S.pFilter = S.pFilter || "all";
-  el.innerHTML = `<div class="p-review p-ptools">${search("ابحث بالاسم أو الماركة أو الرقم (FF-…)")}<button type="button" class="d-btn" id="b-newp">+ عطر جديد</button></div>
+  el.innerHTML = `<div class="p-review p-ptools">${search("ابحث بالاسم أو الماركة أو الرقم (FF-…)")}<button type="button" class="d-btn" id="b-newp">+ عطر جديد</button>
+      <label class="d-btn ghost p-imp-file">📷 رفع مجموعة صور<input type="file" class="sr" id="bp-files" accept="image/png,image/jpeg,image/webp" multiple></label></div>
     <div class="p-filters" role="group" aria-label="عرض">${[["all", "الكل"], ["noimg", "بدون صورة"]].map(([k, l]) => `<button type="button" data-pf="${k}" aria-pressed="${S.pFilter === k}">${l}</button>`).join("")}</div>
     <p class="p-small">هذه هي القاعدة التي يعمل بها المحرك. أي تعديل يظهر في الكويز بعد النشر. الصورة مشتركة بين كل المتاجر التي تبيع العطر.</p><p class="p-count" id="cnt"></p>
     <ul class="p-list" id="list"></ul><button type="button" class="d-btn p-more" id="more" hidden>عرض المزيد</button>`;
@@ -1813,6 +1907,7 @@ async function tabPerfumes() {
   el.querySelectorAll("[data-pf]").forEach((b) => b.addEventListener("click", () => { S.pFilter = b.dataset.pf; tabPerfumes(); }));
   // handlers set (not added): the tab is redrawn when the filter changes, and one upload must stay one upload
   el.onchange = async (e) => {
+    if (e.target.id === "bp-files") { const files = [...e.target.files]; e.target.value = ""; if (files.length) bulkPhotos(files); return; }
     const id = e.target.dataset && e.target.dataset.photo, file = e.target.files && e.target.files[0];
     if (!id || !file) return;
     const p = all.rows.find((x) => x.perfume_id === id), lab = e.target.closest(".p-photo");

@@ -306,6 +306,16 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--v); outline
 .p-imp-warn { color: #9A5212; font-weight: 700; }
 .p-imp-note { color: #8A4A10; font-size: .9rem; line-height: 1.6; }
 .p-imp-done h2 { margin: 0; font-size: 1.15rem; }
+/* the sticky action bar sat behind the fixed bottom nav on the phone */
+@media (max-width: 640px) { body:has(.p-nav) .p-imp-foot { bottom: calc(84px + env(safe-area-inset-bottom)); } }
+.p-bulk { list-style: none; padding: 0; margin: 0; display: grid; gap: 4px; max-height: 46vh; overflow: auto; }
+.p-bulk li { display: grid; gap: 2px; padding: 7px 10px; border-radius: 10px; font-size: .88rem; }
+.p-bulk-ok { background: #F4F8F4; }
+.p-bulk-no { background: #FFF7EF; }
+.p-bulk-f { color: var(--muted); font-size: .78rem; overflow-wrap: anywhere; }
+.p-bulk-ok b { font-weight: 700; overflow-wrap: anywhere; }
+.p-bulk-no small { color: #8A4A10; }
+.p-bulk-ok small { color: var(--muted); font-size: .78rem; }
 @media (max-width: 420px) { .p-imp-found li { grid-template-columns: minmax(0, 1fr) 1fr 32px; } .p-imp-n { grid-column: 1 / -1; } }
 
 /* ───── four sections: 🏠 الرئيسية · 🧴 عطوري · 📊 الأرقام · 🏪 متجري ───── */
