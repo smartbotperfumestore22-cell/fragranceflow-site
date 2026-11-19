@@ -1604,19 +1604,30 @@ async function bulkPhotos(files) {
     if (seen.has(r.p.perfume_id)) { r.p = null; r.why = "صورة أخرى لنفس العطر"; continue; }
     seen.add(r.p.perfume_id);
   }
-  const ok = rows.filter((r) => r.p), no = rows.filter((r) => !r.p);
-  const replacing = ok.filter((r) => r.p.image_url).length;
-  const line = (r) => r.p
+  S.bpReplace = false;   // par defaut on ne touche pas aux photos deja en place
+  bulkReview(rows);
+}
+// what will be uploaded, and what will not — recomputed when «استبدل» is toggled
+function bulkReview(rows) {
+  const el = document.getElementById("tab");
+  const keep = (r) => r.p && (S.bpReplace || !r.p.image_url);
+  const ok = rows.filter(keep), no = rows.filter((r) => !keep(r));
+  const have = rows.filter((r) => r.p && r.p.image_url).length;
+  const line = (r) => keep(r)
     ? `<li class="p-bulk-ok"><span dir="ltr" class="p-bulk-f">${esc(r.name)}</span><b dir="ltr">${esc(r.p.brand)} ${esc(r.p.name)}</b>${r.p.image_url ? '<small>تبديل الصورة الحالية</small>' : ""}</li>`
-    : `<li class="p-bulk-no"><span dir="ltr" class="p-bulk-f">${esc(r.name)}</span><small>${esc(r.why)}</small></li>`;
+    : `<li class="p-bulk-no"><span dir="ltr" class="p-bulk-f">${esc(r.name)}</span><small>${esc(r.p ? "له صورة بالفعل" : r.why)}</small></li>`;
   el.innerHTML = `<div class="p-imp">
-    <h2 class="p-imp-h">📷 رفع مجموعة صور <small class="p-small">${fmt(files.length)} ملف</small></h2>
-    ${ok.length ? `<section class="p-imp-sec"><h3>✅ جاهزة <small>${photoN(ok.length)}${replacing ? ` · منها ${fmt(replacing)} ستبدّل صورة حالية` : ""}</small></h3><ul class="p-bulk">${ok.map(line).join("")}</ul></section>` : ""}
+    <h2 class="p-imp-h">📷 رفع مجموعة صور <small class="p-small">${fmt(rows.length)} ملف</small></h2>
+    ${have ? `<label class="p-bulk-opt"><input type="checkbox" id="bp-rep"${S.bpReplace ? " checked" : ""}>
+      <span>استبدل الصور الموجودة <small class="p-small">${fmt(have)} عطر لهم صورة. بدون هذا الخيار تبقى صورهم كما هي.</small></span></label>` : ""}
+    ${ok.length ? `<section class="p-imp-sec"><h3>✅ جاهزة <small>${photoN(ok.length)}</small></h3><ul class="p-bulk">${ok.map(line).join("")}</ul></section>` : ""}
     ${no.length ? `<section class="p-imp-sec"><h3>⚠️ لن تُرفع <small>${photoN(no.length)}</small></h3><ul class="p-bulk">${no.map(line).join("")}</ul></section>` : ""}
     <div class="p-imp-foot" id="bp-foot">
-      ${ok.length ? "" : '<p class="p-imp-warn">لم نتعرف على أي صورة. سمّ كل ملف برقم العطر، مثلاً: PFM-000109 - Afnan 9 PM.webp</p>'}
+      ${rows.some((r) => r.p) ? "" : '<p class="p-imp-warn">لم نتعرف على أي صورة. سمّ كل ملف برقم العطر، مثلاً: PFM-000109 - Afnan 9 PM.webp</p>'}
       <div class="p-imp-acts"><button type="button" class="d-btn" id="bp-go"${ok.length ? "" : " disabled"}>ارفع ${photoN(ok.length)}</button>
       <button type="button" class="p-link" id="bp-cancel">إلغاء</button></div></div></div>`;
+  const rep = document.getElementById("bp-rep");
+  if (rep) rep.onchange = () => { S.bpReplace = rep.checked; bulkReview(rows); };
   document.getElementById("bp-cancel").onclick = tabPerfumes;
   document.getElementById("bp-go").onclick = () => runBulkPhotos(ok);
 }
