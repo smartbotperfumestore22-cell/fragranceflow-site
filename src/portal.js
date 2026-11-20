@@ -212,8 +212,36 @@ function serverList(opts, drawRow, onDraw) {
 }
 
 // ───────────── page ─────────────
+// un abonnement paye se termine a sub_ends_at, puis 48 h de grace avant que le quiz s'arrete.
+// sub_ends_at vide = rien n'est encore enregistre: la boutique reste visible, comme avant.
+const GRACE = 48;
+const WA_RIHAFLOW = "https://wa.me/212654091373?text=";
+const subHours = (s) => (s.subscription_status === "active" && s.sub_ends_at
+  ? (new Date(s.sub_ends_at) - Date.now()) / 36e5 : null);
+const subOff = (s) => { const h = subHours(s); return h !== null && h <= -GRACE; };
+const heureAr = (n) => (n === 1 ? "ساعة واحدة" : n === 2 ? "ساعتين" : `${n} ${n <= 10 ? "ساعات" : "ساعة"}`);
+const jourAr = (n) => (n === 1 ? "يوم واحد" : n === 2 ? "يومين" : `${n} ${n <= 10 ? "أيام" : "يوماً"}`);
+const renewLink = (s, txt) => `<a class="p-link" target="_blank" rel="noopener" href="${WA_RIHAFLOW}${
+  encodeURIComponent(`السلام عليكم، بغيت نجدد اشتراك ${s.name} فـRihaFlow.`)}">${txt}</a>`;
+
+// ce que le marchand lit en haut de son espace: l'essai, puis l'abonnement qui se termine
 function trialBanner(s) {
-  if (s.subscription_status === "active") return "";
+  if (s.subscription_status === "active") {
+    const h = subHours(s);
+    if (h === null) return "";
+    if (h > 0) {
+      const n = Math.ceil(h / 24);
+      if (n > 7) return "";
+      const fin = `ينتهي اشتراكك يوم <b>${dateAr(s.paid_until)}</b>، المتبقي ${jourAr(n)}`;
+      if (n > 3) return `<p class="p-banner">${fin}. ${renewLink(s, "جدّد الآن")}</p>`;
+      return `<p class="p-banner is-bad">${fin} فقط. بعد انتهائه لديك ${GRACE} ساعة إضافية، ثم تتوقف عطورك عن الظهور للزبناء. ${renewLink(s, "جدّد الآن")}</p>`;
+    }
+    if (h > -GRACE) {
+      const r = Math.max(1, Math.ceil(h + GRACE));
+      return `<p class="p-banner is-bad">انتهى اشتراكك يوم ${dateAr(s.paid_until)}. عطورك ما زالت تظهر للزبناء، وتتوقف بعد <b>${heureAr(r)}</b>. ${renewLink(s, "جدّد الآن")}</p>`;
+    }
+    return `<p class="p-banner is-bad">انتهى اشتراكك يوم ${dateAr(s.paid_until)}، وعطورك لم تعد تظهر للزبناء. كل بياناتك محفوظة وتعود فور التجديد. ${renewLink(s, "جدّد الاشتراك")}</p>`;
+  }
   if (s.subscription_status === "trial" && s.trial_ends_at) {
     const n = daysLeft(s.trial_ends_at);
     if (n > 0) return `<p class="p-banner">الفترة التجريبية: بقي لك <b>${n} ${n === 1 ? "يوم" : "أيام"}</b> (إلى غاية ${dateAr(s.trial_ends_at)}). عطورك تظهر للزبناء.</p>`;
@@ -241,7 +269,13 @@ const SECTIONS = [["home", ICON.home, "الرئيسية"], ["perfumes", ICON.per
 const greeting = () => (new Date().getHours() < 12 ? "صباح الخير" : "مساء الخير");
 // the account's state in one chip next to the store's name
 function subChip(s) {
-  if (s.subscription_status === "active") return '<span class="p-chip is-ok"><i></i>الاشتراك مفعّل</span>';
+  if (s.subscription_status === "active") {
+    const h = subHours(s);
+    if (h === null || h > 7 * 24) return '<span class="p-chip is-ok"><i></i>الاشتراك مفعّل</span>';
+    if (h <= -GRACE) return '<span class="p-chip is-bad"><i></i>لا يظهر للزبناء</span>';
+    if (h <= 0) return `<span class="p-chip is-trial"><i></i>انتهى · ${heureAr(Math.max(1, Math.ceil(h + GRACE)))}</span>`;
+    return `<span class="p-chip is-trial"><i></i>اشتراك · ${jourAr(Math.ceil(h / 24))}</span>`;
+  }
   if (subBad(s)) return '<span class="p-chip is-bad"><i></i>لا يظهر للزبناء</span>';
   if (s.subscription_status === "trial" && s.trial_ends_at) { const n = daysLeft(s.trial_ends_at); return `<span class="p-chip is-trial"><i></i>تجربة · ${n} ${n === 1 ? "يوم" : "أيام"}</span>`; }
   return "";
@@ -253,7 +287,7 @@ const hasPrice = (o) => vlist(o).some((v) => Number(v.price) > 0) || Number(o.pr
 const onbKey = () => "ff_onb_" + S.store.id;
 function onbGet() { try { return JSON.parse(localStorage.getItem(onbKey()) || "{}"); } catch (e) { return {}; } }
 function onbSet(k) { try { localStorage.setItem(onbKey(), JSON.stringify({ ...onbGet(), [k]: 1 })); } catch (e) { /* private mode */ } }
-const subBad = (s) => (s.subscription_status === "trial" && s.trial_ends_at && daysLeft(s.trial_ends_at) <= 0) || s.subscription_status === "paused" || s.subscription_status === "cancelled";
+const subBad = (s) => (s.subscription_status === "trial" && s.trial_ends_at && daysLeft(s.trial_ends_at) <= 0) || s.subscription_status === "paused" || s.subscription_status === "cancelled" || subOff(s);
 
 function render() {
   if (S.mode === "team") return renderTeam();
@@ -285,7 +319,7 @@ function render() {
       ${!S.admin && S.stores.length > 1 ? `<label class="p-pick">المتجر<select id="s-store">${S.stores.map((x) => `<option value="${esc(x.id)}"${x.id === s.id ? " selected" : ""}>${esc(x.name)}</option>`).join("")}</select></label>` : ""}
     </section>
     <nav class="p-nav" aria-label="الأقسام">${SECTIONS.map(([k, i, l]) => `<button type="button" data-sec="${k}"${sec === k ? ' aria-current="page"' : ""}><span class="p-nav-i">${i}</span>${l}</button>`).join("")}</nav>
-    ${sec !== "home" && subBad(s) ? trialBanner(s) : ""}
+    ${sec !== "home" ? trialBanner(s) : ""}
     ${top}
     ${sec === "store" ? `<h2 class="p-sec-h">شارك متجرك</h2>${linkCard(s)}<h2 class="p-sec-h">المعلومات وصفحة الكويز</h2>` : ""}
     <section id="tab" class="${wide ? "p-wide-tab" : "d-card p-panel"}"></section>
@@ -334,7 +368,7 @@ function tabHome() {
     ["shared", "شارك رابط متجرك", "في البيو على Instagram، أو عبر الواتساب، أو QR في المحل", !!f.shared, '<button type="button" class="d-btn ghost" id="b-home-copy">انسخ الرابط</button>'],
   ];
   const done = steps.filter((x) => x[3]).length, allDone = done === steps.length;
-  const status = subBad(s) ? trialBanner(s) : "";   // the chip in the header says the rest
+  const status = trialBanner(s);   // the chip in the header says the rest
   el.innerHTML = `${status}
     <section class="p-hero" aria-labelledby="p-week-t">
       <div class="p-hero-top"><h2 id="p-week-t">زيارات الكويز · آخر 7 أيام</h2><span class="p-hero-diff" id="p-hero-diff" hidden></span></div>
@@ -1109,7 +1143,13 @@ async function tabStores() {
 // what customers see: [css class, label] from the store's subscription (same rule as store_is_live in Supabase)
 function storeState(s) {
   if (s.active === false) return ["off", "موقوف"];
-  if (s.subscription_status === "active") return ["on", "مفعّل"];
+  if (s.subscription_status === "active") {
+    const h = subHours(s);
+    if (h === null || h > 7 * 24) return ["on", "مفعّل"];
+    if (h <= -GRACE) return ["off", "انتهى الاشتراك"];
+    if (h <= 0) return ["trial", "مهلة 48 ساعة"];
+    return ["trial", `يبقى ${jourAr(Math.ceil(h / 24))}`];
+  }
   if (s.subscription_status === "trial") return s.trial_ends_at && daysLeft(s.trial_ends_at) <= 0 ? ["off", "انتهت التجربة"] : ["trial", "تجربة"];
   return ["off", SUB_LABEL[s.subscription_status] || "لا يظهر"];
 }
@@ -1765,9 +1805,13 @@ function tabSubs() {
   el.innerHTML = `<p class="p-small">التاجر لا يرى هذه الصفحة، والـ Agent لا يستطيع تغيير الاشتراك. المتجر في التجربة أو المفعّل يظهر للزبناء.</p>
     <ul class="p-reqs p-subs">${list.map((x) => {
       const st = x.subscription_status, end = x.trial_ends_at ? isoDay(x.trial_ends_at) : "";
-      const late = st === "trial" && x.trial_ends_at && daysLeft(x.trial_ends_at) <= 0;
+      const h = subHours(x);
+      const late = (st === "trial" && x.trial_ends_at && daysLeft(x.trial_ends_at) <= 0) || (h !== null && h <= 0);
+      // un abonnement paye: «مؤدى حتى» vient du dernier paiement, et dit ou en est la grace
+      const paye = h === null ? "" : h > 0 ? " · مؤدى حتى " + dateAr(x.paid_until)
+        : h > -GRACE ? " · انتهى، مهلة " + heureAr(Math.max(1, Math.ceil(h + GRACE))) : " · توقف يوم " + dateAr(x.paid_until);
       return `<li data-sid="${esc(x.id)}"><div><b>${esc(x.name)}</b><small dir="ltr">${esc(x.id)}</small>
-          <small class="${late ? "p-sub-late" : ""}">${SUB_LABEL[st] || st}${st === "trial" && end ? (late ? " · انتهت يوم " : " · حتى ") + dateAr(x.trial_ends_at) : ""}</small></div>
+          <small class="${late ? "p-sub-late" : ""}">${SUB_LABEL[st] || st}${st === "trial" && end ? (late ? " · انتهت يوم " : " · حتى ") + dateAr(x.trial_ends_at) : paye}</small></div>
         <div class="p-sub-edit"><label><span class="sr">الاشتراك</span><select data-f="status">${Object.entries(SUB_LABEL).map(([k, l]) => `<option value="${k}"${k === st ? " selected" : ""}>${l}</option>`).join("")}</select></label>
           <label class="p-sub-end"${st === "trial" ? "" : " hidden"}><span class="sr">نهاية التجربة</span><input type="date" data-f="end" value="${esc(end && !late ? end : isoDay(Date.now() + 7 * 864e5))}" dir="ltr"></label>
           <button type="button" class="d-btn" data-save>حفظ</button></div></li>`; }).join("") || '<li class="d-empty">لا توجد متاجر بعد.</li>'}</ul>`;
