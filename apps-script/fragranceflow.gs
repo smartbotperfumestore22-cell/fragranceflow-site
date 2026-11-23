@@ -870,6 +870,16 @@ var TEAM_ACTIONS = {
     return { ok: true, log: { target: who } };
   },
 };
+// a merchant's login: linked to at least one store, and not part of the RihaFlow team
+function isMerchantAccount_(uid) {
+  var team = sbCall_('get', 'rest/v1/admins?select=user_id&user_id=eq.' + encodeURIComponent(uid));
+  if (team.code !== 200) throw new Error('تعذّر التحقق من الحساب. عاود المحاولة.');
+  if ((team.data || []).length) return false;
+  var m = sbCall_('get', 'rest/v1/store_members?select=user_id&user_id=eq.' + encodeURIComponent(uid));
+  if (m.code !== 200) throw new Error('تعذّر التحقق من الحساب. عاود المحاولة.');
+  return (m.data || []).length > 0;
+}
+
 function emailOf_(uid) {
   var r = sbCall_('get', 'auth/v1/admin/users/' + uid);
   return r.code === 200 && r.data ? String(r.data.email || uid) : uid;
@@ -951,8 +961,10 @@ var MERCHANT_ACTIONS = {
       log: { store_id: sid, target: email, detail: { store_created: created, new_user: newUser } } };
   },
   // a new temporary password (when the merchant forgot theirs)
-  resetPassword: function (b) {
+  resetPassword: function (b, me) {
     if (!/^[0-9a-f-]{36}$/.test(String(b.user_id))) throw new Error('bad user');
+    // an agent resets a merchant's password, never a team account's: that would hand over the team space
+    if (me.role !== 'admin' && !isMerchantAccount_(b.user_id)) throw new Error('هذا الحساب ليس حساب تاجر. اطلب من الـ admin.');
     var password = tempPassword_();
     var r = sbCall_('put', 'auth/v1/admin/users/' + b.user_id, { password: password });
     if (r.code >= 300) throw new Error('ما تبدلاتش: ' + JSON.stringify(r.data).slice(0, 200));
