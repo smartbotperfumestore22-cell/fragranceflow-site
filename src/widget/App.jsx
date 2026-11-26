@@ -138,7 +138,7 @@ const TRANSLATIONS = {
     // Persona label
     personaLabel:  "بصمتك العطرية",
     // Decant hint
-    decantHint:    "💡 إذا لم تجربه من قبل، ابدأ بـ Décante. وإذا كنت متأكداً، خذ الزجاجة الكاملة ووفّر أكثر.",
+    decantHint:    "💡 جرّب بالديكونط إن كنت تكتشف عطراً جديداً، وخذ القنينة الكاملة إن كنت تعرف ما يناسبك.",
     // Gift badge
     giftBadge:     "عطور مناسبة للإهداء",
     giftPersona:   "🎁 اخترنا لك عطوراً مناسبة للإهداء",
@@ -146,7 +146,7 @@ const TRANSLATIONS = {
     triggerBtn:    "اكتشف عطرك",
     // Empty
     talkToUs:      "تحدث معنا",
-    decante:       "🧪 Décante",
+    decante:       "🧪 ديكونط",
     full:          "🫙 كاملة",
   },
   fr: {
@@ -211,7 +211,7 @@ const TRANSLATIONS = {
     // Persona label
     personaLabel:  "Votre signature olfactive",
     // Decant hint
-    decantHint:    "💡 Pas encore essayé ? Commencez par une décante. Sûr de vous ? Prenez le flacon complet.",
+    decantHint:    "💡 La décante pour découvrir un parfum, le flacon complet pour celui que vous connaissez déjà.",
     // Gift badge
     giftBadge:     "Parfums idéaux pour offrir",
     giftPersona:   "🎁 On a sélectionné des parfums parfaits à offrir",
@@ -4578,7 +4578,7 @@ window.track && window.track("favorite_pick", {
               <div className="ffq-seg" role="group" aria-label={lang==="fr" ? "Format" : "الحجم"}>
                 {["full","decant"].map(st=>(
                   <button key={st} type="button" aria-pressed={size===st} onClick={()=>{ if (size!==st) toggleBudgetSize(); }}>
-                    {st==="full" ? (lang==="fr" ? "Flacon complet" : "زجاجة كاملة") : "Décante"}
+                    {st==="full" ? (lang==="fr" ? "Flacon complet" : "قنينة كاملة") : (lang==="fr" ? "Décante" : "ديكونط")}
                   </button>
                 ))}
               </div>
